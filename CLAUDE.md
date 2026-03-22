@@ -14,7 +14,9 @@ This is extracted from the task scheduling model in GroundControl (`ELI7VH/groun
 
 **Web:** Single-page app. Vanilla TS + Vite. All data in localStorage. Service Worker for background timer wake-ups and push notifications (Notification API, no server).
 
-**Mobile (future):** React Native or Capacitor wrapper. Same core logic. AsyncStorage or SQLite for persistence. Local notifications via platform APIs.
+**iOS:** Native SwiftUI app (iOS 17+). Swift 6. YamaBruh SPM package for FM synth sounds. UserDefaults/JSON file for persistence. UNUserNotificationCenter for local notification scheduling. Modeled after GroundControl iOS (`ELI7VH/ground-control/ios/`).
+
+**Android:** Native Kotlin + Jetpack Compose (API 26+). SharedPreferences/DataStore for persistence. AlarmManager + NotificationManager for scheduling. Web Audio ported to AudioTrack/Oboe for yama-bruh sound generation.
 
 **No cloud. No accounts. No sync. Period.**
 
@@ -162,10 +164,17 @@ Register a service worker that:
 - Fires `Notification API` push when due, even if tab is backgrounded
 - Clicking the notification focuses the app and shows the firing overlay
 
-### 3. Mobile (future)
-- React Native: `react-native-push-notification` or `expo-notifications` for local scheduling
-- Capacitor: `@capacitor/local-notifications`
-- Schedule exact alarms per reminder. Re-schedule on app launch.
+### 3. iOS
+- `UNUserNotificationCenter` with `UNTimeIntervalNotificationTrigger` per reminder
+- Custom sound per reminder via YamaBruh WAV → `Library/Sounds/`
+- Notification actions: Done, Snooze (category `fmn-reminder`)
+- Reschedule all on app launch (notifications are cleared on reboot)
+
+### 4. Android
+- `AlarmManager.setExactAndAllowWhileIdle` per reminder
+- `BroadcastReceiver` fires notification with custom WAV sound
+- `BootReceiver` re-schedules all alarms after device reboot
+- Notification actions: Done, Snooze
 
 ## Tech Stack
 
@@ -220,6 +229,564 @@ All commits must include:
 ```
 Co-Authored-By: Ana Iliovic <ana@thevii.app>
 ```
+
+## iOS App
+
+Native SwiftUI, following the same architecture as GroundControl iOS (`ELI7VH/ground-control/ios/`). Same patterns, same conventions, scaled down to just reminders.
+
+### Architecture (from GC iOS)
+
+- **SwiftUI + @Observable** (iOS 17 Observable macro, not ObservableObject)
+- **@MainActor** on store class for thread safety
+- State passed via `.environment(store)`
+- Dark theme forced: `.preferredColorScheme(.dark)`
+- No SwiftData/CoreData — JSON file persistence
+
+### Data Model (Swift)
+
+```swift
+struct Reminder: Codable, Identifiable, Equatable {
+    let id: String              // nanoid, doubles as yama-bruh seed
+    var title: String
+    var description: String?
+
+    // Scheduling
+    var recurring: Bool
+    var cadenceSeconds: Int?    // recurrence interval
+    var dueAt: Date             // next fire time
+    var lastResetAt: Date?
+
+    // State
+    var status: ReminderStatus  // .active, .snoozed, .done, .archived
+    var snoozedUntil: Date?
+
+    // Sound
+    var presetIndex: Int?       // yama-bruh preset (0-99), nil = auto from id hash
+    var volume: Float?          // 0-1, default 0.8
+
+    // Meta
+    var createdAt: Date
+    var tags: [String]?
+}
+
+enum ReminderStatus: String, Codable, CaseIterable {
+    case active, snoozed, done, archived
+}
+```
+
+### State Management
+
+```swift
+@Observable @MainActor
+final class ReminderStore {
+    var reminders: [Reminder] = []
+
+    func create(_ reminder: Reminder)
+    func update(_ reminder: Reminder)
+    func complete(_ id: String)        // done for one-shot, advance cadence for recurring
+    func reset(_ id: String)           // reset recurring to now + cadence
+    func snooze(_ id: String)          // push 75% into cadence (matching GC snooze)
+    func archive(_ id: String)
+    func delete(_ id: String)
+
+    func persist()                     // write to JSON file
+    func load()                        // read from JSON file
+}
+```
+
+### Persistence
+
+```swift
+// ~/Documents/reminders.json — simple JSON file, no CoreData
+private let fileURL: URL = {
+    FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        .appendingPathComponent("reminders.json")
+}()
+```
+
+### Sound: YamaBruh SPM Integration
+
+Add YamaBruh as a local SPM dependency (same as GC iOS does):
+
+```swift
+// Package dependency in Xcode project or Package.swift:
+.package(path: "../../yama-bruh")  // or publish to GitHub and use URL
+```
+
+**Notification sound generation** (ported from GC iOS `NotificationSoundGenerator.swift`):
+
+```swift
+import YamaBruh
+
+func generateNotificationSound(for reminder: Reminder) -> URL {
+    let seed = djb2Hash(reminder.id)
+    let appSeed = djb2Hash("forget-me-not")
+    let presetIdx = reminder.presetIndex ?? Int(seed % 100)
+
+    let wavData = Ringtone.generate(
+        seed: seed,
+        appSeed: appSeed,
+        presetIndex: presetIdx,
+        bpm: 140,
+        sampleRate: 44100
+    )
+
+    // Write to Library/Sounds for UNNotificationSound
+    let soundsDir = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)[0]
+        .appendingPathComponent("Sounds", isDirectory: true)
+    try? FileManager.default.createDirectory(at: soundsDir, withIntermediateDirectories: true)
+
+    let soundURL = soundsDir.appendingPathComponent("fmn-\(reminder.id).wav")
+    try? wavData.write(to: soundURL)
+    return soundURL
+}
+
+// DJB2 hash (matches JS and Rust implementations for cross-platform determinism)
+func djb2Hash(_ str: String) -> UInt32 {
+    var hash: UInt32 = 5381
+    for c in str.utf8 { hash = ((hash &<< 5) &+ hash) &+ UInt32(c) }
+    return hash
+}
+```
+
+**In-app preview playback** (from GC iOS `AudioEngine` pattern):
+
+```swift
+import AVFoundation
+import YamaBruh
+
+final class SoundEngine: ObservableObject {
+    private let engine = AVAudioEngine()
+    private let playerNode = AVAudioPlayerNode()
+    @Published var isPlaying = false
+
+    init() {
+        engine.attach(playerNode)
+        engine.connect(playerNode, to: engine.mainMixerNode, format: nil)
+    }
+
+    func preview(reminder: Reminder) {
+        let seed = djb2Hash(reminder.id)
+        let appSeed = djb2Hash("forget-me-not")
+        let wavData = Ringtone.generate(seed: seed, appSeed: appSeed,
+            presetIndex: reminder.presetIndex, bpm: 140, sampleRate: 44100)
+        playWavData(wavData)
+    }
+
+    func previewPreset(_ index: Int) {
+        let wavData = Ringtone.generate(seed: 42, appSeed: 0,
+            presetIndex: index, bpm: 140, sampleRate: 44100)
+        playWavData(wavData)
+    }
+
+    private func playWavData(_ data: Data) {
+        // write to temp, load as AVAudioFile, schedule on playerNode
+        // (same pattern as yama-bruh AudioEngine.swift)
+    }
+}
+```
+
+### Notifications
+
+```swift
+import UserNotifications
+
+@MainActor
+final class NotificationScheduler {
+    static let shared = NotificationScheduler()
+
+    func requestPermission() async -> Bool {
+        try? await UNUserNotificationCenter.current()
+            .requestAuthorization(options: [.alert, .sound, .badge])
+        return true  // simplified
+    }
+
+    func schedule(_ reminder: Reminder) {
+        let content = UNMutableNotificationContent()
+        content.title = "forget-me-not"
+        content.body = reminder.title
+        content.categoryIdentifier = "fmn-reminder"
+        content.sound = UNNotificationSound(named:
+            UNNotificationSoundName("fmn-\(reminder.id).wav"))
+
+        let trigger = UNTimeIntervalNotificationTrigger(
+            timeInterval: max(1, reminder.dueAt.timeIntervalSinceNow),
+            repeats: false
+        )
+
+        let request = UNNotificationRequest(
+            identifier: reminder.id,
+            content: content,
+            trigger: trigger
+        )
+        UNUserNotificationCenter.current().add(request)
+    }
+
+    func cancel(_ id: String) {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
+    }
+
+    /// Re-schedule all active reminders (call on app launch)
+    func rescheduleAll(_ reminders: [Reminder]) {
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        reminders.filter { $0.status == .active && $0.dueAt > Date() }
+            .forEach { schedule($0) }
+    }
+}
+```
+
+**Notification actions** (from GC iOS pattern):
+
+```swift
+// In AppDelegate or App init:
+let doneAction = UNNotificationAction(identifier: "done", title: "Done")
+let snoozeAction = UNNotificationAction(identifier: "snooze", title: "Snooze")
+let category = UNNotificationCategory(identifier: "fmn-reminder",
+    actions: [doneAction, snoozeAction], intentIdentifiers: [])
+UNUserNotificationCenter.current().setNotificationCategories([category])
+
+// In UNUserNotificationCenterDelegate:
+func userNotificationCenter(_ center: UNUserNotificationCenter,
+    didReceive response: UNNotificationResponse) async {
+    let id = response.notification.request.identifier
+    switch response.actionIdentifier {
+    case "done": store.complete(id)
+    case "snooze": store.snooze(id)
+    default: break // tapped notification — open app to firing view
+    }
+}
+```
+
+### Views
+
+Follow GC iOS view patterns:
+
+| View | Purpose | GC Equivalent |
+|------|---------|---------------|
+| `ContentView` | Single tab, reminder list | `ContentView.swift` (simplified, no tabs) |
+| `ReminderListView` | Main list, sorted by dueAt, swipe actions | `TaskListView.swift` |
+| `ReminderRowView` | Card with title, time-until-due, preset name, recurring badge | `TaskRowView.swift` |
+| `ReminderDetailView` | Edit form: title, cadence, preset picker, volume | `TaskDetailView.swift` |
+| `ReminderCreateView` | Create sheet | `TaskCreateView.swift` |
+| `PresetPickerView` | Grid of 99 preset names, tap to preview | (new) |
+| `FiringView` | Full-screen overlay when reminder fires, pulsing + ringtone loop | (new) |
+
+### Design Tokens
+
+```swift
+enum FMNTheme {
+    static let accent = Color(hex: "#f49e4c")   // amber/orange
+    static let bg = Color(hex: "#0d1117")
+    static let surface = Color(hex: "#161b22")
+    static let text = Color(hex: "#c9d1d9")
+    static let muted = Color(hex: "#4a6a78")
+    static let red = Color(hex: "#ab3428")
+
+    static func mono(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
+        .system(size: size, weight: weight, design: .monospaced)
+    }
+}
+```
+
+### Project Configuration
+
+```yaml
+# project.yml (XcodeGen)
+name: ForgetMeNot
+settings:
+  SWIFT_VERSION: "6.0"
+  TARGETED_DEVICE_FAMILY: "1,2"  # iPhone + iPad
+targets:
+  ForgetMeNot:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources: [Sources]
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: ca.lucianlabs.forgetmenot
+      INFOPLIST_VALUES:
+        CFBundleDisplayName: forget-me-not
+        UIBackgroundModes: [audio, processing]
+    dependencies:
+      - package: YamaBruh
+```
+
+### File Structure (iOS)
+
+```
+ios/
+  project.yml                     # XcodeGen config
+  Sources/
+    ForgetMeNotApp.swift          # @main, AppDelegate, notification delegate
+    ContentView.swift             # Root view
+    Models/
+      Reminder.swift              # Reminder struct + ReminderStatus enum
+    State/
+      ReminderStore.swift         # @Observable store, JSON persistence
+    Sound/
+      SoundEngine.swift           # AVAudioEngine + YamaBruh preview playback
+      NotificationSoundGen.swift  # Generate WAV → Library/Sounds
+    Notifications/
+      NotificationScheduler.swift # UNUserNotificationCenter scheduling + actions
+    Views/
+      ReminderListView.swift
+      ReminderRowView.swift
+      ReminderDetailView.swift
+      ReminderCreateView.swift
+      PresetPickerView.swift
+      FiringView.swift
+    Config/
+      FMNTheme.swift              # Design tokens
+    Utils/
+      DJB2.swift                  # Hash function
+      TimeFormat.swift            # Relative time strings
+  Assets.xcassets/
+```
+
+---
+
+## Android App
+
+Native Kotlin + Jetpack Compose. Same data model and UX as iOS, adapted to Android platform conventions.
+
+### Architecture
+
+- **Jetpack Compose** for UI (Material 3, dark theme)
+- **ViewModel + StateFlow** for state management
+- **DataStore (Preferences)** or JSON file for persistence — no Room, no SQLite
+- **AlarmManager** for exact alarm scheduling
+- **NotificationManager** for local notifications with custom sound
+
+### Data Model (Kotlin)
+
+```kotlin
+@Serializable
+data class Reminder(
+    val id: String,                    // nanoid
+    val title: String,
+    val description: String? = null,
+    val recurring: Boolean = false,
+    val cadenceSeconds: Int? = null,
+    val dueAt: Long,                   // unix ms
+    val lastResetAt: Long? = null,
+    val status: ReminderStatus = ReminderStatus.ACTIVE,
+    val snoozedUntil: Long? = null,
+    val presetIndex: Int? = null,      // yama-bruh preset 0-99
+    val volume: Float? = null,
+    val createdAt: Long = System.currentTimeMillis(),
+    val tags: List<String>? = null
+)
+
+@Serializable
+enum class ReminderStatus { ACTIVE, SNOOZED, DONE, ARCHIVED }
+```
+
+### State Management
+
+```kotlin
+class ReminderViewModel(private val store: ReminderStore) : ViewModel() {
+    val reminders: StateFlow<List<Reminder>> = store.reminders
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    fun create(reminder: Reminder)
+    fun complete(id: String)
+    fun reset(id: String)
+    fun snooze(id: String)        // 75% cadence push
+    fun archive(id: String)
+    fun delete(id: String)
+}
+```
+
+### Persistence
+
+```kotlin
+// JSON file in app internal storage — same approach as iOS
+class ReminderStore(private val context: Context) {
+    private val file = File(context.filesDir, "reminders.json")
+    private val json = Json { ignoreUnknownKeys = true }
+
+    val reminders: Flow<List<Reminder>> = /* MutableStateFlow backed by file reads */
+
+    fun save(reminders: List<Reminder>) {
+        file.writeText(json.encodeToString(reminders))
+    }
+}
+```
+
+### Sound: YamaBruh Port
+
+Android doesn't have the YamaBruh Swift package. Two options:
+
+**Option A (recommended): Port yamabruh-notify.js synthesis to Kotlin**
+The JS notification engine is ~400 lines of pure Web Audio math. Port the OPLL synthesis, ADSR envelopes, and sequence generator to Kotlin. Render to PCM buffer, play via `AudioTrack`.
+
+```kotlin
+object YamaBruhSynth {
+    // All 99 presets embedded (port from YAMABRUH_PRESETS array in yamabruh-notify.js)
+    private val PRESETS: Array<FloatArray> = arrayOf(/* ... */)
+
+    fun generateRingtone(seed: String, presetIndex: Int, bpm: Int = 140,
+                         sampleRate: Int = 44100): ShortArray {
+        val noteSeed = djb2Hash(seed)
+        val notes = generateSequence(noteSeed, 3 + (noteSeed % 3).toInt())
+        return renderNotes(notes, PRESETS[presetIndex], bpm, sampleRate)
+    }
+
+    fun generateWav(seed: String, presetIndex: Int): ByteArray {
+        val pcm = generateRingtone(seed, presetIndex)
+        return encodeWav(pcm, 44100)
+    }
+
+    private fun djb2Hash(str: String): UInt {
+        var hash: UInt = 5381u
+        for (c in str.toByteArray(Charsets.UTF_8)) {
+            hash = ((hash shl 5) + hash + c.toUInt())
+        }
+        return hash
+    }
+}
+```
+
+**Option B: Use yama-bruh WASM via WebView**
+Run `yamabruh-notify.js` in a headless WebView, pipe audio out via JavaScriptInterface. Hacky but functional for v1.
+
+### Notifications
+
+```kotlin
+class ReminderAlarmScheduler(private val context: Context) {
+    private val alarmManager = context.getSystemService(AlarmManager::class.java)
+
+    fun schedule(reminder: Reminder) {
+        val intent = Intent(context, ReminderReceiver::class.java).apply {
+            putExtra("reminder_id", reminder.id)
+        }
+        val pending = PendingIntent.getBroadcast(context, reminder.id.hashCode(),
+            intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP, reminder.dueAt, pending
+        )
+    }
+
+    fun cancel(id: String) {
+        val intent = Intent(context, ReminderReceiver::class.java)
+        val pending = PendingIntent.getBroadcast(context, id.hashCode(),
+            intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        alarmManager.cancel(pending)
+    }
+}
+
+class ReminderReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        val reminderId = intent.getStringExtra("reminder_id") ?: return
+
+        // Generate notification sound WAV → write to cache dir
+        val wavBytes = YamaBruhSynth.generateWav(reminderId, presetIndex)
+        val soundFile = File(context.cacheDir, "fmn-$reminderId.wav")
+        soundFile.writeBytes(wavBytes)
+        val soundUri = FileProvider.getUriForFile(context, "${context.packageName}.provider", soundFile)
+
+        val notification = NotificationCompat.Builder(context, "fmn-reminders")
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("forget-me-not")
+            .setContentText(/* load title from store */)
+            .setSound(soundUri)
+            .addAction(R.drawable.ic_done, "Done", /* done PendingIntent */)
+            .addAction(R.drawable.ic_snooze, "Snooze", /* snooze PendingIntent */)
+            .build()
+
+        NotificationManagerCompat.from(context).notify(reminderId.hashCode(), notification)
+    }
+}
+```
+
+### Design Tokens
+
+```kotlin
+object FMNTheme {
+    val accent = Color(0xFFf49e4c)
+    val bg = Color(0xFF0d1117)
+    val surface = Color(0xFF161b22)
+    val text = Color(0xFFc9d1d9)
+    val muted = Color(0xFF4a6a78)
+    val red = Color(0xFFab3428)
+}
+
+// Material 3 dark color scheme using these tokens
+val FMNColorScheme = darkColorScheme(
+    primary = FMNTheme.accent,
+    background = FMNTheme.bg,
+    surface = FMNTheme.surface,
+    onBackground = FMNTheme.text,
+    onSurface = FMNTheme.text,
+    error = FMNTheme.red,
+)
+```
+
+### File Structure (Android)
+
+```
+android/
+  app/
+    src/main/
+      java/ca/lucianlabs/forgetmenot/
+        ForgetMeNotApp.kt           # Application class, notification channel
+        MainActivity.kt             # Single activity, Compose entry
+        data/
+          Reminder.kt               # Data class + enum
+          ReminderStore.kt           # JSON file persistence
+        viewmodel/
+          ReminderViewModel.kt       # StateFlow, CRUD operations
+        sound/
+          YamaBruhSynth.kt           # FM synthesis engine (ported from JS)
+          SoundPlayer.kt             # AudioTrack playback for previews
+        notifications/
+          ReminderAlarmScheduler.kt  # AlarmManager scheduling
+          ReminderReceiver.kt        # BroadcastReceiver → notification
+          BootReceiver.kt            # Re-schedule alarms after reboot
+        ui/
+          theme/
+            Theme.kt                 # Material 3 dark theme
+            Color.kt                 # FMNTheme tokens
+          screens/
+            ReminderListScreen.kt
+            ReminderDetailScreen.kt
+            ReminderCreateScreen.kt
+            PresetPickerScreen.kt
+            FiringScreen.kt
+          components/
+            ReminderCard.kt
+            CadencePicker.kt
+      res/
+        drawable/                    # Icons
+        values/                      # Strings
+      AndroidManifest.xml            # permissions: SCHEDULE_EXACT_ALARM, RECEIVE_BOOT_COMPLETED, POST_NOTIFICATIONS
+    build.gradle.kts
+  build.gradle.kts
+  settings.gradle.kts
+```
+
+### Permissions (AndroidManifest.xml)
+
+```xml
+<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+<uses-permission android:name="android.permission.VIBRATE" />
+```
+
+### Dependencies (build.gradle.kts)
+
+```kotlin
+dependencies {
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json")
+    // No networking libraries — zero cloud
+}
+```
+
+---
 
 ## What NOT to Build
 

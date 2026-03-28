@@ -25,9 +25,11 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
 
   const card = el('div', { className: 'fmn-card' })
 
-  // Task title — visible, accent-colored, editable on click
-  const titleDisplay = el('h2', { style: 'font-size:20px;font-weight:600;color:var(--accent);margin-bottom:12px;cursor:text;font-family:var(--font-header);' }, task.title)
-  const titleInput = el('input', { type: 'text', value: task.title, style: 'display:none;font-size:20px;font-weight:600;color:var(--accent);background:var(--bg);border:1px solid var(--accent);border-radius:var(--radius);padding:4px 8px;width:100%;font-family:var(--font-header);margin-bottom:12px;' }) as HTMLInputElement
+  // Title row — title + category inline
+  const titleRow = el('div', { style: 'display:flex;align-items:baseline;gap:10px;margin-bottom:12px;' })
+
+  const titleDisplay = el('h2', { style: 'font-size:20px;font-weight:600;color:var(--accent);cursor:text;font-family:var(--font-header);flex:1;' }, task.title)
+  const titleInput = el('input', { type: 'text', value: task.title, style: 'display:none;font-size:20px;font-weight:600;color:var(--accent);background:var(--bg);border:1px solid var(--accent);border-radius:var(--radius);padding:4px 8px;flex:1;font-family:var(--font-header);' }) as HTMLInputElement
 
   titleDisplay.onclick = () => {
     titleDisplay.style.display = 'none'
@@ -45,8 +47,14 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
   }
   titleInput.onkeydown = (e) => { if (e.key === 'Enter') titleInput.blur() }
 
-  card.appendChild(titleDisplay)
-  card.appendChild(titleInput)
+  titleRow.appendChild(titleDisplay)
+  titleRow.appendChild(titleInput)
+
+  if (task.domain) {
+    titleRow.appendChild(el('span', { style: 'font-size:11px;color:var(--cyan);white-space:nowrap;' }, task.domain))
+  }
+
+  card.appendChild(titleRow)
 
   // Badges row
   const badgeRow = el('div', { style: 'display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;' })
@@ -78,26 +86,6 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
       navigate('detail', task.id)
     }
     badgeRow.appendChild(statusSelect)
-  }
-
-  // Priority
-  const prioritySelect = el('select', { className: `fmn-badge fmn-badge-${task.priority}` }) as HTMLSelectElement
-  prioritySelect.style.border = 'none'
-  prioritySelect.style.fontSize = '10px'
-  const priorities: TaskPriority[] = ['low', 'normal', 'high', 'critical']
-  for (const p of priorities) {
-    const opt = el('option', { value: p }, p)
-    if (p === task.priority) opt.selected = true
-    prioritySelect.appendChild(opt)
-  }
-  prioritySelect.onchange = () => {
-    updateTask(task.id, { priority: prioritySelect.value as TaskPriority })
-    navigate('detail', task.id)
-  }
-  badgeRow.appendChild(prioritySelect)
-
-  if (task.domain) {
-    badgeRow.appendChild(el('span', { style: 'font-size:11px;color:var(--cyan);' }, task.domain))
   }
 
   card.appendChild(badgeRow)
@@ -169,6 +157,23 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
     grid.appendChild(el('span', { className: 'fmn-detail-label' }, 'Parent'))
     grid.appendChild(parentLink)
   }
+
+  // Priority selector in More
+  const priorityRow = el('div', { style: 'display:flex;align-items:center;gap:8px;margin-bottom:8px;' })
+  priorityRow.appendChild(el('span', { className: 'fmn-detail-label' }, 'Priority'))
+  const prioritySelect = el('select', { className: `fmn-badge fmn-badge-${task.priority}`, style: 'border:none;font-size:10px;' }) as HTMLSelectElement
+  const priorities: TaskPriority[] = ['low', 'normal', 'high', 'critical']
+  for (const p of priorities) {
+    const opt = el('option', { value: p }, p)
+    if (p === task.priority) opt.selected = true
+    prioritySelect.appendChild(opt)
+  }
+  prioritySelect.onchange = () => {
+    updateTask(task.id, { priority: prioritySelect.value as TaskPriority })
+    navigate('detail', task.id)
+  }
+  priorityRow.appendChild(prioritySelect)
+  moreContent.appendChild(priorityRow)
 
   moreContent.appendChild(grid)
   moreWrap.appendChild(moreTrigger)

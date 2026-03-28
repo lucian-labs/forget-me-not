@@ -10,11 +10,10 @@ import { navigate } from './app'
 type CaptureState = { taskId: string; timer: number | null; mode: 'check' | 'note' }
 
 let capture: CaptureState | null = null
+let groupByCategory = false
 
 export function renderPanel(container: HTMLElement): void {
   const tasks = getTasks().filter((t) => t.status !== 'done' && t.status !== 'archived' && t.status !== 'cancelled')
-  const recurring = tasks.filter((t) => t.recurring).sort((a, b) => getUrgencyRatio(b) - getUrgencyRatio(a))
-  const oneTime = tasks.filter((t) => !t.recurring).sort((a, b) => getUrgencyRatio(b) - getUrgencyRatio(a))
 
   container.innerHTML = ''
 
@@ -35,42 +34,73 @@ export function renderPanel(container: HTMLElement): void {
     return
   }
 
-  // Recurring section
-  if (recurring.length > 0) {
-    container.appendChild(el('div', { className: 'fmn-section' }, 'Recurring'))
-    for (const task of recurring) {
-      container.appendChild(renderTaskItem(task, true))
-    }
-  }
+  // Group by category toggle
+  const toggleRow = el('div', { style: 'display:flex;align-items:center;gap:6px;margin-bottom:12px;' })
+  const checkbox = el('input', { type: 'checkbox', style: 'width:auto;' }) as HTMLInputElement
+  checkbox.checked = groupByCategory
+  checkbox.onchange = () => { groupByCategory = checkbox.checked; navigate('panel') }
+  toggleRow.appendChild(checkbox)
+  toggleRow.appendChild(el('span', { style: 'font-size:12px;color:var(--dim);' }, 'group by category'))
+  container.appendChild(toggleRow)
 
-  // One-time section
-  if (oneTime.length > 0) {
-    container.appendChild(el('div', { className: 'fmn-section' }, 'Tasks'))
-    for (const task of oneTime) {
-      container.appendChild(renderTaskItem(task, false))
-    }
+  if (groupByCategory) {
+    renderGroupedByCategory(container, tasks)
+  } else {
+    renderByType(container, tasks)
   }
 }
 
-function renderTaskItem(task: Task, isRecurring: boolean): HTMLElement {
+function renderByType(container: HTMLElement, tasks: Task[]): void {
+  const recurring = tasks.filter((t) => t.recurring).sort((a, b) => getUrgencyRatio(b) - getUrgencyRatio(a))
+  const oneTime = tasks.filter((t) => !t.recurring).sort((a, b) => getUrgencyRatio(b) - getUrgencyRatio(a))
+
+  if (recurring.length > 0) {
+    container.appendChild(el('div', { className: 'fmn-section' }, 'Recurring'))
+    for (const task of recurring) container.appendChild(renderTaskItem(task))
+  }
+
+  if (oneTime.length > 0) {
+    container.appendChild(el('div', { className: 'fmn-section' }, 'Tasks'))
+    for (const task of oneTime) container.appendChild(renderTaskItem(task))
+  }
+}
+
+function renderGroupedByCategory(container: HTMLElement, tasks: Task[]): void {
+  const groups = new Map<string, Task[]>()
+  for (const t of tasks) {
+    const cat = t.domain || 'uncategorized'
+    if (!groups.has(cat)) groups.set(cat, [])
+    groups.get(cat)!.push(t)
+  }
+  for (const [cat, catTasks] of groups) {
+    container.appendChild(el('div', { className: 'fmn-section' }, cat))
+    const sorted = catTasks.sort((a, b) => getUrgencyRatio(b) - getUrgencyRatio(a))
+    for (const task of sorted) container.appendChild(renderTaskItem(task))
+  }
+}
+
+function renderTaskItem(task: Task): HTMLElement {
   const ratio = getUrgencyRatio(task)
   const color = getUrgencyColor(ratio)
   const urgencyClass = getUrgencyClass(ratio)
   const isOverdue = ratio >= 1.0
+  const isRecurring = task.recurring
 
-  // Alert handling
-  if (isOverdue) {
-    playAlert(task.id)
-  } else {
-    clearAlert(task.id)
-  }
+  if (isOverdue) playAlert(task.id)
+  else clearAlert(task.id)
 
   const card = el('div', { className: `fmn-card fmn-task ${urgencyClass}` })
-
   const row = el('div', { className: 'fmn-task-row' })
 
-  // Check button
-  const checkBtn = createBtn('\u2713', 'btn-icon', () => startCapture(task, card, isRecurring))
+  // Check button — recurring opens capture, one-time completes directly
+  const checkBtn = createBtn('\u2713', 'btn-icon', () => {
+    if (isRecurring) {
+      startCapture(task)
+    } else {
+      completeTask(task.id, '')
+      navigate('panel')
+    }
+  })
   row.appendChild(checkBtn)
 
   // Title
@@ -78,19 +108,9 @@ function renderTaskItem(task: Task, isRecurring: boolean): HTMLElement {
   titleEl.onclick = () => navigate('detail', task.id)
   row.appendChild(titleEl)
 
-  // Domain badge
-  if (task.domain) {
-    row.appendChild(el('span', { className: 'fmn-task-category' }, task.domain))
-  }
-
   // Priority badge (one-time only)
   if (!isRecurring && task.priority !== 'normal') {
     row.appendChild(el('span', { className: `fmn-badge fmn-badge-${task.priority}` }, task.priority))
-  }
-
-  // Recurring badge
-  if (isRecurring) {
-    row.appendChild(el('span', { className: 'fmn-badge fmn-badge-recurring' }, '\u21BB'))
   }
 
   // Quick note button
@@ -110,19 +130,13 @@ function renderTaskItem(task: Task, isRecurring: boolean): HTMLElement {
   if (isRecurring && task.cadenceSeconds && task.lastResetAt) {
     const elapsed = (Date.now() - new Date(task.lastResetAt).getTime()) / 1000
     const remaining = task.cadenceSeconds - elapsed
-    if (remaining > 0) {
-      metaParts.push(`${formatTime(remaining)} left`)
-    } else {
-      metaParts.push(`${formatTime(Math.abs(remaining))} over`)
-    }
+    if (remaining > 0) metaParts.push(`${formatTime(remaining)} left`)
+    else metaParts.push(`${formatTime(Math.abs(remaining))} over`)
     metaParts.push(`every ${formatCadence(task.cadenceSeconds)}`)
   } else if (task.dueDate) {
     const remaining = (new Date(task.dueDate).getTime() - Date.now()) / 1000
-    if (remaining > 0) {
-      metaParts.push(`${formatTime(remaining)} left`)
-    } else {
-      metaParts.push(`${formatTime(Math.abs(remaining))} over`)
-    }
+    if (remaining > 0) metaParts.push(`${formatTime(remaining)} left`)
+    else metaParts.push(`${formatTime(Math.abs(remaining))} over`)
   }
   if (metaParts.length > 0) {
     card.appendChild(el('div', { className: 'fmn-task-meta' }, metaParts.join(' \u00B7 ')))
@@ -142,7 +156,7 @@ function renderTaskItem(task: Task, isRecurring: boolean): HTMLElement {
     card.appendChild(el('div', { className: 'fmn-prompt' }, `? ${randomPrompt}`))
   }
 
-  // Quick capture (if active for this task)
+  // Quick capture (recurring check or note mode)
   if (capture && capture.taskId === task.id) {
     const input = el('input', {
       className: 'fmn-capture',
@@ -153,7 +167,6 @@ function renderTaskItem(task: Task, isRecurring: boolean): HTMLElement {
     requestAnimationFrame(() => input.focus())
 
     if (capture.mode === 'note') {
-      // Note mode: no auto-timer, submit on enter only
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && input.value.trim()) {
           addActionNote(task.id, input.value.trim())
@@ -163,19 +176,19 @@ function renderTaskItem(task: Task, isRecurring: boolean): HTMLElement {
         if (e.key === 'Escape') { capture = null; navigate('panel') }
       })
     } else {
-      input.addEventListener('input', () => resetCaptureTimer(task, input, isRecurring))
+      input.addEventListener('input', () => resetCaptureTimer(task, input))
       input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') executeCapture(task, input.value, isRecurring)
+        if (e.key === 'Enter') executeCapture(task, input.value)
         if (e.key === 'Escape') { capture = null; navigate('panel') }
       })
-      startCaptureTimer(task, input, isRecurring)
+      startCaptureTimer(task, input)
     }
   }
 
   return card
 }
 
-function startCapture(task: Task, _card: HTMLElement, _isRecurring: boolean): void {
+function startCapture(task: Task): void {
   capture = { taskId: task.id, timer: null, mode: 'check' }
   navigate('panel')
 }
@@ -185,32 +198,24 @@ function startNote(task: Task): void {
   navigate('panel')
 }
 
-function startCaptureTimer(task: Task, input: HTMLInputElement, isRecurring: boolean): void {
+function startCaptureTimer(task: Task, input: HTMLInputElement): void {
   if (capture) {
     if (capture.timer) clearTimeout(capture.timer)
-    capture.timer = window.setTimeout(() => {
-      executeCapture(task, input.value, isRecurring)
-    }, 1500)
+    capture.timer = window.setTimeout(() => executeCapture(task, input.value), 1500)
   }
 }
 
-function resetCaptureTimer(task: Task, input: HTMLInputElement, isRecurring: boolean): void {
+function resetCaptureTimer(task: Task, input: HTMLInputElement): void {
   if (capture) {
     if (capture.timer) clearTimeout(capture.timer)
-    capture.timer = window.setTimeout(() => {
-      executeCapture(task, input.value, isRecurring)
-    }, 1500)
+    capture.timer = window.setTimeout(() => executeCapture(task, input.value), 1500)
   }
 }
 
-function executeCapture(task: Task, note: string, isRecurring: boolean): void {
+function executeCapture(task: Task, note: string): void {
   if (capture?.timer) clearTimeout(capture.timer)
   capture = null
-  if (isRecurring) {
-    resetTask(task.id, note)
-  } else {
-    completeTask(task.id, note)
-  }
+  resetTask(task.id, note)
   navigate('panel')
 }
 

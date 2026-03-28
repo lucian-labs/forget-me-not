@@ -599,6 +599,114 @@ input[type="range"]::-webkit-slider-thumb {
 .fmn-footer a:hover {
   text-decoration: underline;
 }
+
+/* === Task animations === */
+
+/* Midnight: clean fade */
+@keyframes animFade {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.95); }
+}
+.fmn-anim-fade { animation: animFade 0.4s ease-out forwards; }
+
+/* Sunrise: float up gently */
+@keyframes animFloat {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-40px); }
+}
+.fmn-anim-float { animation: animFloat 0.5s ease-in-out forwards; }
+
+/* Selva: grow and dissolve */
+@keyframes animGrow {
+  0% { opacity: 1; transform: scale(1); filter: blur(0); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+  100% { opacity: 0; transform: scale(1.1); filter: blur(4px); }
+}
+.fmn-anim-grow { animation: animGrow 0.5s ease-out forwards; }
+
+/* Kente: sharp geometric slide */
+@keyframes animSlide {
+  0% { opacity: 1; transform: translateX(0) scaleX(1); }
+  40% { transform: translateX(10px) scaleX(0.98); }
+  100% { opacity: 0; transform: translateX(-100%) scaleX(0.8); }
+}
+.fmn-anim-slide { animation: animSlide 0.4s cubic-bezier(0.7, 0, 0.3, 1) forwards; }
+
+/* Neon: glitch and matrix dissolve */
+@keyframes animGlitch {
+  0% { opacity: 1; transform: translate(0, 0); filter: hue-rotate(0deg); }
+  15% { transform: translate(-3px, 2px); filter: hue-rotate(90deg); }
+  30% { transform: translate(3px, -1px); filter: hue-rotate(180deg); }
+  45% { transform: translate(-2px, 3px) skewX(2deg); filter: hue-rotate(270deg); opacity: 0.7; }
+  60% { transform: translate(4px, -2px) skewX(-3deg); filter: hue-rotate(360deg); opacity: 0.5; }
+  75% { transform: translate(-1px, 1px) scaleY(0.95); opacity: 0.3; clip-path: inset(20% 0 30% 0); }
+  100% { opacity: 0; transform: translate(0, -10px) scaleY(0); filter: hue-rotate(720deg) brightness(3); }
+}
+.fmn-anim-glitch { animation: animGlitch 0.6s steps(1, end) forwards; }
+
+/* Cloud: soft drift */
+@keyframes animDrift {
+  0% { opacity: 1; transform: translateY(0) translateX(0); }
+  100% { opacity: 0; transform: translateY(-20px) translateX(30px); filter: blur(2px); }
+}
+.fmn-anim-drift { animation: animDrift 0.6s ease-in-out forwards; }
+
+/* Terracotta: crumble down */
+@keyframes animCrumble {
+  0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+  40% { transform: translateY(4px) rotate(0.5deg); }
+  100% { opacity: 0; transform: translateY(30px) rotate(2deg) scaleY(0.8); }
+}
+.fmn-anim-crumble { animation: animCrumble 0.5s ease-in forwards; }
+
+/* Matcha: zen dissolve */
+@keyframes animZen {
+  0% { opacity: 1; transform: scale(1); filter: blur(0); }
+  100% { opacity: 0; transform: scale(1.02); filter: blur(8px) brightness(1.3); }
+}
+.fmn-anim-zen { animation: animZen 0.7s ease-out forwards; }
+
+/* Vinyl: spin and shrink */
+@keyframes animSpin {
+  0% { opacity: 1; transform: rotate(0deg) scale(1); }
+  100% { opacity: 0; transform: rotate(180deg) scale(0.3); }
+}
+.fmn-anim-spin { animation: animSpin 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+/* Océano: wave ripple */
+@keyframes animWave {
+  0% { opacity: 1; transform: translateY(0) scaleX(1); }
+  30% { transform: translateY(-5px) scaleX(1.02); }
+  60% { transform: translateY(3px) scaleX(0.98); opacity: 0.5; }
+  100% { opacity: 0; transform: translateY(-20px) scaleX(0.9); }
+}
+.fmn-anim-wave { animation: animWave 0.6s ease-in-out forwards; }
+
+/* Sakura: petals float away */
+@keyframes animPetals {
+  0% { opacity: 1; transform: translateY(0) translateX(0) rotate(0deg); }
+  25% { transform: translateY(-10px) translateX(8px) rotate(3deg); }
+  50% { transform: translateY(-25px) translateX(-5px) rotate(-2deg); opacity: 0.6; }
+  75% { transform: translateY(-40px) translateX(12px) rotate(5deg); opacity: 0.3; }
+  100% { opacity: 0; transform: translateY(-60px) translateX(20px) rotate(8deg); }
+}
+.fmn-anim-petals { animation: animPetals 0.7s ease-out forwards; }
+
+/* Enter animations (reverse feel) */
+.fmn-anim-enter-fade { animation: animFade 0.3s ease-out reverse; }
+.fmn-anim-enter-float { animation: animFloat 0.3s ease-out reverse; }
+.fmn-anim-enter-grow { animation: animGrow 0.3s ease-out reverse; }
+.fmn-anim-enter-slide { animation: animSlide 0.3s ease-out reverse; }
+.fmn-anim-enter-glitch { animation: animGlitch 0.3s steps(1, end) reverse; }
+.fmn-anim-enter-drift { animation: animDrift 0.3s ease-out reverse; }
+.fmn-anim-enter-crumble { animation: animCrumble 0.3s ease-out reverse; }
+.fmn-anim-enter-zen { animation: animZen 0.3s ease-out reverse; }
+.fmn-anim-enter-spin { animation: animSpin 0.3s ease-out reverse; }
+.fmn-anim-enter-wave { animation: animWave 0.3s ease-out reverse; }
+.fmn-anim-enter-petals { animation: animPetals 0.4s ease-out reverse; }
+
+/* Prevent pointer events during animation */
+[class*="fmn-anim-"] { pointer-events: none; }
 `
 
 export function injectStyles(): void {

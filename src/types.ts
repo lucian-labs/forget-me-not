@@ -55,6 +55,15 @@ export interface ThemeColors {
   cyan: string
 }
 
+export type AnimStyle = 'fade' | 'float' | 'glitch' | 'drift' | 'crumble' | 'zen' | 'spin' | 'wave' | 'petals' | 'slide' | 'grow'
+
+export interface ThemeSoundDefaults {
+  preset: number
+  bpm: number
+  volume: number
+  mode: number
+}
+
 export interface ThemeStyle {
   name: string
   label: string
@@ -63,6 +72,8 @@ export interface ThemeStyle {
   fontSize: number
   fontFamily: string
   spacing: 'compact' | 'normal' | 'relaxed'
+  animation: AnimStyle
+  sound: ThemeSoundDefaults
 }
 
 export interface Settings {

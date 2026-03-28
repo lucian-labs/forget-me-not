@@ -6,8 +6,9 @@ import {
 import { formatTime, formatCadence, el } from './utils'
 import { playAlert, clearAlert } from './sounds'
 import { navigate } from './app'
+import { animateOut } from './animate'
 
-type CaptureState = { taskId: string; timer: number | null; mode: 'check' | 'note' }
+type CaptureState = { taskId: string; timer: number | null; mode: 'check' | 'note'; card: HTMLElement | null }
 
 let capture: CaptureState | null = null
 let groupByCategory = false
@@ -116,9 +117,13 @@ function renderTaskItem(task: Task): HTMLElement {
 
   // Snooze (recurring) or delete (one-time)
   if (isRecurring) {
-    row.appendChild(createBtn('zz', 'btn-icon btn-sm', () => { snoozeTask(task.id); navigate('panel') }))
+    row.appendChild(createBtn('zz', 'btn-icon btn-sm', () => {
+      animateOut(card).then(() => { snoozeTask(task.id); navigate('panel') })
+    }))
   } else {
-    row.appendChild(createBtn('\u00D7', 'btn-icon btn-sm', () => { archiveTask(task.id); navigate('panel') }))
+    row.appendChild(createBtn('\u00D7', 'btn-icon btn-sm', () => {
+      animateOut(card).then(() => { archiveTask(task.id); navigate('panel') })
+    }))
   }
 
   card.appendChild(row)
@@ -156,6 +161,7 @@ function renderTaskItem(task: Task): HTMLElement {
 
   // Quick capture (recurring check or note mode)
   if (capture && capture.taskId === task.id) {
+    capture.card = card
     const input = el('input', {
       className: 'fmn-capture',
       type: 'text',
@@ -187,12 +193,12 @@ function renderTaskItem(task: Task): HTMLElement {
 }
 
 function startCapture(task: Task): void {
-  capture = { taskId: task.id, timer: null, mode: 'check' }
+  capture = { taskId: task.id, timer: null, mode: 'check', card: null }
   navigate('panel')
 }
 
 function startNote(task: Task): void {
-  capture = { taskId: task.id, timer: null, mode: 'note' }
+  capture = { taskId: task.id, timer: null, mode: 'note', card: null }
   navigate('panel')
 }
 
@@ -212,13 +218,23 @@ function resetCaptureTimer(task: Task, input: HTMLInputElement): void {
 
 function executeCapture(task: Task, note: string): void {
   if (capture?.timer) clearTimeout(capture.timer)
+  const cardEl = capture?.card
   capture = null
-  if (task.recurring) {
-    resetTask(task.id, note)
-  } else {
-    completeTask(task.id, note)
+
+  const finish = () => {
+    if (task.recurring) {
+      resetTask(task.id, note)
+    } else {
+      completeTask(task.id, note)
+    }
+    navigate('panel')
   }
-  navigate('panel')
+
+  if (cardEl) {
+    animateOut(cardEl).then(finish)
+  } else {
+    finish()
+  }
 }
 
 function createBtn(text: string, className: string, onClick: () => void): HTMLButtonElement {

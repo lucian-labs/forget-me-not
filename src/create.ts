@@ -105,6 +105,39 @@ export function renderCreate(container: HTMLElement): void {
     })
   }
 
+  // Reminders
+  const prompts: string[] = []
+  const promptGroup = el('div', { className: 'fmn-form-group', style: 'margin-top:12px;' })
+  promptGroup.appendChild(el('label', {}, 'Reminders'))
+  const promptList = el('div', { style: 'margin-bottom:6px;' })
+  promptGroup.appendChild(promptList)
+
+  const promptAddRow = el('div', { className: 'fmn-inline-add' })
+  const promptInput = el('input', { type: 'text', placeholder: 'e.g. Did you check the pockets?' }) as HTMLInputElement
+  promptInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && promptInput.value.trim()) {
+      e.preventDefault()
+      prompts.push(promptInput.value.trim())
+      promptInput.value = ''
+      renderPromptList()
+    }
+  })
+  promptAddRow.appendChild(promptInput)
+  promptGroup.appendChild(promptAddRow)
+  card.appendChild(promptGroup)
+
+  function renderPromptList(): void {
+    promptList.innerHTML = ''
+    prompts.forEach((p, idx) => {
+      const row = el('div', { style: 'display:flex;align-items:center;gap:6px;margin-bottom:4px;' })
+      row.appendChild(el('span', { className: 'fmn-prompt', style: 'margin:0;' }, `? ${p}`))
+      const removeBtn = el('span', { className: 'fmn-domain-remove' }, '\u00D7')
+      removeBtn.onclick = () => { prompts.splice(idx, 1); renderPromptList() }
+      row.appendChild(removeBtn)
+      promptList.appendChild(row)
+    })
+  }
+
   // Advanced fold
   const advWrap = el('div', { style: 'margin-top:12px;' })
   const advTrigger = el('button', { className: 'fmn-back', style: 'margin-bottom:0;font-size:12px;' }, '\u25B8 More options')
@@ -149,39 +182,6 @@ export function renderCreate(container: HTMLElement): void {
   const descArea = el('textarea', { placeholder: 'Any extra details...' }) as HTMLTextAreaElement
   descGroup.appendChild(descArea)
   advContent.appendChild(descGroup)
-
-  // Reminders
-  const prompts: string[] = []
-  const promptGroup = el('div', { className: 'fmn-form-group' })
-  promptGroup.appendChild(el('label', {}, 'Reminders'))
-  const promptList = el('div', { style: 'margin-bottom:6px;' })
-  promptGroup.appendChild(promptList)
-
-  const promptAddRow = el('div', { className: 'fmn-inline-add' })
-  const promptInput = el('input', { type: 'text', placeholder: 'e.g. Did you check the pockets?' }) as HTMLInputElement
-  promptInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && promptInput.value.trim()) {
-      e.preventDefault()
-      prompts.push(promptInput.value.trim())
-      promptInput.value = ''
-      renderPromptList()
-    }
-  })
-  promptAddRow.appendChild(promptInput)
-  promptGroup.appendChild(promptAddRow)
-  advContent.appendChild(promptGroup)
-
-  function renderPromptList(): void {
-    promptList.innerHTML = ''
-    prompts.forEach((p, idx) => {
-      const row = el('div', { style: 'display:flex;align-items:center;gap:6px;margin-bottom:4px;' })
-      row.appendChild(el('span', { className: 'fmn-prompt', style: 'margin:0;' }, `? ${p}`))
-      const removeBtn = el('span', { className: 'fmn-domain-remove' }, '\u00D7')
-      removeBtn.onclick = () => { prompts.splice(idx, 1); renderPromptList() }
-      row.appendChild(removeBtn)
-      promptList.appendChild(row)
-    })
-  }
 
   advWrap.appendChild(advTrigger)
   advWrap.appendChild(advContent)

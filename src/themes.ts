@@ -158,9 +158,15 @@ export function exportTheme(settings: Settings): string {
 }
 
 export function themeToShareUrl(settings: Settings): string {
+  const theme = getTheme(settings.themePreset, settings)
+  // For built-in themes, share by name
+  if (THEMES.some((t) => t.name === theme.name)) {
+    return `${location.origin}${location.pathname}#theme=${theme.name}`
+  }
+  // For custom themes, base64 encode
   const json = exportTheme(settings)
   const encoded = btoa(unescape(encodeURIComponent(json)))
-  return `${location.origin}${location.pathname}?theme=${encoded}`
+  return `${location.origin}${location.pathname}#theme=${encoded}`
 }
 
 export function importThemeJson(json: string, settings: Settings): ThemeStyle | null {
@@ -172,18 +178,6 @@ export function importThemeJson(json: string, settings: Settings): ThemeStyle | 
       theme.name = `${theme.name}-custom`
     }
     return theme
-  } catch {
-    return null
-  }
-}
-
-export function loadThemeFromUrl(settings: Settings): ThemeStyle | null {
-  const params = new URLSearchParams(location.search)
-  const encoded = params.get('theme')
-  if (!encoded) return null
-  try {
-    const json = decodeURIComponent(escape(atob(encoded)))
-    return importThemeJson(json, settings)
   } catch {
     return null
   }

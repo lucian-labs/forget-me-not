@@ -20,7 +20,7 @@ A standalone, localStorage-backed PWA for recurring task management with urgency
 - **Per-theme sound defaults** — switching themes sets matching notification sounds
 - **Custom fonts** — header and body fonts loaded from Google Fonts, per-theme defaults or user override
 - **Full theme customization** — colors, corner radius, text size, spacing, fonts
-- **Theme sharing** — share via URL (`?theme=sakura`), copy JSON, paste to import, or load via script tag (CORS-free)
+- **Theme sharing** — share via URL (`#theme=sakura`), copy JSON, paste to import, or load via script tag (CORS-free)
 - **Export/import JSON** — full dataset backup and restore
 - **URL routing** — browser back/forward and swipe gestures work between views
 - **PWA** — installable, works offline via service worker
@@ -42,7 +42,7 @@ Static output lands in `dist/`. Deploy anywhere that serves static files.
 
 ## Theme sharing
 
-Share a built-in theme: `https://tasks.lucianlabs.ca/?theme=sakura`
+Share a built-in theme: `https://tasks.lucianlabs.ca/#theme=sakura`
 
 Share a custom theme: use the "Copy share link" button in settings, or export the JSON and host it anywhere.
 

@@ -6,42 +6,44 @@ import { renderDetail } from './detail'
 import { renderSettings } from './settings'
 import { renderCreate } from './create'
 import { initSound, requestNotificationPermission } from './sounds'
-import { applyTheme, getAllThemes, loadThemeFromUrl, importThemeJson } from './themes'
+import { applyTheme, getAllThemes, importThemeJson } from './themes'
 import { updateSettings } from './store'
 
 let currentView: View = 'panel'
 let currentTaskId: string | null = null
 let renderLoopId: number | null = null
 
-function viewToPath(view: View, taskId?: string | null): string {
+function viewToHash(view: View, taskId?: string | null): string {
   switch (view) {
-    case 'panel': return '/'
-    case 'settings': return '/settings'
-    case 'create': return '/new'
-    case 'detail': return `/task/${taskId}`
+    case 'panel': return '#/'
+    case 'settings': return '#/settings'
+    case 'create': return '#/new'
+    case 'detail': return `#/task/${taskId}`
   }
 }
 
-function pathToRoute(): { view: View; taskId: string | null } {
-  const path = location.pathname
-  if (path === '/settings') return { view: 'settings', taskId: null }
-  if (path === '/new') return { view: 'create', taskId: null }
-  if (path.startsWith('/task/')) return { view: 'detail', taskId: path.slice(6) }
+function hashToRoute(): { view: View; taskId: string | null } {
+  const hash = location.hash.slice(1) || '/'
+  if (hash === '/settings') return { view: 'settings', taskId: null }
+  if (hash === '/new') return { view: 'create', taskId: null }
+  if (hash.startsWith('/task/')) return { view: 'detail', taskId: hash.slice(6) }
   return { view: 'panel', taskId: null }
 }
 
 export function navigate(view: View, taskId?: string): void {
-  const path = viewToPath(view, taskId)
-  if (location.pathname !== path) {
-    history.pushState(null, '', path)
+  const hash = viewToHash(view, taskId)
+  if (location.hash !== hash) {
+    location.hash = hash
+  } else {
+    // Same hash — just re-render
+    currentView = view
+    currentTaskId = taskId ?? null
+    render()
   }
-  currentView = view
-  currentTaskId = taskId ?? null
-  render()
 }
 
-function onPopState(): void {
-  const route = pathToRoute()
+function onHashChange(): void {
+  const route = hashToRoute()
   currentView = route.view
   currentTaskId = route.taskId
   render()
@@ -51,7 +53,6 @@ function render(): void {
   const app = document.getElementById('app')
   if (!app) return
 
-  // Ensure shell structure: .fmn-content + .fmn-footer
   let content = app.querySelector('.fmn-content') as HTMLElement
   if (!content) {
     app.innerHTML = ''
@@ -92,41 +93,61 @@ function startRenderLoop(): void {
 
 function initTheme(): void {
   const settings = getSettings()
+
+  // Check query param for theme (e.g. ?theme=sakura or ?theme=base64...)
   const params = new URLSearchParams(location.search)
   const themeParam = params.get('theme')
 
   if (themeParam) {
-    // Try as theme name first (e.g. ?theme=sakura)
-    const allThemes = getAllThemes(settings)
-    const byName = allThemes.find((t) => t.name === themeParam)
-    if (byName) {
-      const updated = updateSettings({ themePreset: byName.name })
-      applyTheme(updated)
-      return
-    }
-    // Try as base64-encoded theme JSON
-    const imported = loadThemeFromUrl(settings)
-    if (imported) {
-      const userThemes = [...(settings.userThemes ?? []).filter((t) => t.name !== imported.name), imported]
-      const updated = updateSettings({ userThemes, themePreset: imported.name })
-      applyTheme(updated)
-      return
-    }
+    const result = applyThemeParam(themeParam, settings)
+    if (result) return
+  }
+
+  // Check hash for theme (e.g. #theme=sakura or #theme=base64...)
+  const hash = location.hash
+  if (hash.startsWith('#theme=')) {
+    const val = hash.slice(7)
+    const result = applyThemeParam(val, settings)
+    if (result) return
   }
 
   applyTheme(settings)
+}
+
+function applyThemeParam(param: string, settings: ReturnType<typeof getSettings>): boolean {
+  // Try as theme name first
+  const allThemes = getAllThemes(settings)
+  const byName = allThemes.find((t) => t.name === param)
+  if (byName) {
+    applyTheme(updateSettings({ themePreset: byName.name }))
+    return true
+  }
+
+  // Try as base64-encoded theme JSON
+  try {
+    const json = decodeURIComponent(escape(atob(param)))
+    const theme = importThemeJson(json, settings)
+    if (theme) {
+      const userThemes = [...(settings.userThemes ?? []).filter((t) => t.name !== theme.name), theme]
+      applyTheme(updateSettings({ userThemes, themePreset: theme.name }))
+      return true
+    }
+  } catch {
+    // not valid base64
+  }
+
+  return false
 }
 
 async function init(): Promise<void> {
   injectStyles()
   initTheme()
 
-  // Restore route from URL
-  const route = pathToRoute()
+  const route = hashToRoute()
   currentView = route.view
   currentTaskId = route.taskId
 
-  window.addEventListener('popstate', onPopState)
+  window.addEventListener('hashchange', onHashChange)
 
   render()
   startRenderLoop()

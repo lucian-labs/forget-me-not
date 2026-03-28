@@ -4,7 +4,7 @@ import { el, CADENCE_OPTIONS, formatCadence } from './utils'
 import { navigate } from './app'
 
 // Persists across re-renders within the create view
-let stickyRecurring = false
+let stickyRecurring = true
 let stickyDomain = ''
 let createdTasks: Task[] = []
 

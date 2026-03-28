@@ -25,21 +25,47 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
 
   const card = el('div', { className: 'fmn-card' })
 
-  // Header
-  const header = el('div', { className: 'fmn-detail-header' })
-  const titleInput = el('input', { type: 'text', className: 'fmn-detail-title', value: task.title }) as HTMLInputElement
-  titleInput.style.background = 'transparent'
-  titleInput.style.border = 'none'
-  titleInput.style.fontSize = '20px'
-  titleInput.style.fontWeight = '600'
-  titleInput.style.color = 'var(--accent)'
-  titleInput.style.padding = '0'
-  titleInput.style.width = '100%'
-  titleInput.onblur = () => { if (titleInput.value !== task.title) updateTask(task.id, { title: titleInput.value }) }
-  header.appendChild(titleInput)
+  // Task title — visible, accent-colored, editable on click
+  const titleDisplay = el('h2', { style: 'font-size:20px;font-weight:600;color:var(--accent);margin-bottom:12px;cursor:text;font-family:var(--font-header);' }, task.title)
+  const titleInput = el('input', { type: 'text', value: task.title, style: 'display:none;font-size:20px;font-weight:600;color:var(--accent);background:var(--bg);border:1px solid var(--accent);border-radius:var(--radius);padding:4px 8px;width:100%;font-family:var(--font-header);margin-bottom:12px;' }) as HTMLInputElement
 
-  // Status select (one-time only — recurring tasks don't need status)
-  if (!task.recurring) {
+  titleDisplay.onclick = () => {
+    titleDisplay.style.display = 'none'
+    titleInput.style.display = 'block'
+    titleInput.focus()
+    titleInput.select()
+  }
+  titleInput.onblur = () => {
+    titleDisplay.style.display = 'block'
+    titleInput.style.display = 'none'
+    if (titleInput.value.trim() && titleInput.value !== task.title) {
+      updateTask(task.id, { title: titleInput.value.trim() })
+      titleDisplay.textContent = titleInput.value.trim()
+    }
+  }
+  titleInput.onkeydown = (e) => { if (e.key === 'Enter') titleInput.blur() }
+
+  card.appendChild(titleDisplay)
+  card.appendChild(titleInput)
+
+  // Badges row
+  const badgeRow = el('div', { style: 'display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;' })
+
+  if (task.recurring) {
+    badgeRow.appendChild(el('span', { className: 'fmn-badge fmn-badge-recurring' }, 'recurring'))
+    if (task.cadenceSeconds) {
+      badgeRow.appendChild(el('span', { style: 'font-size:12px;color:var(--dim);' }, `every ${formatCadence(task.cadenceSeconds)}`))
+    }
+    if (task.lastResetAt && task.cadenceSeconds) {
+      const ratio = getUrgencyRatio(task)
+      const elapsed = (Date.now() - new Date(task.lastResetAt).getTime()) / 1000
+      const remaining = task.cadenceSeconds - elapsed
+      const urgencyText = remaining > 0 ? `${formatTime(remaining)} left` : `${formatTime(Math.abs(remaining))} over`
+      const urgencyEl = el('span', { style: `font-size:12px;font-weight:600;color:${getUrgencyColor(ratio)};` }, urgencyText)
+      badgeRow.appendChild(urgencyEl)
+    }
+  } else {
+    // Status select
     const statusSelect = el('select', { className: 'fmn-status-select' }) as HTMLSelectElement
     const statuses: TaskStatus[] = ['open', 'in_progress', 'blocked', 'done', 'cancelled']
     for (const s of statuses) {
@@ -51,10 +77,10 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
       updateTask(task.id, { status: statusSelect.value as TaskStatus })
       navigate('detail', task.id)
     }
-    header.appendChild(statusSelect)
+    badgeRow.appendChild(statusSelect)
   }
 
-  // Priority badge
+  // Priority
   const prioritySelect = el('select', { className: `fmn-badge fmn-badge-${task.priority}` }) as HTMLSelectElement
   prioritySelect.style.border = 'none'
   prioritySelect.style.fontSize = '10px'
@@ -68,13 +94,13 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
     updateTask(task.id, { priority: prioritySelect.value as TaskPriority })
     navigate('detail', task.id)
   }
-  header.appendChild(prioritySelect)
+  badgeRow.appendChild(prioritySelect)
 
-  if (task.recurring) {
-    header.appendChild(el('span', { className: 'fmn-badge fmn-badge-recurring' }, 'recurring'))
+  if (task.domain) {
+    badgeRow.appendChild(el('span', { style: 'font-size:11px;color:var(--cyan);' }, task.domain))
   }
 
-  card.appendChild(header)
+  card.appendChild(badgeRow)
 
   // Description
   const descSection = el('div', { className: 'fmn-detail-section' })
@@ -91,54 +117,11 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
   // Follow-up chain
   renderFollowUps(card, task)
 
-  // Details + Action log side by side
-  const columns = el('div', { className: 'fmn-detail-columns' })
-
-  // Details grid
-  const detailSection = el('div', { className: 'fmn-detail-section' })
-  detailSection.appendChild(el('h3', {}, 'Details'))
-  const grid = el('div', { className: 'fmn-detail-grid' })
-
-  addGridRow(grid, 'Category', task.domain || '—')
-  addGridRow(grid, 'Tags', task.tags.length > 0 ? task.tags.join(', ') : '—')
-  addGridRow(grid, 'Created', timeAgo(task.createdAt))
-  addGridRow(grid, 'Updated', timeAgo(task.updatedAt))
-  if (task.dueDate) addGridRow(grid, 'Due', new Date(task.dueDate).toLocaleString())
-  if (task.estimatedHours) addGridRow(grid, 'Estimate', `${task.estimatedHours}h`)
-  if (task.recurring && task.cadenceSeconds) addGridRow(grid, 'Cadence', `every ${formatCadence(task.cadenceSeconds)}`)
-
-  if (task.recurring && task.lastResetAt && task.cadenceSeconds) {
-    const ratio = getUrgencyRatio(task)
-    const elapsed = (Date.now() - new Date(task.lastResetAt).getTime()) / 1000
-    const remaining = task.cadenceSeconds - elapsed
-    const urgencyText = remaining > 0 ? `${formatTime(remaining)} left` : `${formatTime(Math.abs(remaining))} over`
-    const urgencyEl = el('span', {}, urgencyText)
-    urgencyEl.style.color = getUrgencyColor(ratio)
-    const labelEl = el('span', { className: 'fmn-detail-label' }, 'Urgency')
-    grid.appendChild(labelEl)
-    grid.appendChild(urgencyEl)
-  }
-
-  if (task.parentTaskId) {
-    const parentLink = el('span', { className: 'fmn-task-title' }, 'View parent')
-    parentLink.style.fontSize = '13px'
-    parentLink.onclick = () => navigate('detail', task.parentTaskId!)
-    const labelEl = el('span', { className: 'fmn-detail-label' }, 'Parent')
-    grid.appendChild(labelEl)
-    grid.appendChild(parentLink)
-  }
-
-  detailSection.appendChild(grid)
-  columns.appendChild(detailSection)
-
-  // Action log
-  renderActionLog(columns, task)
-
-  card.appendChild(columns)
+  // Action log (always visible)
+  renderActionLog(card, task)
 
   // Actions
   const actionsSection = el('div', { className: 'fmn-detail-section' })
-  actionsSection.appendChild(el('h3', {}, 'Actions'))
   const actionRow = el('div', { className: 'fmn-form-row' })
 
   if (task.recurring) {
@@ -158,6 +141,39 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
 
   actionsSection.appendChild(actionRow)
   card.appendChild(actionsSection)
+
+  // More — collapsible details
+  const moreWrap = el('div', { style: 'margin-top:4px;' })
+  const moreTrigger = el('button', { className: 'fmn-back', style: 'margin-bottom:0;font-size:12px;' }, '\u25B8 More')
+  const moreContent = el('div', { style: 'display:none;margin-top:8px;' })
+  let moreOpen = false
+
+  moreTrigger.onclick = () => {
+    moreOpen = !moreOpen
+    moreContent.style.display = moreOpen ? 'block' : 'none'
+    moreTrigger.textContent = moreOpen ? '\u25BE More' : '\u25B8 More'
+  }
+
+  const grid = el('div', { className: 'fmn-detail-grid' })
+  addGridRow(grid, 'Category', task.domain || '\u2014')
+  addGridRow(grid, 'Tags', task.tags.length > 0 ? task.tags.join(', ') : '\u2014')
+  addGridRow(grid, 'Created', timeAgo(task.createdAt))
+  addGridRow(grid, 'Updated', timeAgo(task.updatedAt))
+  if (task.dueDate) addGridRow(grid, 'Due', new Date(task.dueDate).toLocaleString())
+  if (task.estimatedHours) addGridRow(grid, 'Estimate', `${task.estimatedHours}h`)
+
+  if (task.parentTaskId) {
+    const parentLink = el('span', { className: 'fmn-task-title' }, 'View parent')
+    parentLink.style.fontSize = '13px'
+    parentLink.onclick = () => navigate('detail', task.parentTaskId!)
+    grid.appendChild(el('span', { className: 'fmn-detail-label' }, 'Parent'))
+    grid.appendChild(parentLink)
+  }
+
+  moreContent.appendChild(grid)
+  moreWrap.appendChild(moreTrigger)
+  moreWrap.appendChild(moreContent)
+  card.appendChild(moreWrap)
 
   container.appendChild(card)
 }
@@ -185,7 +201,6 @@ function renderFollowUps(container: HTMLElement, task: Task): void {
     section.appendChild(chain)
   }
 
-  // Add form
   const addRow = el('div', { className: 'fmn-inline-add' })
   const titleInput = el('input', { type: 'text', placeholder: 'Follow-up title...' }) as HTMLInputElement
   const cadenceSelect = el('select', {}) as HTMLSelectElement
@@ -211,23 +226,26 @@ function renderFollowUps(container: HTMLElement, task: Task): void {
 
 function renderPrompts(container: HTMLElement, task: Task): void {
   const section = el('div', { className: 'fmn-detail-section' })
-  section.appendChild(el('h3', {}, 'Decision Prompts'))
+  section.appendChild(el('h3', {}, 'Reminders'))
 
-  for (let i = 0; i < task.prompts.length; i++) {
-    const promptRow = el('div', { style: 'display:flex;align-items:center;gap:6px;margin-bottom:4px;' })
-    promptRow.appendChild(el('span', { className: 'fmn-prompt', style: 'margin:0;' }, `? ${task.prompts[i]}`))
-    const removeBtn = el('span', { className: 'fmn-domain-remove' }, '\u00D7')
-    removeBtn.onclick = () => {
-      const newPrompts = task.prompts.filter((_, idx) => idx !== i)
-      updateTask(task.id, { prompts: newPrompts })
-      navigate('detail', task.id)
+  if (task.prompts.length > 0) {
+    const list = el('div', { className: 'fmn-domain-list', style: 'margin-bottom:6px;' })
+    for (let i = 0; i < task.prompts.length; i++) {
+      const tag = el('span', { className: 'fmn-domain-tag' }, task.prompts[i])
+      const removeBtn = el('span', { className: 'fmn-domain-remove' }, '\u00D7')
+      removeBtn.onclick = () => {
+        const newPrompts = task.prompts.filter((_, idx) => idx !== i)
+        updateTask(task.id, { prompts: newPrompts })
+        navigate('detail', task.id)
+      }
+      tag.appendChild(removeBtn)
+      list.appendChild(tag)
     }
-    promptRow.appendChild(removeBtn)
-    section.appendChild(promptRow)
+    section.appendChild(list)
   }
 
   const addRow = el('div', { className: 'fmn-inline-add' })
-  const input = el('input', { type: 'text', placeholder: 'Add a prompt...' }) as HTMLInputElement
+  const input = el('input', { type: 'text', placeholder: 'Add a reminder...' }) as HTMLInputElement
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && input.value.trim()) {
       const newPrompts = [...task.prompts, input.value.trim()]
@@ -252,13 +270,12 @@ function renderActionLog(container: HTMLElement, task: Task): void {
     for (const entry of entries) {
       const row = el('div', { className: 'fmn-log-entry' })
       row.appendChild(el('span', { className: `fmn-log-badge fmn-log-badge-${entry.action}` }, entry.action))
-      row.appendChild(el('span', { className: 'fmn-log-note' }, entry.note || '—'))
+      row.appendChild(el('span', { className: 'fmn-log-note' }, entry.note || '\u2014'))
       row.appendChild(el('span', { className: 'fmn-log-time' }, timeAgo(entry.at)))
       section.appendChild(row)
     }
   }
 
-  // Add note
   const addRow = el('div', { className: 'fmn-inline-add', style: 'margin-top:8px;' })
   const noteInput = el('input', { type: 'text', placeholder: 'Add a note...' }) as HTMLInputElement
   noteInput.addEventListener('keydown', (e) => {

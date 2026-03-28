@@ -5,4 +5,5 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
   },
+  appType: 'spa',
 })

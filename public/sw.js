@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fmn-v1'
+const CACHE_NAME = 'fmn-v2'
 const PRECACHE = [
   '/',
   '/index.html',
@@ -23,6 +23,18 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return
+
+  const url = new URL(event.request.url)
+
+  // SPA fallback: navigation requests for local paths serve index.html
+  if (event.request.mode === 'navigate' && url.origin === self.location.origin) {
+    event.respondWith(
+      caches.match('/index.html').then((cached) =>
+        cached || fetch('/index.html')
+      )
+    )
+    return
+  }
 
   event.respondWith(
     caches.match(event.request).then((cached) => {

@@ -12,9 +12,37 @@ let currentView: View = 'panel'
 let currentTaskId: string | null = null
 let renderLoopId: number | null = null
 
+function viewToPath(view: View, taskId?: string | null): string {
+  switch (view) {
+    case 'panel': return '/'
+    case 'settings': return '/settings'
+    case 'create': return '/new'
+    case 'detail': return `/task/${taskId}`
+  }
+}
+
+function pathToRoute(): { view: View; taskId: string | null } {
+  const path = location.pathname
+  if (path === '/settings') return { view: 'settings', taskId: null }
+  if (path === '/new') return { view: 'create', taskId: null }
+  if (path.startsWith('/task/')) return { view: 'detail', taskId: path.slice(6) }
+  return { view: 'panel', taskId: null }
+}
+
 export function navigate(view: View, taskId?: string): void {
+  const path = viewToPath(view, taskId)
+  if (location.pathname !== path) {
+    history.pushState(null, '', path)
+  }
   currentView = view
   currentTaskId = taskId ?? null
+  render()
+}
+
+function onPopState(): void {
+  const route = pathToRoute()
+  currentView = route.view
+  currentTaskId = route.taskId
   render()
 }
 
@@ -55,7 +83,6 @@ function render(): void {
 function startRenderLoop(): void {
   if (renderLoopId) return
   renderLoopId = window.setInterval(() => {
-    // Skip re-render if any input/textarea/select is focused — prevents keyboard destruction
     const active = document.activeElement
     if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT')) return
     if (currentView === 'panel') render()
@@ -69,20 +96,25 @@ function initTheme(): void {
 async function init(): Promise<void> {
   injectStyles()
   initTheme()
+
+  // Restore route from URL
+  const route = pathToRoute()
+  currentView = route.view
+  currentTaskId = route.taskId
+
+  window.addEventListener('popstate', onPopState)
+
   render()
   startRenderLoop()
 
   await initSound()
 
-  // Request notification permission on first user interaction
   document.addEventListener('click', () => requestNotificationPermission(), { once: true })
 
-  // Register service worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {})
   }
 
-  // Lucian Labs shop widget
   const shopScript = document.createElement('script')
   shopScript.src = 'https://cdn.lucianlabs.ca/scripts/choppa-badge.js'
   document.body.appendChild(shopScript)

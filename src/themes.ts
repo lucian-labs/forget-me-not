@@ -73,6 +73,66 @@ export const THEMES: ThemeStyle[] = [
     fontFamily: "'Avenir', 'Segoe UI', sans-serif",
     spacing: 'relaxed',
   },
+  {
+    name: 'terracotta',
+    label: 'Terracotta',
+    colors: {
+      bg: '#1c1210', surface: '#271a16', border: '#3d2b24',
+      text: '#e8d5ca', dim: '#967a6a', accent: '#c2704f',
+      green: '#a3b18a', orange: '#dda15e', red: '#bc4749', cyan: '#89b0ae',
+    },
+    borderRadius: 8, fontSize: 15,
+    fontFamily: "'Palatino', 'Book Antiqua', serif",
+    spacing: 'relaxed',
+  },
+  {
+    name: 'matcha',
+    label: 'Matcha',
+    colors: {
+      bg: '#f4f7f0', surface: '#fafcf7', border: '#d4dcc8',
+      text: '#2d3a25', dim: '#7d8a72', accent: '#6b8f4e',
+      green: '#7cb342', orange: '#e0a030', red: '#c0503a', cyan: '#5d9b9b',
+    },
+    borderRadius: 16, fontSize: 15,
+    fontFamily: "'Optima', 'Candara', sans-serif",
+    spacing: 'relaxed',
+  },
+  {
+    name: 'vinyl',
+    label: 'Vinyl',
+    colors: {
+      bg: '#121212', surface: '#1e1e1e', border: '#333333',
+      text: '#d4d4d4', dim: '#737373', accent: '#e53e3e',
+      green: '#68d391', orange: '#f6ad55', red: '#fc5c65', cyan: '#63b3ed',
+    },
+    borderRadius: 3, fontSize: 13,
+    fontFamily: "'Courier New', 'Courier', monospace",
+    spacing: 'compact',
+  },
+  {
+    name: 'oceano',
+    label: 'Oc\u00e9ano',
+    colors: {
+      bg: '#0b1628', surface: '#0f2035', border: '#1a3554',
+      text: '#c8ddf0', dim: '#5a7a9a', accent: '#38bdf8',
+      green: '#34d399', orange: '#fbbf24', red: '#f87171', cyan: '#67e8f9',
+    },
+    borderRadius: 10, fontSize: 14,
+    fontFamily: "'Gill Sans', 'Century Gothic', sans-serif",
+    spacing: 'normal',
+  },
+  {
+    name: 'sakura',
+    label: 'Sakura',
+    colors: {
+      bg: '#fef5f7', surface: '#ffffff', border: '#f0d4db',
+      text: '#4a2c3a', dim: '#b08a98', accent: '#e8729a',
+      green: '#7bc47f', orange: '#e8a87c', red: '#d94f6b', cyan: '#6cc0c0',
+    },
+    borderRadius: 18, fontSize: 15,
+    fontFamily: "'Georgia', 'Cambria', serif",
+    spacing: 'relaxed',
+  },
 ]
 
 export function getTheme(name: string): ThemeStyle {

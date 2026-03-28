@@ -82,6 +82,15 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
   descSection.appendChild(descArea)
   container.appendChild(descSection)
 
+  // Decision prompts
+  renderPrompts(container, task)
+
+  // Follow-up chain
+  renderFollowUps(container, task)
+
+  // Details + Action log side by side
+  const columns = el('div', { className: 'fmn-detail-columns' })
+
   // Details grid
   const detailSection = el('div', { className: 'fmn-detail-section' })
   detailSection.appendChild(el('h3', {}, 'Details'))
@@ -117,16 +126,12 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
   }
 
   detailSection.appendChild(grid)
-  container.appendChild(detailSection)
-
-  // Follow-up chain
-  renderFollowUps(container, task)
-
-  // Decision prompts
-  renderPrompts(container, task)
+  columns.appendChild(detailSection)
 
   // Action log
-  renderActionLog(container, task)
+  renderActionLog(columns, task)
+
+  container.appendChild(columns)
 
   // Actions
   const actionsSection = el('div', { className: 'fmn-detail-section' })

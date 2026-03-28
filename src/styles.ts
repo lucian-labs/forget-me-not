@@ -295,6 +295,19 @@ button:active { opacity: 0.8; }
   margin-bottom: 8px;
 }
 
+.fmn-detail-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 500px) {
+  .fmn-detail-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
 .fmn-detail-grid {
   display: grid;
   grid-template-columns: auto 1fr;

@@ -12,6 +12,7 @@ type CaptureState = { taskId: string; timer: number | null; mode: 'check' | 'not
 
 let capture: CaptureState | null = null
 let groupByCategory = localStorage.getItem('fmn-categorize') === 'true'
+const promptCache = new Map<string, { text: string; at: number }>()
 
 export function renderPanel(container: HTMLElement): void {
   const tasks = getTasks().filter((t) => t.status !== 'done' && t.status !== 'archived' && t.status !== 'cancelled')
@@ -153,10 +154,14 @@ function renderTaskItem(task: Task): HTMLElement {
   progress.appendChild(fill)
   card.appendChild(progress)
 
-  // Overdue prompt
+  // Overdue prompt — cycles every 10 seconds
   if (isOverdue && task.prompts.length > 0) {
-    const randomPrompt = task.prompts[Math.floor(Math.random() * task.prompts.length)]
-    card.appendChild(el('div', { className: 'fmn-prompt' }, `? ${randomPrompt}`))
+    const now = Date.now()
+    const cached = promptCache.get(task.id)
+    if (!cached || now - cached.at > 10000) {
+      promptCache.set(task.id, { text: task.prompts[Math.floor(Math.random() * task.prompts.length)], at: now })
+    }
+    card.appendChild(el('div', { className: 'fmn-prompt' }, `? ${promptCache.get(task.id)!.text}`))
   }
 
   // Quick capture (recurring check or note mode)

@@ -1,14 +1,19 @@
-import type { FollowUp } from './types'
+import type { FollowUp, Task } from './types'
 import { createTask, getSettings } from './store'
 import { el, CADENCE_OPTIONS, formatCadence } from './utils'
 import { navigate } from './app'
+
+// Persists across re-renders within the create view
+let stickyRecurring = false
+let stickyDomain = ''
+let createdTasks: Task[] = []
 
 export function renderCreate(container: HTMLElement): void {
   const settings = getSettings()
   container.innerHTML = ''
 
   const headerTitle = el('h1', { className: 'fmn-header-title' }, 'forget me not')
-  headerTitle.onclick = () => navigate('panel')
+  headerTitle.onclick = () => { createdTasks = []; navigate('panel') }
   container.appendChild(el('div', { className: 'fmn-header' }, headerTitle, el('div', { className: 'fmn-section', style: 'margin:0;' }, 'New Task')))
 
   const card = el('div', { className: 'fmn-card' })
@@ -21,8 +26,9 @@ export function renderCreate(container: HTMLElement): void {
 
   const recurLabel = el('label', { className: 'fmn-toggle' })
   const recurCheckbox = el('input', { type: 'checkbox' }) as HTMLInputElement
+  recurCheckbox.checked = stickyRecurring
   recurCheckbox.onchange = () => {
-    cadencePriorityRow.style.display = 'flex'
+    stickyRecurring = recurCheckbox.checked
     cadenceGroup.style.display = recurCheckbox.checked ? 'block' : 'none'
     recurText.textContent = recurCheckbox.checked ? 'repeats' : ''
   }
@@ -30,35 +36,36 @@ export function renderCreate(container: HTMLElement): void {
   recurLabel.appendChild(el('span', { className: 'fmn-toggle-track' }))
   recurLabel.appendChild(el('span', { className: 'fmn-toggle-thumb' }))
   titleRow.appendChild(recurLabel)
-  const recurText = el('span', { style: 'font-size:11px;color:var(--dim);white-space:nowrap;' }, '')
+  const recurText = el('span', { style: 'font-size:11px;color:var(--dim);white-space:nowrap;' }, stickyRecurring ? 'repeats' : '')
   titleRow.appendChild(recurText)
 
   card.appendChild(titleRow)
 
-  // Cadence + Priority side by side
-  const cadencePriorityRow = el('div', { className: 'fmn-form-row', style: 'margin-top:12px;' })
+  // Cadence + Category side by side
+  const secondRow = el('div', { className: 'fmn-form-row', style: 'margin-top:12px;' })
 
-  const cadenceGroup = el('div', { className: 'fmn-form-group', style: 'display:none;' })
+  const cadenceGroup = el('div', { className: 'fmn-form-group', style: stickyRecurring ? 'display:block;' : 'display:none;' })
   cadenceGroup.appendChild(el('label', {}, 'Every'))
   const cadenceSelect = el('select', {}) as HTMLSelectElement
   for (const opt of CADENCE_OPTIONS) {
     cadenceSelect.appendChild(el('option', { value: String(opt.value) }, opt.label))
   }
   cadenceGroup.appendChild(cadenceSelect)
-  cadencePriorityRow.appendChild(cadenceGroup)
+  secondRow.appendChild(cadenceGroup)
 
-  const priorityGroup = el('div', { className: 'fmn-form-group' })
-  priorityGroup.appendChild(el('label', {}, 'Priority'))
-  const prioritySelect = el('select', {}) as HTMLSelectElement
-  for (const p of ['low', 'normal', 'high', 'critical']) {
-    const opt = el('option', { value: p }, p)
-    if (p === 'normal') opt.selected = true
-    prioritySelect.appendChild(opt)
+  const domainGroup = el('div', { className: 'fmn-form-group' })
+  domainGroup.appendChild(el('label', {}, 'Category'))
+  const domainSelect = el('select', {}) as HTMLSelectElement
+  domainSelect.appendChild(el('option', { value: '' }, '\u2014'))
+  for (const d of settings.domains) {
+    const opt = el('option', { value: d }, d)
+    if (d === stickyDomain) opt.selected = true
+    domainSelect.appendChild(opt)
   }
-  priorityGroup.appendChild(prioritySelect)
-  cadencePriorityRow.appendChild(priorityGroup)
+  domainGroup.appendChild(domainSelect)
+  secondRow.appendChild(domainGroup)
 
-  card.appendChild(cadencePriorityRow)
+  card.appendChild(secondRow)
 
   // Follow-ups
   const followUps: FollowUp[] = []
@@ -110,16 +117,17 @@ export function renderCreate(container: HTMLElement): void {
     advTrigger.textContent = advOpen ? '\u25BE More options' : '\u25B8 More options'
   }
 
-  // Category
-  const domainGroup = el('div', { className: 'fmn-form-group' })
-  domainGroup.appendChild(el('label', {}, 'Category'))
-  const domainSelect = el('select', {}) as HTMLSelectElement
-  domainSelect.appendChild(el('option', { value: '' }, '\u2014'))
-  for (const d of settings.domains) {
-    domainSelect.appendChild(el('option', { value: d }, d))
+  // Priority
+  const priorityGroup = el('div', { className: 'fmn-form-group' })
+  priorityGroup.appendChild(el('label', {}, 'Priority'))
+  const prioritySelect = el('select', {}) as HTMLSelectElement
+  for (const p of ['low', 'normal', 'high', 'critical']) {
+    const opt = el('option', { value: p }, p)
+    if (p === 'normal') opt.selected = true
+    prioritySelect.appendChild(opt)
   }
-  domainGroup.appendChild(domainSelect)
-  advContent.appendChild(domainGroup)
+  priorityGroup.appendChild(prioritySelect)
+  advContent.appendChild(priorityGroup)
 
   // Due date
   const dueDateGroup = el('div', { className: 'fmn-form-group' })
@@ -190,7 +198,11 @@ export function renderCreate(container: HTMLElement): void {
     const tags = tagsInput.value.split(',').map((s) => s.trim()).filter(Boolean)
     const dueDate = dueDateInput.value ? new Date(dueDateInput.value).toISOString() : null
 
-    createTask({
+    // Remember sticky state
+    stickyRecurring = isRecurring
+    stickyDomain = domainSelect.value
+
+    const task = createTask({
       title: t,
       description: descArea.value,
       domain: domainSelect.value,
@@ -204,16 +216,30 @@ export function renderCreate(container: HTMLElement): void {
       prompts: [...prompts],
     })
 
-    navigate('panel')
+    createdTasks.push(task)
+
+    // Re-render to reset form but keep sticky state + show created list
+    navigate('create')
   }
   submitRow.appendChild(submitBtn)
 
-  const cancelBtn = el('button', { className: 'btn-ghost' }, 'Cancel') as HTMLButtonElement
-  cancelBtn.onclick = () => navigate('panel')
-  submitRow.appendChild(cancelBtn)
-
   card.appendChild(submitRow)
   container.appendChild(card)
+
+  // Show created tasks this session
+  if (createdTasks.length > 0) {
+    container.appendChild(el('div', { className: 'fmn-section' }, `Created (${createdTasks.length})`))
+    for (const task of [...createdTasks].reverse()) {
+      const row = el('div', { className: 'fmn-card', style: 'cursor:pointer;' })
+      const inner = el('div', { style: 'display:flex;align-items:center;gap:8px;' })
+      inner.appendChild(el('span', { style: 'flex:1;font-size:14px;' }, task.title))
+      if (task.recurring) inner.appendChild(el('span', { className: 'fmn-badge fmn-badge-recurring' }, 'repeats'))
+      if (task.domain) inner.appendChild(el('span', { style: 'font-size:11px;color:var(--cyan);' }, task.domain))
+      row.appendChild(inner)
+      row.onclick = () => { createdTasks = []; navigate('detail', task.id) }
+      container.appendChild(row)
+    }
+  }
 
   requestAnimationFrame(() => titleInput.focus())
 }

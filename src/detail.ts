@@ -10,6 +10,9 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
   const task = getTask(taskId)
   if (!task) {
     container.innerHTML = ''
+    const title = el('h1', { className: 'fmn-header-title' }, 'forget me not')
+    title.onclick = () => navigate('panel')
+    container.appendChild(el('div', { className: 'fmn-header' }, title))
     container.appendChild(el('div', { className: 'fmn-empty' }, 'Task not found.'))
     return
   }

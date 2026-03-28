@@ -50,11 +50,16 @@ html, body {
   margin-bottom: 16px;
 }
 
-.fmn-header h1 {
+.fmn-header h1, .fmn-header-title {
   font-size: 18px;
   font-weight: 600;
   color: var(--accent);
   letter-spacing: -0.5px;
+  cursor: pointer;
+}
+
+.fmn-header-title:hover {
+  opacity: 0.8;
 }
 
 .fmn-header-actions {

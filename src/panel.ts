@@ -19,8 +19,10 @@ export function renderPanel(container: HTMLElement): void {
   container.innerHTML = ''
 
   // Header
+  const title = el('h1', { className: 'fmn-header-title' }, 'forget me not')
+  title.onclick = () => navigate('panel')
   const header = el('div', { className: 'fmn-header' },
-    el('h1', {}, 'forget me not'),
+    title,
     el('div', { className: 'fmn-header-actions' },
       createBtn('+', 'btn-accent', () => navigate('create')),
       createBtn('\u2699', 'btn-icon', () => navigate('settings')),

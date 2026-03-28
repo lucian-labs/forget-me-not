@@ -224,32 +224,10 @@ export function renderSettings(container: HTMLElement): void {
   soundCard.appendChild(soundAdvanced)
   container.appendChild(soundCard)
 
-  // Sync config
+  // Sync
   const syncCard = el('div', { className: 'fmn-card' })
-  syncCard.appendChild(sectionLabel('Sync (Experimental)'))
-
-  syncCard.appendChild(settingsRow('Enabled', () => toggle(settings.syncEnabled, (v) => {
-    updateSettings({ syncEnabled: v })
-    navigate('settings')
-  })))
-
-  const endpointGroup = el('div', { className: 'fmn-form-group', style: 'margin-top:8px;' })
-  endpointGroup.appendChild(el('label', {}, 'Endpoint URL'))
-  const endpointInput = el('input', { type: 'text', placeholder: 'https://your-server.com/sync', value: settings.syncEndpoint }) as HTMLInputElement
-  endpointInput.onblur = () => updateSettings({ syncEndpoint: endpointInput.value })
-  endpointGroup.appendChild(endpointInput)
-  syncCard.appendChild(endpointGroup)
-
-  const keyGroup = el('div', { className: 'fmn-form-group' })
-  keyGroup.appendChild(el('label', {}, 'API Key'))
-  const keyInput = el('input', { type: 'password', placeholder: 'your-api-key', value: settings.syncApiKey }) as HTMLInputElement
-  keyInput.onblur = () => updateSettings({ syncApiKey: keyInput.value })
-  keyGroup.appendChild(keyInput)
-  syncCard.appendChild(keyGroup)
-
-  syncCard.appendChild(el('div', { style: 'font-size:11px;color:var(--dim);margin-top:4px;' },
-    'Configure your own sync endpoint. Data stays on your device until you enable sync. Like Obsidian \u2014 you own the pipe.'))
-
+  syncCard.appendChild(sectionLabel('Sync'))
+  syncCard.appendChild(el('div', { style: 'font-size:13px;color:var(--dim);' }, 'Coming soon \u2014 sync your tasks across devices.'))
   container.appendChild(syncCard)
 
   // Data

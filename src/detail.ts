@@ -1,7 +1,7 @@
 import type { Task, TaskStatus, TaskPriority } from './types'
 import {
   getTask, updateTask, resetTask, completeTask, archiveTask,
-  getUrgencyRatio, getUrgencyColor, addActionNote,
+  getUrgencyRatio, getUrgencyColor, addActionNote, getSettings,
 } from './store'
 import { el, timeAgo, formatCadence, formatTime, CADENCE_OPTIONS } from './utils'
 import { navigate } from './app'
@@ -142,25 +142,41 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
     moreTrigger.textContent = moreOpen ? '\u25BE More' : '\u25B8 More'
   }
 
-  const grid = el('div', { className: 'fmn-detail-grid' })
-  addGridRow(grid, 'Category', task.domain || '\u2014')
-  addGridRow(grid, 'Tags', task.tags.length > 0 ? task.tags.join(', ') : '\u2014')
-  addGridRow(grid, 'Created', timeAgo(task.createdAt))
-  addGridRow(grid, 'Updated', timeAgo(task.updatedAt))
-  if (task.dueDate) addGridRow(grid, 'Due', new Date(task.dueDate).toLocaleString())
-  if (task.estimatedHours) addGridRow(grid, 'Estimate', `${task.estimatedHours}h`)
+  const moreGrid = el('div', { className: 'fmn-detail-grid' })
 
-  if (task.parentTaskId) {
-    const parentLink = el('span', { className: 'fmn-task-title' }, 'View parent')
-    parentLink.style.fontSize = '13px'
-    parentLink.onclick = () => navigate('detail', task.parentTaskId!)
-    grid.appendChild(el('span', { className: 'fmn-detail-label' }, 'Parent'))
-    grid.appendChild(parentLink)
+  // Category dropdown
+  const settings = getSettings()
+  const catSelect = el('select', { style: 'width:auto;font-size:13px;' }) as HTMLSelectElement
+  catSelect.appendChild(el('option', { value: '' }, '\u2014'))
+  for (const d of settings.domains) {
+    const opt = el('option', { value: d }, d)
+    if (d === task.domain) opt.selected = true
+    catSelect.appendChild(opt)
   }
+  catSelect.onchange = () => {
+    updateTask(task.id, { domain: catSelect.value })
+    navigate('detail', task.id)
+  }
+  moreGrid.appendChild(el('span', { className: 'fmn-detail-label' }, 'Category'))
+  moreGrid.appendChild(catSelect)
 
-  // Priority selector in More
-  const priorityRow = el('div', { style: 'display:flex;align-items:center;gap:8px;margin-bottom:8px;' })
-  priorityRow.appendChild(el('span', { className: 'fmn-detail-label' }, 'Priority'))
+  // Type dropdown (recurring / one-time)
+  const typeSelect = el('select', { style: 'width:auto;font-size:13px;' }) as HTMLSelectElement
+  typeSelect.appendChild(el('option', { value: 'recurring' }, 'recurring'))
+  typeSelect.appendChild(el('option', { value: 'one-time' }, 'one-time'))
+  typeSelect.value = task.recurring ? 'recurring' : 'one-time'
+  typeSelect.onchange = () => {
+    const isRecurring = typeSelect.value === 'recurring'
+    updateTask(task.id, {
+      recurring: isRecurring,
+      lastResetAt: isRecurring && !task.lastResetAt ? new Date().toISOString() : task.lastResetAt,
+    })
+    navigate('detail', task.id)
+  }
+  moreGrid.appendChild(el('span', { className: 'fmn-detail-label' }, 'Type'))
+  moreGrid.appendChild(typeSelect)
+
+  // Priority dropdown
   const prioritySelect = el('select', { className: `fmn-badge fmn-badge-${task.priority}`, style: 'border:none;font-size:10px;' }) as HTMLSelectElement
   const priorities: TaskPriority[] = ['low', 'normal', 'high', 'critical']
   for (const p of priorities) {
@@ -172,10 +188,25 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
     updateTask(task.id, { priority: prioritySelect.value as TaskPriority })
     navigate('detail', task.id)
   }
-  priorityRow.appendChild(prioritySelect)
-  moreContent.appendChild(priorityRow)
+  moreGrid.appendChild(el('span', { className: 'fmn-detail-label' }, 'Priority'))
+  moreGrid.appendChild(prioritySelect)
 
-  moreContent.appendChild(grid)
+  // Static details
+  addGridRow(moreGrid, 'Tags', task.tags.length > 0 ? task.tags.join(', ') : '\u2014')
+  addGridRow(moreGrid, 'Created', timeAgo(task.createdAt))
+  addGridRow(moreGrid, 'Updated', timeAgo(task.updatedAt))
+  if (task.dueDate) addGridRow(moreGrid, 'Due', new Date(task.dueDate).toLocaleString())
+  if (task.estimatedHours) addGridRow(moreGrid, 'Estimate', `${task.estimatedHours}h`)
+
+  if (task.parentTaskId) {
+    const parentLink = el('span', { className: 'fmn-task-title' }, 'View parent')
+    parentLink.style.fontSize = '13px'
+    parentLink.onclick = () => navigate('detail', task.parentTaskId!)
+    moreGrid.appendChild(el('span', { className: 'fmn-detail-label' }, 'Parent'))
+    moreGrid.appendChild(parentLink)
+  }
+
+  moreContent.appendChild(moreGrid)
   moreWrap.appendChild(moreTrigger)
   moreWrap.appendChild(moreContent)
   card.appendChild(moreWrap)

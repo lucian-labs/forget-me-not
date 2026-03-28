@@ -217,7 +217,7 @@ button:active { opacity: 0.8; }
 }
 
 .fmn-overdue {
-  animation: overdueFlash 2s ease-in-out infinite;
+  animation: overdueFlash 5s ease-in-out infinite;
 }
 
 /* Badges */

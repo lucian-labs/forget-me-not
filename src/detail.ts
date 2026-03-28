@@ -23,6 +23,8 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
   headerTitle.onclick = () => navigate('panel')
   container.appendChild(el('div', { className: 'fmn-header' }, headerTitle))
 
+  const card = el('div', { className: 'fmn-card' })
+
   // Header
   const header = el('div', { className: 'fmn-detail-header' })
   const titleInput = el('input', { type: 'text', className: 'fmn-detail-title', value: task.title }) as HTMLInputElement
@@ -70,7 +72,7 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
     header.appendChild(el('span', { className: 'fmn-badge fmn-badge-recurring' }, 'recurring'))
   }
 
-  container.appendChild(header)
+  card.appendChild(header)
 
   // Description
   const descSection = el('div', { className: 'fmn-detail-section' })
@@ -79,13 +81,13 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
   descArea.value = task.description
   descArea.onblur = () => { if (descArea.value !== task.description) updateTask(task.id, { description: descArea.value }) }
   descSection.appendChild(descArea)
-  container.appendChild(descSection)
+  card.appendChild(descSection)
 
   // Decision prompts
-  renderPrompts(container, task)
+  renderPrompts(card, task)
 
   // Follow-up chain
-  renderFollowUps(container, task)
+  renderFollowUps(card, task)
 
   // Details + Action log side by side
   const columns = el('div', { className: 'fmn-detail-columns' })
@@ -130,7 +132,7 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
   // Action log
   renderActionLog(columns, task)
 
-  container.appendChild(columns)
+  card.appendChild(columns)
 
   // Actions
   const actionsSection = el('div', { className: 'fmn-detail-section' })
@@ -153,7 +155,9 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
   }))
 
   actionsSection.appendChild(actionRow)
-  container.appendChild(actionsSection)
+  card.appendChild(actionsSection)
+
+  container.appendChild(card)
 }
 
 function renderFollowUps(container: HTMLElement, task: Task): void {

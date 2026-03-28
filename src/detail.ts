@@ -38,19 +38,21 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
   titleInput.onblur = () => { if (titleInput.value !== task.title) updateTask(task.id, { title: titleInput.value }) }
   header.appendChild(titleInput)
 
-  // Status select
-  const statusSelect = el('select', { className: 'fmn-status-select' }) as HTMLSelectElement
-  const statuses: TaskStatus[] = ['open', 'in_progress', 'blocked', 'done', 'cancelled']
-  for (const s of statuses) {
-    const opt = el('option', { value: s }, s.replace('_', ' '))
-    if (s === task.status) opt.selected = true
-    statusSelect.appendChild(opt)
+  // Status select (one-time only — recurring tasks don't need status)
+  if (!task.recurring) {
+    const statusSelect = el('select', { className: 'fmn-status-select' }) as HTMLSelectElement
+    const statuses: TaskStatus[] = ['open', 'in_progress', 'blocked', 'done', 'cancelled']
+    for (const s of statuses) {
+      const opt = el('option', { value: s }, s.replace('_', ' '))
+      if (s === task.status) opt.selected = true
+      statusSelect.appendChild(opt)
+    }
+    statusSelect.onchange = () => {
+      updateTask(task.id, { status: statusSelect.value as TaskStatus })
+      navigate('detail', task.id)
+    }
+    header.appendChild(statusSelect)
   }
-  statusSelect.onchange = () => {
-    updateTask(task.id, { status: statusSelect.value as TaskStatus })
-    navigate('detail', task.id)
-  }
-  header.appendChild(statusSelect)
 
   // Priority badge
   const prioritySelect = el('select', { className: `fmn-badge fmn-badge-${task.priority}` }) as HTMLSelectElement

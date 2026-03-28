@@ -20,9 +20,23 @@ export function renderPanel(container: HTMLElement): void {
   // Header
   const title = el('h1', { className: 'fmn-header-title' }, 'forget me not')
   title.onclick = () => navigate('panel')
+  // Categorize toggle in header
+  const catToggle = el('label', { className: 'fmn-toggle', style: 'margin:0;' })
+  const catInput = el('input', { type: 'checkbox' }) as HTMLInputElement
+  catInput.checked = groupByCategory
+  catInput.onchange = () => { groupByCategory = catInput.checked; navigate('panel') }
+  catToggle.appendChild(catInput)
+  catToggle.appendChild(el('span', { className: 'fmn-toggle-track' }))
+  catToggle.appendChild(el('span', { className: 'fmn-toggle-thumb' }))
+
+  const catWrap = el('div', { style: 'display:flex;align-items:center;gap:5px;' })
+  catWrap.appendChild(catToggle)
+  catWrap.appendChild(el('span', { style: 'font-size:11px;color:var(--dim);' }, 'categorize'))
+
   const header = el('div', { className: 'fmn-header' },
     title,
     el('div', { className: 'fmn-header-actions' },
+      catWrap,
       createBtn('+', 'btn-accent', () => navigate('create')),
       createBtn('\u2699', 'btn-icon', () => navigate('settings')),
     ),
@@ -33,19 +47,6 @@ export function renderPanel(container: HTMLElement): void {
     container.appendChild(el('div', { className: 'fmn-empty' }, 'No tasks yet. Hit + to create one.'))
     return
   }
-
-  // Group by category toggle
-  const toggleRow = el('div', { style: 'display:flex;align-items:center;gap:8px;margin-bottom:12px;' })
-  const toggleLabel = el('label', { className: 'fmn-toggle' })
-  const toggleInput = el('input', { type: 'checkbox' }) as HTMLInputElement
-  toggleInput.checked = groupByCategory
-  toggleInput.onchange = () => { groupByCategory = toggleInput.checked; navigate('panel') }
-  toggleLabel.appendChild(toggleInput)
-  toggleLabel.appendChild(el('span', { className: 'fmn-toggle-track' }))
-  toggleLabel.appendChild(el('span', { className: 'fmn-toggle-thumb' }))
-  toggleRow.appendChild(toggleLabel)
-  toggleRow.appendChild(el('span', { style: 'font-size:12px;color:var(--dim);' }, 'group by category'))
-  container.appendChild(toggleRow)
 
   if (groupByCategory) {
     renderGroupedByCategory(container, tasks)

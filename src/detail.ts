@@ -84,7 +84,7 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
   detailSection.appendChild(el('h3', {}, 'Details'))
   const grid = el('div', { className: 'fmn-detail-grid' })
 
-  addGridRow(grid, 'Domain', task.domain || '—')
+  addGridRow(grid, 'Category', task.domain || '—')
   addGridRow(grid, 'Tags', task.tags.length > 0 ? task.tags.join(', ') : '—')
   addGridRow(grid, 'Created', timeAgo(task.createdAt))
   addGridRow(grid, 'Updated', timeAgo(task.updatedAt))

@@ -42,6 +42,29 @@ export interface Task {
   actionLog: ActionLogEntry[]
 }
 
+export interface ThemeColors {
+  bg: string
+  surface: string
+  border: string
+  text: string
+  dim: string
+  accent: string
+  green: string
+  orange: string
+  red: string
+  cyan: string
+}
+
+export interface ThemeStyle {
+  name: string
+  label: string
+  colors: ThemeColors
+  borderRadius: number
+  fontSize: number
+  fontFamily: string
+  spacing: 'compact' | 'normal' | 'relaxed'
+}
+
 export interface Settings {
   soundEnabled: boolean
   soundPreset: number
@@ -51,7 +74,11 @@ export interface Settings {
 
   domains: string[]
 
-  theme: 'dark' | 'light'
+  themePreset: string
+  customColors: Partial<ThemeColors>
+  customBorderRadius: number | null
+  customFontSize: number | null
+  customSpacing: string | null
   panelCollapsed: boolean
 
   syncEndpoint: string

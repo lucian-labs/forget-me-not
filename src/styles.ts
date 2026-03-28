@@ -2,7 +2,6 @@ const CSS = `
 :root {
   --bg: #0a0a0a;
   --surface: #141414;
-  --surface-hover: #1a1a1a;
   --border: #2a2a2a;
   --text: #e0e0e0;
   --dim: #666;
@@ -12,15 +11,9 @@ const CSS = `
   --red: #ef4444;
   --cyan: #22d3ee;
   --font: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-}
-
-[data-theme="light"] {
-  --bg: #f5f5f5;
-  --surface: #ffffff;
-  --surface-hover: #f0f0f0;
-  --border: #e0e0e0;
-  --text: #1a1a1a;
-  --dim: #888;
+  --radius: 6px;
+  --font-size: 14px;
+  --spacing: 12px;
 }
 
 * {
@@ -34,7 +27,7 @@ html, body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font);
-  font-size: 14px;
+  font-size: var(--font-size);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -76,7 +69,7 @@ button {
   font-size: 13px;
   cursor: pointer;
   border: none;
-  border-radius: 4px;
+  border-radius: calc(var(--radius) - 2px);
   padding: 6px 12px;
   transition: background 0.15s, opacity 0.15s;
 }
@@ -130,8 +123,8 @@ button:active { opacity: 0.8; }
 .fmn-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 12px 16px;
+  border-radius: var(--radius);
+  padding: var(--spacing) 16px;
   margin-bottom: 8px;
   transition: border-color 0.15s;
 }
@@ -173,7 +166,7 @@ button:active { opacity: 0.8; }
   margin-top: 2px;
 }
 
-.fmn-task-domain {
+.fmn-task-category {
   color: var(--cyan);
   font-size: 11px;
 }
@@ -357,7 +350,7 @@ input, select, textarea {
   font-size: 13px;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: calc(var(--radius) - 2px);
   color: var(--text);
   padding: 6px 10px;
   outline: none;
@@ -532,7 +525,8 @@ input[type="range"]::-webkit-slider-thumb {
   margin-top: 6px;
 }
 
-.fmn-inline-add input { flex: 1; }
+.fmn-inline-add input { flex: 1; min-width: 0; }
+.fmn-inline-add select { width: auto; flex: 0 0 auto; }
 
 /* Back link */
 

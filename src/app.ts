@@ -6,6 +6,7 @@ import { renderDetail } from './detail'
 import { renderSettings } from './settings'
 import { renderCreate } from './create'
 import { initSound, requestNotificationPermission } from './sounds'
+import { applyTheme } from './themes'
 
 let currentView: View = 'panel'
 let currentTaskId: string | null = null
@@ -47,14 +48,13 @@ function startRenderLoop(): void {
   }, 1000)
 }
 
-function applyTheme(): void {
-  const settings = getSettings()
-  document.documentElement.setAttribute('data-theme', settings.theme)
+function initTheme(): void {
+  applyTheme(getSettings())
 }
 
 async function init(): Promise<void> {
   injectStyles()
-  applyTheme()
+  initTheme()
   render()
   startRenderLoop()
 

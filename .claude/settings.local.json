@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -f README.md CLAUDE.md)",
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx vite:*)",
+      "Bash(git add:*)",
+      "Bash(git rm:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(curl:*)",
+      "Bash(python3 -m json.tool)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(f''''Total tasks: {len\\(d[\"\"tasks\"\"]\\)}''''\\); print\\(\\); [print\\(f''''  [{t[\"\"status\"\"]}] {t[\"\"title\"\"]} \\(domain={t[\"\"domain\"\"]}, project={t.get\\(\"\"project\"\",\"\"n/a\"\"\\)}\\)''''\\) for t in d[''''tasks'''']]\")"
+    ]
+  }
+}

@@ -1,6 +1,7 @@
 import { getSettings, updateSettings, exportAll, importAll, clearAll } from './store'
 import { el, downloadJson } from './utils'
 import { refreshSound } from './sounds'
+import { THEMES, applyTheme, resolveTheme } from './themes'
 import { navigate } from './app'
 
 export function renderSettings(container: HTMLElement): void {
@@ -14,24 +15,100 @@ export function renderSettings(container: HTMLElement): void {
 
   container.appendChild(el('div', { className: 'fmn-section' }, 'Settings'))
 
-  // Theme
+  // Theme presets
   const themeCard = el('div', { className: 'fmn-card' })
-  themeCard.appendChild(settingsRow('Theme', () => {
+  themeCard.appendChild(sectionLabel('Theme'))
+
+  themeCard.appendChild(settingsRow('Preset', () => {
     const select = el('select', {}) as HTMLSelectElement
-    select.appendChild(el('option', { value: 'dark' }, 'Dark'))
-    select.appendChild(el('option', { value: 'light' }, 'Light'))
-    select.value = settings.theme
+    for (const t of THEMES) {
+      const opt = el('option', { value: t.name }, t.label)
+      if (t.name === settings.themePreset) opt.selected = true
+      select.appendChild(opt)
+    }
     select.onchange = () => {
-      updateSettings({ theme: select.value as 'dark' | 'light' })
-      document.documentElement.setAttribute('data-theme', select.value)
+      const updated = updateSettings({ themePreset: select.value, customColors: {}, customBorderRadius: null, customFontSize: null, customSpacing: null })
+      applyTheme(updated)
+      navigate('settings')
     }
     return select
   }))
+
+  // Customization
+  const resolved = resolveTheme(settings)
+
+  themeCard.appendChild(settingsRow('Corners', () => {
+    const range = el('input', { type: 'range', value: String(resolved.borderRadius) }) as HTMLInputElement
+    range.min = '0'
+    range.max = '20'
+    const label = el('span', { style: 'font-size:12px;color:var(--dim);width:30px;' }, `${resolved.borderRadius}px`)
+    range.oninput = () => {
+      label.textContent = `${range.value}px`
+      const updated = updateSettings({ customBorderRadius: parseInt(range.value) })
+      applyTheme(updated)
+    }
+    const wrap = el('div', { style: 'display:flex;align-items:center;gap:8px;' })
+    wrap.appendChild(range)
+    wrap.appendChild(label)
+    return wrap
+  }))
+
+  themeCard.appendChild(settingsRow('Text size', () => {
+    const range = el('input', { type: 'range', value: String(resolved.fontSize) }) as HTMLInputElement
+    range.min = '11'
+    range.max = '20'
+    const label = el('span', { style: 'font-size:12px;color:var(--dim);width:30px;' }, `${resolved.fontSize}px`)
+    range.oninput = () => {
+      label.textContent = `${range.value}px`
+      const updated = updateSettings({ customFontSize: parseInt(range.value) })
+      applyTheme(updated)
+    }
+    const wrap = el('div', { style: 'display:flex;align-items:center;gap:8px;' })
+    wrap.appendChild(range)
+    wrap.appendChild(label)
+    return wrap
+  }))
+
+  themeCard.appendChild(settingsRow('Spacing', () => {
+    const select = el('select', {}) as HTMLSelectElement
+    for (const s of ['compact', 'normal', 'relaxed']) {
+      const opt = el('option', { value: s }, s)
+      if (s === resolved.spacing) opt.selected = true
+      select.appendChild(opt)
+    }
+    select.onchange = () => {
+      const updated = updateSettings({ customSpacing: select.value })
+      applyTheme(updated)
+    }
+    return select
+  }))
+
+  // Color pickers
+  const colorLabels: { key: string; label: string }[] = [
+    { key: 'accent', label: 'Accent' },
+    { key: 'bg', label: 'Background' },
+    { key: 'surface', label: 'Cards' },
+    { key: 'text', label: 'Text' },
+    { key: 'green', label: 'On track' },
+    { key: 'orange', label: 'Warning' },
+    { key: 'red', label: 'Overdue' },
+  ]
+  for (const { key, label } of colorLabels) {
+    themeCard.appendChild(settingsRow(label, () => {
+      const input = el('input', { type: 'color', value: resolved.colors[key as keyof typeof resolved.colors], style: 'width:40px;height:28px;padding:0;border:none;cursor:pointer;' }) as HTMLInputElement
+      input.oninput = () => {
+        const updated = updateSettings({ customColors: { ...settings.customColors, [key]: input.value } })
+        applyTheme(updated)
+      }
+      return input
+    }))
+  }
+
   container.appendChild(themeCard)
 
   // Sound
   const soundCard = el('div', { className: 'fmn-card' })
-  soundCard.appendChild(el('div', { style: 'font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--dim);margin-bottom:8px;' }, 'Sound'))
+  soundCard.appendChild(sectionLabel('Sound'))
 
   soundCard.appendChild(settingsRow('Enabled', () => toggle(settings.soundEnabled, (v) => updateSettings({ soundEnabled: v }))))
 
@@ -77,9 +154,9 @@ export function renderSettings(container: HTMLElement): void {
 
   container.appendChild(soundCard)
 
-  // Domains
+  // Categories
   const domainCard = el('div', { className: 'fmn-card' })
-  domainCard.appendChild(el('div', { style: 'font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--dim);margin-bottom:8px;' }, 'Domains'))
+  domainCard.appendChild(sectionLabel('Categories'))
 
   const domainList = el('div', { className: 'fmn-domain-list' })
   for (const d of settings.domains) {
@@ -95,7 +172,7 @@ export function renderSettings(container: HTMLElement): void {
   domainCard.appendChild(domainList)
 
   const domainAdd = el('div', { className: 'fmn-inline-add', style: 'margin-top:8px;' })
-  const domainInput = el('input', { type: 'text', placeholder: 'Add domain...' }) as HTMLInputElement
+  const domainInput = el('input', { type: 'text', placeholder: 'Add category...' }) as HTMLInputElement
   domainInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && domainInput.value.trim()) {
       const val = domainInput.value.trim().toLowerCase()
@@ -111,7 +188,7 @@ export function renderSettings(container: HTMLElement): void {
 
   // Sync config
   const syncCard = el('div', { className: 'fmn-card' })
-  syncCard.appendChild(el('div', { style: 'font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--dim);margin-bottom:8px;' }, 'Sync (Experimental)'))
+  syncCard.appendChild(sectionLabel('Sync (Experimental)'))
 
   syncCard.appendChild(settingsRow('Enabled', () => toggle(settings.syncEnabled, (v) => {
     updateSettings({ syncEnabled: v })
@@ -133,13 +210,13 @@ export function renderSettings(container: HTMLElement): void {
   syncCard.appendChild(keyGroup)
 
   syncCard.appendChild(el('div', { style: 'font-size:11px;color:var(--dim);margin-top:4px;' },
-    'Configure your own sync endpoint. Data stays on your device until you enable sync. Like Obsidian — you own the pipe.'))
+    'Configure your own sync endpoint. Data stays on your device until you enable sync. Like Obsidian \u2014 you own the pipe.'))
 
   container.appendChild(syncCard)
 
   // Data
   const dataCard = el('div', { className: 'fmn-card' })
-  dataCard.appendChild(el('div', { style: 'font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--dim);margin-bottom:8px;' }, 'Data'))
+  dataCard.appendChild(sectionLabel('Data'))
 
   const dataRow = el('div', { className: 'fmn-form-row' })
 
@@ -161,7 +238,7 @@ export function renderSettings(container: HTMLElement): void {
           const result = importAll(reader.result as string)
           alert(`Imported ${result.tasks} tasks.`)
           navigate('panel')
-        } catch (err) {
+        } catch {
           alert('Invalid JSON file.')
         }
       }
@@ -180,6 +257,10 @@ export function renderSettings(container: HTMLElement): void {
 
   dataCard.appendChild(dataRow)
   container.appendChild(dataCard)
+}
+
+function sectionLabel(text: string): HTMLElement {
+  return el('div', { style: 'font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--dim);margin-bottom:8px;' }, text)
 }
 
 function settingsRow(label: string, controlFactory: () => HTMLElement): HTMLElement {

@@ -1,13 +1,13 @@
 import type { Task } from './types'
 import {
   getTasks, getUrgencyRatio, getUrgencyColor, getUrgencyClass,
-  resetTask, completeTask, snoozeTask, archiveTask,
+  resetTask, completeTask, snoozeTask, archiveTask, addActionNote,
 } from './store'
 import { formatTime, formatCadence, el } from './utils'
 import { playAlert, clearAlert } from './sounds'
 import { navigate } from './app'
 
-type CaptureState = { taskId: string; timer: number | null }
+type CaptureState = { taskId: string; timer: number | null; mode: 'check' | 'note' }
 
 let capture: CaptureState | null = null
 
@@ -78,7 +78,7 @@ function renderTaskItem(task: Task, isRecurring: boolean): HTMLElement {
 
   // Domain badge
   if (task.domain) {
-    row.appendChild(el('span', { className: 'fmn-task-domain' }, task.domain))
+    row.appendChild(el('span', { className: 'fmn-task-category' }, task.domain))
   }
 
   // Priority badge (one-time only)
@@ -90,6 +90,9 @@ function renderTaskItem(task: Task, isRecurring: boolean): HTMLElement {
   if (isRecurring) {
     row.appendChild(el('span', { className: 'fmn-badge fmn-badge-recurring' }, '\u21BB'))
   }
+
+  // Quick note button
+  row.appendChild(createBtn('\u270E', 'btn-icon btn-sm', () => startNote(task)))
 
   // Snooze (recurring) or delete (one-time)
   if (isRecurring) {
@@ -142,25 +145,41 @@ function renderTaskItem(task: Task, isRecurring: boolean): HTMLElement {
     const input = el('input', {
       className: 'fmn-capture',
       type: 'text',
-      placeholder: 'quick note (auto-submits in 1.5s)...',
+      placeholder: capture.mode === 'note' ? 'what did you do?' : 'quick note (auto-submits in 1.5s)...',
     }) as HTMLInputElement
     card.appendChild(input)
     requestAnimationFrame(() => input.focus())
 
-    input.addEventListener('input', () => resetCaptureTimer(task, input, isRecurring))
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') executeCapture(task, input.value, isRecurring)
-      if (e.key === 'Escape') { capture = null; navigate('panel') }
-    })
-
-    startCaptureTimer(task, input, isRecurring)
+    if (capture.mode === 'note') {
+      // Note mode: no auto-timer, submit on enter only
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && input.value.trim()) {
+          addActionNote(task.id, input.value.trim())
+          capture = null
+          navigate('panel')
+        }
+        if (e.key === 'Escape') { capture = null; navigate('panel') }
+      })
+    } else {
+      input.addEventListener('input', () => resetCaptureTimer(task, input, isRecurring))
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') executeCapture(task, input.value, isRecurring)
+        if (e.key === 'Escape') { capture = null; navigate('panel') }
+      })
+      startCaptureTimer(task, input, isRecurring)
+    }
   }
 
   return card
 }
 
 function startCapture(task: Task, _card: HTMLElement, _isRecurring: boolean): void {
-  capture = { taskId: task.id, timer: null }
+  capture = { taskId: task.id, timer: null, mode: 'check' }
+  navigate('panel')
+}
+
+function startNote(task: Task): void {
+  capture = { taskId: task.id, timer: null, mode: 'note' }
   navigate('panel')
 }
 

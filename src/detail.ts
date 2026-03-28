@@ -19,10 +19,9 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
 
   container.innerHTML = ''
 
-  // Back
-  const back = el('button', { className: 'fmn-back' }, '\u2190 back')
-  back.onclick = () => navigate('panel')
-  container.appendChild(back)
+  const headerTitle = el('h1', { className: 'fmn-header-title' }, 'forget me not')
+  headerTitle.onclick = () => navigate('panel')
+  container.appendChild(el('div', { className: 'fmn-header' }, headerTitle))
 
   // Header
   const header = el('div', { className: 'fmn-detail-header' })

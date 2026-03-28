@@ -21,12 +21,9 @@ export function renderSettings(container: HTMLElement): void {
   const settings = getSettings()
   container.innerHTML = ''
 
-  // Back
-  const back = el('button', { className: 'fmn-back' }, '\u2190 back')
-  back.onclick = () => navigate('panel')
-  container.appendChild(back)
-
-  container.appendChild(el('div', { className: 'fmn-section' }, 'Settings'))
+  const title = el('h1', { className: 'fmn-header-title' }, 'forget me not')
+  title.onclick = () => navigate('panel')
+  container.appendChild(el('div', { className: 'fmn-header' }, title, el('div', { className: 'fmn-section', style: 'margin:0;' }, 'Settings')))
 
   // Categories (at top)
   const domainCard = el('div', { className: 'fmn-card' })

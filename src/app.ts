@@ -161,7 +161,7 @@ async function init(): Promise<void> {
   }
 
   const shopScript = document.createElement('script')
-  shopScript.src = 'https://cdn.lucianlabs.ca/scripts/choppa-badge.js'
+  shopScript.src = 'https://cdn.lucianlabs.ca/scripts/ll-shop.js'
   document.body.appendChild(shopScript)
 }
 

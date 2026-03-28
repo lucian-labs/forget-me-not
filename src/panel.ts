@@ -96,15 +96,8 @@ function renderTaskItem(task: Task): HTMLElement {
   const card = el('div', { className: `fmn-card fmn-task ${urgencyClass}` })
   const row = el('div', { className: 'fmn-task-row' })
 
-  // Check button — recurring opens capture, one-time completes directly
-  const checkBtn = createBtn('\u2713', 'btn-icon', () => {
-    if (isRecurring) {
-      startCapture(task)
-    } else {
-      completeTask(task.id, '')
-      navigate('panel')
-    }
-  })
+  // Check button — always opens capture input first
+  const checkBtn = createBtn('\u2713', 'btn-icon', () => startCapture(task))
   row.appendChild(checkBtn)
 
   // Title
@@ -219,7 +212,11 @@ function resetCaptureTimer(task: Task, input: HTMLInputElement): void {
 function executeCapture(task: Task, note: string): void {
   if (capture?.timer) clearTimeout(capture.timer)
   capture = null
-  resetTask(task.id, note)
+  if (task.recurring) {
+    resetTask(task.id, note)
+  } else {
+    completeTask(task.id, note)
+  }
   navigate('panel')
 }
 

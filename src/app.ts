@@ -22,30 +22,34 @@ function render(): void {
   const app = document.getElementById('app')
   if (!app) return
 
-  switch (currentView) {
-    case 'panel':
-      renderPanel(app)
-      break
-    case 'detail':
-      if (currentTaskId) renderDetail(app, currentTaskId)
-      break
-    case 'settings':
-      renderSettings(app)
-      break
-    case 'create':
-      renderCreate(app)
-      break
+  // Ensure shell structure: .fmn-content + .fmn-footer
+  let content = app.querySelector('.fmn-content') as HTMLElement
+  if (!content) {
+    app.innerHTML = ''
+    content = document.createElement('div')
+    content.className = 'fmn-content'
+    app.appendChild(content)
+
+    const footer = document.createElement('footer')
+    footer.className = 'fmn-footer'
+    footer.innerHTML = 'by <a href="https://lucianlabs.ca" target="_blank" rel="noopener">lucianlabs.ca</a> · <a href="https://github.com/lucian-labs/forget-me-not" target="_blank" rel="noopener">source code</a>'
+    app.appendChild(footer)
   }
 
-  renderFooter(app)
-}
-
-function renderFooter(container: HTMLElement): void {
-  if (container.querySelector('.fmn-footer')) return
-  const footer = document.createElement('footer')
-  footer.className = 'fmn-footer'
-  footer.innerHTML = 'by <a href="https://lucianlabs.ca" target="_blank" rel="noopener">lucianlabs.ca</a> · <a href="https://github.com/lucian-labs/forget-me-not" target="_blank" rel="noopener">source code</a>'
-  container.appendChild(footer)
+  switch (currentView) {
+    case 'panel':
+      renderPanel(content)
+      break
+    case 'detail':
+      if (currentTaskId) renderDetail(content, currentTaskId)
+      break
+    case 'settings':
+      renderSettings(content)
+      break
+    case 'create':
+      renderCreate(content)
+      break
+  }
 }
 
 function startRenderLoop(): void {

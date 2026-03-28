@@ -36,7 +36,15 @@ html, body {
   max-width: 640px;
   margin: 0 auto;
   padding: 16px;
-  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.fmn-content {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 /* Header */
@@ -562,8 +570,8 @@ input[type="range"]::-webkit-slider-thumb {
 /* Footer */
 
 .fmn-footer {
-  margin-top: 40px;
-  padding: 16px 0;
+  flex-shrink: 0;
+  padding: 12px 0;
   border-top: 1px solid var(--border);
   text-align: center;
   font-size: 12px;

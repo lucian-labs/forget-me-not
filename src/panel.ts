@@ -35,11 +35,15 @@ export function renderPanel(container: HTMLElement): void {
   }
 
   // Group by category toggle
-  const toggleRow = el('div', { style: 'display:flex;align-items:center;gap:6px;margin-bottom:12px;' })
-  const checkbox = el('input', { type: 'checkbox', style: 'width:auto;' }) as HTMLInputElement
-  checkbox.checked = groupByCategory
-  checkbox.onchange = () => { groupByCategory = checkbox.checked; navigate('panel') }
-  toggleRow.appendChild(checkbox)
+  const toggleRow = el('div', { style: 'display:flex;align-items:center;gap:8px;margin-bottom:12px;' })
+  const toggleLabel = el('label', { className: 'fmn-toggle' })
+  const toggleInput = el('input', { type: 'checkbox' }) as HTMLInputElement
+  toggleInput.checked = groupByCategory
+  toggleInput.onchange = () => { groupByCategory = toggleInput.checked; navigate('panel') }
+  toggleLabel.appendChild(toggleInput)
+  toggleLabel.appendChild(el('span', { className: 'fmn-toggle-track' }))
+  toggleLabel.appendChild(el('span', { className: 'fmn-toggle-thumb' }))
+  toggleRow.appendChild(toggleLabel)
   toggleRow.appendChild(el('span', { style: 'font-size:12px;color:var(--dim);' }, 'group by category'))
   container.appendChild(toggleRow)
 

@@ -32,7 +32,7 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
   titleInput.style.border = 'none'
   titleInput.style.fontSize = '20px'
   titleInput.style.fontWeight = '600'
-  titleInput.style.color = 'var(--text)'
+  titleInput.style.color = 'var(--accent)'
   titleInput.style.padding = '0'
   titleInput.style.width = '100%'
   titleInput.onblur = () => { if (titleInput.value !== task.title) updateTask(task.id, { title: titleInput.value }) }

@@ -36,6 +36,16 @@ function render(): void {
       renderCreate(app)
       break
   }
+
+  renderFooter(app)
+}
+
+function renderFooter(container: HTMLElement): void {
+  if (container.querySelector('.fmn-footer')) return
+  const footer = document.createElement('footer')
+  footer.className = 'fmn-footer'
+  footer.innerHTML = 'by <a href="https://lucianlabs.ca" target="_blank" rel="noopener">lucianlabs.ca</a> · <a href="https://github.com/lucian-labs/forget-me-not" target="_blank" rel="noopener">source code</a>'
+  container.appendChild(footer)
 }
 
 function startRenderLoop(): void {
@@ -67,6 +77,11 @@ async function init(): Promise<void> {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {})
   }
+
+  // Lucian Labs shop widget
+  const shopScript = document.createElement('script')
+  shopScript.src = 'https://cdn.lucianlabs.ca/scripts/choppa-badge.js'
+  document.body.appendChild(shopScript)
 }
 
 init()

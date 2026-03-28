@@ -558,6 +558,26 @@ input[type="range"]::-webkit-slider-thumb {
   padding: 2px 6px;
   font-size: 12px;
 }
+
+/* Footer */
+
+.fmn-footer {
+  margin-top: 40px;
+  padding: 16px 0;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: 12px;
+  color: var(--dim);
+}
+
+.fmn-footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.fmn-footer a:hover {
+  text-decoration: underline;
+}
 `
 
 export function injectStyles(): void {

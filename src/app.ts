@@ -40,6 +40,9 @@ function render(): void {
 function startRenderLoop(): void {
   if (renderLoopId) return
   renderLoopId = window.setInterval(() => {
+    // Skip re-render if any input/textarea/select is focused — prevents keyboard destruction
+    const active = document.activeElement
+    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT')) return
     if (currentView === 'panel') render()
   }, 1000)
 }

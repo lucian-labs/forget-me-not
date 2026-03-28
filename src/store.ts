@@ -5,7 +5,7 @@ const SETTINGS_KEY = 'fmn-settings'
 
 const DEFAULT_SETTINGS: Settings = {
   soundEnabled: true,
-  soundPreset: 88,
+  soundPreset: 0,
   soundBpm: 160,
   soundVolume: 0.4,
   soundMode: 1,

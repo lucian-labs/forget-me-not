@@ -61,9 +61,18 @@ html, body {
 .fmn-header h1, .fmn-header-title {
   font-size: 18px;
   font-weight: 600;
+  font-family: var(--font-header);
   color: var(--accent);
   letter-spacing: -0.5px;
   cursor: pointer;
+}
+
+.fmn-section {
+  font-family: var(--font-header);
+}
+
+.fmn-detail-title, .fmn-task-title {
+  font-family: var(--font-body);
 }
 
 .fmn-header-title:hover {
@@ -707,6 +716,22 @@ input[type="range"]::-webkit-slider-thumb {
 
 /* Prevent pointer events during animation */
 [class*="fmn-anim-"] { pointer-events: none; }
+
+/* Smooth gap collapse when a card leaves */
+.fmn-task {
+  transition: margin 0.3s ease, opacity 0.3s ease;
+  overflow: hidden;
+}
+.fmn-task.fmn-collapsing {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  border-width: 0 !important;
+  max-height: 0 !important;
+  opacity: 0 !important;
+  transition: all 0.3s ease;
+}
 `
 
 export function injectStyles(): void {

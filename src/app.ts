@@ -6,7 +6,8 @@ import { renderDetail } from './detail'
 import { renderSettings } from './settings'
 import { renderCreate } from './create'
 import { initSound, requestNotificationPermission } from './sounds'
-import { applyTheme } from './themes'
+import { applyTheme, getAllThemes, loadThemeFromUrl, importThemeJson } from './themes'
+import { updateSettings } from './store'
 
 let currentView: View = 'panel'
 let currentTaskId: string | null = null
@@ -90,7 +91,30 @@ function startRenderLoop(): void {
 }
 
 function initTheme(): void {
-  applyTheme(getSettings())
+  const settings = getSettings()
+  const params = new URLSearchParams(location.search)
+  const themeParam = params.get('theme')
+
+  if (themeParam) {
+    // Try as theme name first (e.g. ?theme=sakura)
+    const allThemes = getAllThemes(settings)
+    const byName = allThemes.find((t) => t.name === themeParam)
+    if (byName) {
+      const updated = updateSettings({ themePreset: byName.name })
+      applyTheme(updated)
+      return
+    }
+    // Try as base64-encoded theme JSON
+    const imported = loadThemeFromUrl(settings)
+    if (imported) {
+      const userThemes = [...(settings.userThemes ?? []).filter((t) => t.name !== imported.name), imported]
+      const updated = updateSettings({ userThemes, themePreset: imported.name })
+      applyTheme(updated)
+      return
+    }
+  }
+
+  applyTheme(settings)
 }
 
 async function init(): Promise<void> {

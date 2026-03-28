@@ -70,7 +70,9 @@ export interface ThemeStyle {
   colors: ThemeColors
   borderRadius: number
   fontSize: number
-  fontFamily: string
+  headerFont: string
+  bodyFont: string
+  fontFamily: string // legacy fallback
   spacing: 'compact' | 'normal' | 'relaxed'
   animation: AnimStyle
   sound: ThemeSoundDefaults
@@ -89,7 +91,10 @@ export interface Settings {
   customColors: Partial<ThemeColors>
   customBorderRadius: number | null
   customFontSize: number | null
+  customHeaderFont: string | null
+  customBodyFont: string | null
   customSpacing: string | null
+  userThemes: ThemeStyle[]
   panelCollapsed: boolean
 
   syncEndpoint: string

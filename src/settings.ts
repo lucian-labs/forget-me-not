@@ -1,7 +1,7 @@
 import { getSettings, updateSettings, exportAll, importAll, clearAll } from './store'
 import { el, downloadJson } from './utils'
 import { refreshSound, playTest } from './sounds'
-import { THEMES, applyTheme, resolveTheme } from './themes'
+import { getAllThemes, applyTheme, resolveTheme, exportTheme, themeToShareUrl, importThemeJson } from './themes'
 import { navigate } from './app'
 
 const SOUND_PRESETS: { value: number; label: string }[] = [
@@ -63,7 +63,7 @@ export function renderSettings(container: HTMLElement): void {
 
   themeCard.appendChild(settingsRow('Style', () => {
     const select = el('select', {}) as HTMLSelectElement
-    for (const t of THEMES) {
+    for (const t of getAllThemes(settings)) {
       const opt = el('option', { value: t.name }, t.label)
       if (t.name === settings.themePreset) opt.selected = true
       select.appendChild(opt)
@@ -111,6 +111,18 @@ export function renderSettings(container: HTMLElement): void {
       return row
     }))
 
+    wrap.appendChild(settingsRow('Title font', () => {
+      const input = el('input', { type: 'text', placeholder: 'e.g. Playfair Display', value: resolved.headerFont, style: 'width:160px;' }) as HTMLInputElement
+      input.onblur = () => applyTheme(updateSettings({ customHeaderFont: input.value || null }))
+      return input
+    }))
+
+    wrap.appendChild(settingsRow('Body font', () => {
+      const input = el('input', { type: 'text', placeholder: 'e.g. Inter', value: resolved.bodyFont, style: 'width:160px;' }) as HTMLInputElement
+      input.onblur = () => applyTheme(updateSettings({ customBodyFont: input.value || null }))
+      return input
+    }))
+
     wrap.appendChild(settingsRow('Spacing', () => {
       const select = el('select', {}) as HTMLSelectElement
       for (const s of ['compact', 'normal', 'relaxed']) {
@@ -142,6 +154,56 @@ export function renderSettings(container: HTMLElement): void {
     return wrap
   })
   themeCard.appendChild(themeAdvanced)
+
+  // Theme share/import
+  const themeShare = collapsible('Share / Import', () => {
+    const wrap = el('div', {})
+
+    // Share link
+    const shareBtn = createBtn('Copy share link', 'btn-ghost btn-sm', () => {
+      const url = themeToShareUrl(settings)
+      navigator.clipboard.writeText(url).then(() => {
+        shareBtn.textContent = 'Copied!'
+        setTimeout(() => { shareBtn.textContent = 'Copy share link' }, 1500)
+      })
+    })
+    wrap.appendChild(el('div', { style: 'margin-bottom:8px;' }, shareBtn))
+
+    // Export JSON
+    const exportBtn = createBtn('Copy theme JSON', 'btn-ghost btn-sm', () => {
+      const json = exportTheme(settings)
+      navigator.clipboard.writeText(json).then(() => {
+        exportBtn.textContent = 'Copied!'
+        setTimeout(() => { exportBtn.textContent = 'Copy theme JSON' }, 1500)
+      })
+    })
+    wrap.appendChild(el('div', { style: 'margin-bottom:8px;' }, exportBtn))
+
+    // Import
+    wrap.appendChild(el('div', { style: 'font-size:11px;color:var(--dim);margin-bottom:4px;' }, 'Paste theme JSON:'))
+    const importArea = el('textarea', { placeholder: '{"name":"my-theme",...}', style: 'min-height:40px;font-size:11px;' }) as HTMLTextAreaElement
+    const importBtn = createBtn('Import', 'btn-accent btn-sm', () => {
+      const theme = importThemeJson(importArea.value, settings)
+      if (theme) {
+        const userThemes = [...(settings.userThemes ?? []).filter((t) => t.name !== theme.name), theme]
+        const updated = updateSettings({ userThemes, themePreset: theme.name, customColors: {}, customBorderRadius: null, customFontSize: null, customHeaderFont: null, customBodyFont: null, customSpacing: null })
+        applyTheme(updated)
+        navigate('settings')
+      } else {
+        importArea.style.borderColor = 'var(--red)'
+      }
+    })
+    wrap.appendChild(importArea)
+    wrap.appendChild(el('div', { style: 'margin-top:6px;' }, importBtn))
+
+    // Script tag hint
+    wrap.appendChild(el('div', { style: 'font-size:11px;color:var(--dim);margin-top:12px;' },
+      'To load from a gist or URL without CORS, add a script tag that calls: fmnLoadTheme({...theme})'))
+
+    return wrap
+  })
+  themeCard.appendChild(themeShare)
+
   container.appendChild(themeCard)
 
   // Sound

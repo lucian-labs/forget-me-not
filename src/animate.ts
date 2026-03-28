@@ -4,7 +4,7 @@ import { getTheme } from './themes'
 
 function getAnimStyle(): AnimStyle {
   const settings = getSettings()
-  return getTheme(settings.themePreset).animation
+  return getTheme(settings.themePreset, settings).animation
 }
 
 export function animateOut(element: HTMLElement): Promise<void> {
@@ -12,9 +12,22 @@ export function animateOut(element: HTMLElement): Promise<void> {
   const cls = `fmn-anim-${style}`
 
   return new Promise((resolve) => {
+    // Capture height for smooth collapse
+    const height = element.offsetHeight
+    element.style.maxHeight = `${height}px`
+
     element.classList.add(cls)
-    element.addEventListener('animationend', () => resolve(), { once: true })
-    setTimeout(resolve, 800)
+
+    const collapse = () => {
+      element.classList.add('fmn-collapsing')
+      element.addEventListener('transitionend', () => resolve(), { once: true })
+      // Safety timeout for collapse
+      setTimeout(resolve, 400)
+    }
+
+    element.addEventListener('animationend', collapse, { once: true })
+    // Safety timeout for animation
+    setTimeout(collapse, 800)
   })
 }
 

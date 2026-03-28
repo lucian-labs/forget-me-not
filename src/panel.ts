@@ -11,7 +11,7 @@ import { animateOut } from './animate'
 type CaptureState = { taskId: string; timer: number | null; mode: 'check' | 'note'; card: HTMLElement | null }
 
 let capture: CaptureState | null = null
-let groupByCategory = false
+let groupByCategory = localStorage.getItem('fmn-categorize') === 'true'
 
 export function renderPanel(container: HTMLElement): void {
   const tasks = getTasks().filter((t) => t.status !== 'done' && t.status !== 'archived' && t.status !== 'cancelled')
@@ -25,7 +25,7 @@ export function renderPanel(container: HTMLElement): void {
   const catToggle = el('label', { className: 'fmn-toggle', style: 'margin:0;' })
   const catInput = el('input', { type: 'checkbox' }) as HTMLInputElement
   catInput.checked = groupByCategory
-  catInput.onchange = () => { groupByCategory = catInput.checked; navigate('panel') }
+  catInput.onchange = () => { groupByCategory = catInput.checked; localStorage.setItem('fmn-categorize', String(catInput.checked)); navigate('panel') }
   catToggle.appendChild(catInput)
   catToggle.appendChild(el('span', { className: 'fmn-toggle-track' }))
   catToggle.appendChild(el('span', { className: 'fmn-toggle-thumb' }))

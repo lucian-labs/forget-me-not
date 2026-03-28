@@ -1,0 +1,69 @@
+import type { View } from './types'
+import { injectStyles } from './styles'
+import { getSettings } from './store'
+import { renderPanel } from './panel'
+import { renderDetail } from './detail'
+import { renderSettings } from './settings'
+import { renderCreate } from './create'
+import { initSound, requestNotificationPermission } from './sounds'
+
+let currentView: View = 'panel'
+let currentTaskId: string | null = null
+let renderLoopId: number | null = null
+
+export function navigate(view: View, taskId?: string): void {
+  currentView = view
+  currentTaskId = taskId ?? null
+  render()
+}
+
+function render(): void {
+  const app = document.getElementById('app')
+  if (!app) return
+
+  switch (currentView) {
+    case 'panel':
+      renderPanel(app)
+      break
+    case 'detail':
+      if (currentTaskId) renderDetail(app, currentTaskId)
+      break
+    case 'settings':
+      renderSettings(app)
+      break
+    case 'create':
+      renderCreate(app)
+      break
+  }
+}
+
+function startRenderLoop(): void {
+  if (renderLoopId) return
+  renderLoopId = window.setInterval(() => {
+    if (currentView === 'panel') render()
+  }, 1000)
+}
+
+function applyTheme(): void {
+  const settings = getSettings()
+  document.documentElement.setAttribute('data-theme', settings.theme)
+}
+
+async function init(): Promise<void> {
+  injectStyles()
+  applyTheme()
+  render()
+  startRenderLoop()
+
+  await initSound()
+
+  // Request notification permission on first user interaction
+  document.addEventListener('click', () => requestNotificationPermission(), { once: true })
+
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {})
+  }
+}
+
+init()

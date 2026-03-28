@@ -109,7 +109,7 @@ export function renderCreate(container: HTMLElement): void {
   const prompts: string[] = []
   const promptGroup = el('div', { className: 'fmn-form-group', style: 'margin-top:12px;' })
   promptGroup.appendChild(el('label', {}, 'Reminders'))
-  const promptList = el('div', { style: 'margin-bottom:6px;' })
+  const promptList = el('div', { className: 'fmn-domain-list', style: 'margin-bottom:6px;' })
   promptGroup.appendChild(promptList)
 
   const promptAddRow = el('div', { className: 'fmn-inline-add' })
@@ -129,12 +129,11 @@ export function renderCreate(container: HTMLElement): void {
   function renderPromptList(): void {
     promptList.innerHTML = ''
     prompts.forEach((p, idx) => {
-      const row = el('div', { style: 'display:flex;align-items:center;gap:6px;margin-bottom:4px;' })
-      row.appendChild(el('span', { className: 'fmn-prompt', style: 'margin:0;' }, `? ${p}`))
+      const tag = el('span', { className: 'fmn-domain-tag' }, p)
       const removeBtn = el('span', { className: 'fmn-domain-remove' }, '\u00D7')
       removeBtn.onclick = () => { prompts.splice(idx, 1); renderPromptList() }
-      row.appendChild(removeBtn)
-      promptList.appendChild(row)
+      tag.appendChild(removeBtn)
+      promptList.appendChild(tag)
     })
   }
 

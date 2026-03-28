@@ -215,8 +215,8 @@ export function getUrgencyRatio(task: Task): number {
 }
 
 export function getUrgencyColor(ratio: number): string {
-  if (ratio < 0.5) return 'var(--green)'
-  if (ratio < 0.8) return 'var(--orange)'
+  if (ratio < 0.75) return 'var(--green)'
+  if (ratio < 0.95) return 'var(--orange)'
   return 'var(--red)'
 }
 

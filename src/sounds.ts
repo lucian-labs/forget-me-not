@@ -61,6 +61,11 @@ export function playAlert(taskId: string): void {
   }
 }
 
+export function playTest(): void {
+  if (!notify) return
+  notify.play('test-' + Date.now())
+}
+
 export function clearAlert(taskId: string): void {
   alerted.delete(taskId)
 }

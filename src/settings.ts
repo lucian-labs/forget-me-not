@@ -1,6 +1,6 @@
 import { getSettings, updateSettings, exportAll, importAll, clearAll } from './store'
 import { el, downloadJson } from './utils'
-import { refreshSound } from './sounds'
+import { refreshSound, playTest } from './sounds'
 import { THEMES, applyTheme, resolveTheme } from './themes'
 import { navigate } from './app'
 
@@ -111,6 +111,8 @@ export function renderSettings(container: HTMLElement): void {
   soundCard.appendChild(sectionLabel('Sound'))
 
   soundCard.appendChild(settingsRow('Enabled', () => toggle(settings.soundEnabled, (v) => updateSettings({ soundEnabled: v }))))
+
+  soundCard.appendChild(settingsRow('Test', () => createBtn('\u25B6 Play', 'btn-ghost btn-sm', () => playTest())))
 
   soundCard.appendChild(settingsRow('Preset', () => {
     const input = el('input', { type: 'number', value: String(settings.soundPreset), style: 'width:60px;' }) as HTMLInputElement

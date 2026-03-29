@@ -3,7 +3,7 @@ import { resolveTheme } from './themes'
 
 function getInitials(name: string): string {
   const words = (name || 'forget me not').trim().split(/\s+/)
-  if (words.length === 1) return words[0].slice(0, 3).toUpperCase()
+  if (words.length === 1) return words[0][0].toUpperCase()
   return words.slice(0, 3).map((w) => w[0]).join('').toUpperCase()
 }
 
@@ -13,12 +13,13 @@ export function generateIconSvg(size: number = 512): string {
   const c = resolved.colors
   const initials = getInitials(settings.appName)
   const r = Math.min(resolved.borderRadius * 4, 64)
-  const fontSize = initials.length <= 2 ? size * 0.45 : size * 0.32
+  const headerFont = resolved.headerFont
+  const fontSize = initials.length === 1 ? size * 0.5 : initials.length === 2 ? size * 0.4 : size * 0.32
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">
   <rect width="${size}" height="${size}" rx="${r}" fill="${c.bg}"/>
   <rect x="16" y="16" width="${size - 32}" height="${size - 32}" rx="${Math.max(r - 8, 0)}" fill="${c.surface}" stroke="${c.border}" stroke-width="2"/>
-  <text x="${size / 2}" y="${size / 2}" text-anchor="middle" dominant-baseline="central" fill="${c.accent}" font-family="sans-serif" font-size="${fontSize}" font-weight="700">${initials}</text>
+  <text x="${size / 2}" y="${size / 2}" text-anchor="middle" dominant-baseline="central" fill="${c.accent}" font-family="'${headerFont}', sans-serif" font-size="${fontSize}" font-weight="700">${initials}</text>
 </svg>`
 }
 

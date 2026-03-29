@@ -1,4 +1,5 @@
 import { getSettings } from './store'
+import type { Task } from './types'
 
 declare class YamaBruhNotify {
   constructor(opts: { seed: string; preset: number; bpm: number; volume: number; mode: number })
@@ -49,15 +50,37 @@ export function refreshSound(): void {
   })
 }
 
-export function playAlert(taskId: string): void {
+export function playAlert(taskId: string, task?: Task): void {
   const settings = getSettings()
-  if (!settings.soundEnabled || !notify) return
+  if (!settings.soundEnabled) return
   if (alerted.get(taskId)) return
   alerted.set(taskId, true)
-  notify.play(taskId)
 
-  if (document.hidden && Notification.permission === 'granted') {
-    new Notification('Forget Me Not', { body: 'A task is overdue!', icon: '/icon.svg' })
+  // Web Audio synth — only works in foreground
+  if (notify && !document.hidden) {
+    notify.play(taskId)
+  }
+
+  // System notification — works in background, plays device notification sound
+  if ('Notification' in window && Notification.permission === 'granted') {
+    const title = task?.title ?? 'Task overdue'
+    const opts: NotificationOptions & { renotify?: boolean } = {
+      body: title,
+      icon: '/icon.svg',
+      tag: `fmn-${taskId}`,
+      renotify: false,
+      silent: false,
+    }
+    const n = new Notification('Forget Me Not', opts)
+    // Vibrate on supported devices
+    if ('vibrate' in navigator) {
+      navigator.vibrate([200, 100, 200])
+    }
+    // Tap notification → focus app
+    n.onclick = () => {
+      window.focus()
+      n.close()
+    }
   }
 }
 

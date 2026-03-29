@@ -112,7 +112,7 @@ function renderTaskItem(task: Task): HTMLElement {
   const isRecurring = task.recurring
   const cap = captures.get(task.id)
 
-  if (isOverdue) playAlert(task.id)
+  if (isOverdue) playAlert(task.id, task)
   else clearAlert(task.id)
 
   const card = el('div', { className: `fmn-card fmn-task ${urgencyClass}` })

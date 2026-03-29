@@ -1,5 +1,7 @@
-import { getTasks, getUrgencyRatio } from './store'
-import type { Task } from './types'
+import { getTasks, getUrgencyRatio, getSettings } from './store'
+import { resolveTheme, getTheme } from './themes'
+import { formatCadence } from './utils'
+import type { Task, ThemeColors } from './types'
 
 // Three.js r149 — last version with IIFE global build
 const CDN = 'https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js'
@@ -27,24 +29,38 @@ function destroy(): void {
   cleanupFns = []
 }
 
-// Sound — creates its own YamaBruh instance tuned for maximum chaos
+// Sound — lazy-init its own YamaBruh instance so it works even if
+// the YamaBruh CDN script hasn't finished loading when renderVibe starts.
+// Re-tries on each call until the class appears on window.
 function createSoundPlayer(): (id: string) => void {
-  const YBN = (window as any).YamaBruhNotify
-  if (!YBN) return () => {}
-  try {
-    const raw = localStorage.getItem('fmn-settings')
-    const s = raw ? JSON.parse(raw) : {}
-    if (s.soundEnabled === false) return () => {}
-    const player = new YBN({
-      seed: 'VIBE-MODE-420',
-      preset: s.soundPreset ?? 88,
-      bpm: Math.min((s.soundBpm ?? 160) + 40, 220),
-      volume: Math.min((s.soundVolume ?? 0.4) + 0.1, 1),
-      mode: s.soundMode ?? 1,
-    })
-    return (id: string) => player.play(id)
-  } catch {
-    return () => {}
+  let player: any = null
+  let dead = false
+
+  function ensure(): boolean {
+    if (player) return true
+    if (dead) return false
+    const YBN = (window as any).YamaBruhNotify
+    if (!YBN) return false
+    try {
+      const raw = localStorage.getItem('fmn-settings')
+      const s = raw ? JSON.parse(raw) : {}
+      if (s.soundEnabled === false) { dead = true; return false }
+      player = new YBN({
+        seed: 'VIBE-MODE-420',
+        preset: s.soundPreset ?? 88,
+        bpm: Math.min((s.soundBpm ?? 160) + 40, 220),
+        volume: Math.min((s.soundVolume ?? 0.4) + 0.1, 1),
+        mode: s.soundMode ?? 1,
+      })
+      return true
+    } catch {
+      dead = true
+      return false
+    }
+  }
+
+  return (id: string) => {
+    if (ensure()) player.play(id)
   }
 }
 
@@ -56,36 +72,37 @@ const WISDOM = [
   'PROBABLY NOTHING', 'FEW UNDERSTAND', 'SER',
 ]
 
-function createCardTexture(T: any, task: Task, urgency: number): any {
+function createCardTexture(T: any, task: Task, urgency: number, colors: ThemeColors, font: string): any {
   const canvas = document.createElement('canvas')
   canvas.width = 512
   canvas.height = 256
   const ctx = canvas.getContext('2d')!
 
-  ctx.fillStyle = 'rgba(0, 10, 20, 0.6)'
+  // Card bg from theme surface with transparency
+  ctx.fillStyle = colors.surface + 'a0'
   ctx.fillRect(0, 0, 512, 256)
 
-  const color = urgency >= 0.95 ? '#ff0040' : urgency >= 0.75 ? '#ff8800' : '#00ffcc'
-  ctx.shadowColor = color
+  const urgColor = urgency >= 0.95 ? colors.red : urgency >= 0.75 ? colors.orange : colors.green
+  ctx.shadowColor = urgColor
   ctx.shadowBlur = 12
-  ctx.strokeStyle = color
+  ctx.strokeStyle = urgColor
   ctx.lineWidth = 3
   ctx.strokeRect(4, 4, 504, 248)
   ctx.shadowBlur = 0
 
-  const pColors: Record<string, string> = { critical: '#ff0040', high: '#ff8800', normal: '#00ffcc', low: '#555' }
-  ctx.fillStyle = pColors[task.priority] ?? '#00ffcc'
-  ctx.font = 'bold 16px monospace'
+  const pColors: Record<string, string> = { critical: colors.red, high: colors.orange, normal: colors.accent, low: colors.dim }
+  ctx.fillStyle = pColors[task.priority] ?? colors.accent
+  ctx.font = `bold 16px ${font}`
   ctx.fillText(task.priority.toUpperCase(), 16, 30)
 
-  ctx.fillStyle = '#ffffff60'
-  ctx.font = '14px monospace'
+  ctx.fillStyle = colors.dim
+  ctx.font = `14px ${font}`
   ctx.textAlign = 'right'
   ctx.fillText(task.status.replace('_', ' ').toUpperCase(), 496, 30)
   ctx.textAlign = 'left'
 
-  ctx.fillStyle = '#ffffff'
-  ctx.font = 'bold 26px sans-serif'
+  ctx.fillStyle = colors.text
+  ctx.font = `bold 26px ${font}`
   const words = task.title.split(' ')
   let line = ''
   let y = 75
@@ -103,26 +120,29 @@ function createCardTexture(T: any, task: Task, urgency: number): any {
   if (y <= 180) ctx.fillText(line.trim(), 16, y)
 
   if (task.domain) {
-    ctx.fillStyle = '#00ffcc80'
-    ctx.font = '14px monospace'
+    ctx.fillStyle = colors.cyan
+    ctx.font = `14px ${font}`
     ctx.fillText(`#${task.domain}`, 16, 230)
   }
 
-  ctx.fillStyle = color
+  ctx.fillStyle = urgColor
   ctx.fillRect(0, 250, 512 * Math.min(urgency, 1), 6)
 
   return new T.CanvasTexture(canvas)
 }
 
-function createLensFlare(T: any): any {
+function createLensFlare(T: any, accentColor?: string): any {
+  const ac = accentColor || '#00ffcc'
+  // Parse hex to rgb for gradient
+  const hr = parseInt(ac.slice(1, 3), 16), hg = parseInt(ac.slice(3, 5), 16), hb = parseInt(ac.slice(5, 7), 16)
   const c = document.createElement('canvas')
   c.width = 128
   c.height = 128
   const ctx = c.getContext('2d')!
   const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64)
-  g.addColorStop(0, 'rgba(0,255,204,0.6)')
-  g.addColorStop(0.2, 'rgba(0,255,204,0.2)')
-  g.addColorStop(0.5, 'rgba(255,0,255,0.05)')
+  g.addColorStop(0, `rgba(${hr},${hg},${hb},0.6)`)
+  g.addColorStop(0.2, `rgba(${hr},${hg},${hb},0.2)`)
+  g.addColorStop(0.5, `rgba(${hr},${hg},${hb},0.05)`)
   g.addColorStop(1, 'rgba(0,0,0,0)')
   ctx.fillStyle = g
   ctx.fillRect(0, 0, 128, 128)
@@ -234,17 +254,36 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
   const tasks = getTasks().filter((t) => t.status !== 'archived' && t.status !== 'cancelled')
   const playSound = createSoundPlayer()
 
+  // Resolve current theme
+  const settings = getSettings()
+  const theme = resolveTheme(settings)
+  const themeBase = getTheme(settings.themePreset, settings)
+  const tc = theme.colors
+  const font = theme.bodyFont || 'monospace'
+
+  // Parse theme bg to a Three.js-friendly hex
+  function cssToHex(css: string): number {
+    const c = css.replace('#', '')
+    return parseInt(c.length === 3 ? c.split('').map((x) => x + x).join('') : c, 16)
+  }
+  const bgHex = cssToHex(tc.bg)
+  const accentHex = cssToHex(tc.accent)
+  const cyanHex = cssToHex(tc.cyan)
+  const greenHex = cssToHex(tc.green)
+  const orangeHex = cssToHex(tc.orange)
+  const redHex = cssToHex(tc.red)
+
   container.innerHTML = ''
 
   // --- Wrapper ---
   const wrap = document.createElement('div')
-  wrap.style.cssText = 'width:100%;height:100vh;position:relative;overflow:hidden;background:#000011;'
+  wrap.style.cssText = `width:100%;height:100vh;position:relative;overflow:hidden;background:${tc.bg};`
   container.appendChild(wrap)
 
   // --- Three.js ---
   const scene = new T.Scene()
-  scene.fog = new T.FogExp2(0x000011, 0.012)
-  scene.background = new T.Color(0x000011)
+  scene.fog = new T.FogExp2(bgHex, 0.012)
+  scene.background = new T.Color(bgHex)
 
   const camera = new T.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 500)
   camera.position.set(0, 30, 60) // start far for entry sweep
@@ -260,10 +299,10 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
   // CSS overlays for glow / vignette / scanlines
   const layers = [
     `position:absolute;inset:0;pointer-events:none;z-index:1;
-     background:radial-gradient(ellipse at 50% 40%,rgba(0,255,204,0.03) 0%,transparent 60%);
+     background:radial-gradient(ellipse at 50% 40%,${tc.accent}08 0%,transparent 60%);
      mix-blend-mode:screen;`,
     `position:absolute;inset:0;pointer-events:none;z-index:2;
-     background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,10,0.7) 100%);`,
+     background:radial-gradient(ellipse at center,transparent 40%,${tc.bg}cc 100%);`,
     `position:absolute;inset:0;pointer-events:none;z-index:3;opacity:0.04;
      background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.3) 2px,rgba(0,0,0,0.3) 4px);`,
   ]
@@ -279,22 +318,22 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
     @keyframes vibeGrad{0%{background-position:0% 50%}100%{background-position:200% 50%}}
     @keyframes vibePulse{0%,100%{text-shadow:0 0 20px #00ffcc,0 0 40px #00ffcc}50%{text-shadow:0 0 40px #00ffcc,0 0 80px #ff00ff}}
     .vibe-tip{position:absolute;pointer-events:none;z-index:20;display:none;
-      background:rgba(0,0,20,0.92);border:1px solid #00ffcc;color:#00ffcc;
-      font:13px monospace;padding:12px 16px;border-radius:4px;
-      backdrop-filter:blur(10px);box-shadow:0 0 20px rgba(0,255,204,0.3);max-width:280px;}
-    #vibe-exit:hover{background:rgba(0,255,204,0.2)!important;border-color:#00ffcc!important;}
+      background:${tc.surface}ee;border:1px solid ${tc.accent};color:${tc.text};
+      font:13px ${font};padding:12px 16px;border-radius:4px;
+      backdrop-filter:blur(10px);box-shadow:0 0 20px ${tc.accent}50;max-width:280px;}
+    #vibe-exit:hover{background:${tc.accent}33!important;border-color:${tc.accent}!important;}
   `
   document.head.appendChild(style)
   cleanupFns.push(() => style.remove())
 
   // HUD
   const hud = document.createElement('div')
-  hud.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:10;font-family:"Courier New",monospace;color:#00ffcc;'
+  hud.style.cssText = `position:absolute;inset:0;pointer-events:none;z-index:10;font-family:'${font}',monospace;color:${tc.text};`
   hud.innerHTML = `
     <div style="padding:20px;display:flex;justify-content:space-between;align-items:flex-start;">
       <div>
         <div style="font-size:42px;font-weight:bold;
-          background:linear-gradient(90deg,#00ffcc,#ff00ff,#ffff00,#00ffcc);
+          background:linear-gradient(90deg,${tc.accent},${tc.cyan},${tc.orange},${tc.accent});
           -webkit-background-clip:text;-webkit-text-fill-color:transparent;
           background-size:200%;animation:vibeGrad 3s linear infinite;">
           \u2726 VIBE MODE \u2726
@@ -303,23 +342,23 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
       </div>
       <div style="text-align:right;">
         <div style="font-size:10px;opacity:0.4;">TASK PORTFOLIO VALUE</div>
-        <div style="font-size:28px;font-weight:bold;color:#00ff88;">${tasks.length} TASKS</div>
-        <div style="font-size:13px;color:#00ff88;">\u25B2 ${(Math.random() * 900 + 100).toFixed(1)}% (24h)</div>
+        <div style="font-size:28px;font-weight:bold;color:${tc.green};">${tasks.length} TASKS</div>
+        <div style="font-size:13px;color:${tc.green};">\u25B2 ${(Math.random() * 900 + 100).toFixed(1)}% (24h)</div>
         <div style="font-size:10px;opacity:0.25;margin-top:2px;">TVL: $${(Math.random() * 99 + 1).toFixed(2)}B</div>
       </div>
     </div>
     <div style="position:absolute;bottom:20px;left:20px;pointer-events:auto;">
-      <button id="vibe-exit" style="background:rgba(0,255,204,0.08);border:1px solid #00ffcc40;
-        color:#00ffcc;padding:10px 20px;font:14px monospace;cursor:pointer;
+      <button id="vibe-exit" style="background:${tc.accent}14;border:1px solid ${tc.accent}60;
+        color:${tc.accent};padding:10px 20px;font:14px '${font}',monospace;cursor:pointer;
         backdrop-filter:blur(10px);border-radius:4px;transition:all .2s;">
         \u2190 BACK TO REALITY</button>
     </div>
-    <div style="position:absolute;bottom:20px;right:20px;font-size:9px;opacity:0.12;">
+    <div style="position:absolute;bottom:20px;right:20px;font-size:9px;opacity:0.12;color:${tc.dim};">
       NOT FINANCIAL ADVICE \u00B7 DYOR \u00B7 NFA \u00B7 PAST PERFORMANCE \u2260 FUTURE RESULTS
     </div>
     <div id="vibe-combo" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
       font-size:80px;font-weight:bold;opacity:0;transition:opacity .3s;
-      text-shadow:0 0 40px #ff00ff,0 0 80px #ff00ff;color:#ff00ff;pointer-events:none;"></div>`
+      text-shadow:0 0 40px ${tc.accent},0 0 80px ${tc.accent};color:${tc.accent};pointer-events:none;"></div>`
   wrap.appendChild(hud)
 
   const tooltip = document.createElement('div')
@@ -327,12 +366,12 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
   wrap.appendChild(tooltip)
 
   // === LIGHTS ===
-  scene.add(new T.AmbientLight(0x222244, 0.4))
+  scene.add(new T.AmbientLight(bgHex, 0.5))
   const ptLights = [
-    new T.PointLight(0x00ffcc, 2, 60),
-    new T.PointLight(0xff00ff, 1.5, 60),
-    new T.PointLight(0xffff00, 1, 60),
-    new T.PointLight(0x0088ff, 1.2, 60),
+    new T.PointLight(accentHex, 2, 60),
+    new T.PointLight(cyanHex, 1.5, 60),
+    new T.PointLight(orangeHex, 1, 60),
+    new T.PointLight(greenHex, 1.2, 60),
   ]
   ptLights[0].position.set(10, 5, 10)
   ptLights[1].position.set(-10, 3, -10)
@@ -341,54 +380,169 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
   ptLights.forEach((l) => scene.add(l))
 
   // === NEON GRID ===
-  const grid = new T.GridHelper(120, 100, 0x00ffcc, 0x001a33)
+  const grid = new T.GridHelper(120, 100, accentHex, cssToHex(tc.border))
   grid.position.y = -6
   const gMats = Array.isArray(grid.material) ? grid.material : [grid.material]
   gMats.forEach((m: any) => { m.opacity = 0.3; m.transparent = true })
   scene.add(grid)
 
-  // === STARFIELD ===
+  // === STARFIELD — big colorful tracer stars ===
+  const starN = 6000
   const starGeo = new T.BufferGeometry()
-  const starArr = new Float32Array(12000 * 3)
-  for (let i = 0; i < starArr.length; i++) starArr[i] = (Math.random() - 0.5) * 400
-  starGeo.setAttribute('position', new T.BufferAttribute(starArr, 3))
-  const starPts = new T.Points(starGeo, new T.PointsMaterial({ color: 0xffffff, size: 0.12, transparent: true, opacity: 0.7 }))
+  const starPos = new Float32Array(starN * 3)
+  const starColors = new Float32Array(starN * 3)
+  const starVel: number[] = []
+  const starHues = [
+    [0.5, 1, 1],     // cyan
+    [0.83, 1, 0.8],  // magenta
+    [0.15, 1, 1],    // yellow
+    [0.6, 0.6, 1],   // blue-white
+    [0, 0, 1],       // pure white
+    [0.95, 1, 0.9],  // pink
+    [0.3, 1, 0.9],   // green
+  ]
+  for (let i = 0; i < starN; i++) {
+    starPos[i * 3] = (Math.random() - 0.5) * 400
+    starPos[i * 3 + 1] = (Math.random() - 0.5) * 400
+    starPos[i * 3 + 2] = (Math.random() - 0.5) * 400
+    const hue = starHues[Math.floor(Math.random() * starHues.length)]
+    const c = new T.Color().setHSL(hue[0], hue[1], hue[2])
+    starColors[i * 3] = c.r
+    starColors[i * 3 + 1] = c.g
+    starColors[i * 3 + 2] = c.b
+    // Velocity for tracer effect (streaming toward camera)
+    starVel.push(0, 0, (Math.random() * 0.8 + 0.2))
+  }
+  starGeo.setAttribute('position', new T.BufferAttribute(starPos, 3))
+  starGeo.setAttribute('color', new T.BufferAttribute(starColors, 3))
+  const starPts = new T.Points(starGeo, new T.PointsMaterial({
+    size: 0.4,
+    transparent: true,
+    opacity: 0.85,
+    vertexColors: true,
+    sizeAttenuation: true,
+  }))
   scene.add(starPts)
 
-  // === DUST ===
-  const dustN = 400
+  // === NEBULAE — volumetric color blobs ===
+  const nebulaColors = [0x00ffcc, 0xff00ff, 0x4400ff, 0xff4400, 0x00aaff, 0xff0066]
+  for (let i = 0; i < 8; i++) {
+    const c = document.createElement('canvas')
+    c.width = 256; c.height = 256
+    const ctx = c.getContext('2d')!
+    const color = nebulaColors[i % nebulaColors.length]
+    const r = (color >> 16) & 255, g = (color >> 8) & 255, b = color & 255
+    const grad = ctx.createRadialGradient(128, 128, 0, 128, 128, 128)
+    grad.addColorStop(0, `rgba(${r},${g},${b},0.15)`)
+    grad.addColorStop(0.3, `rgba(${r},${g},${b},0.07)`)
+    grad.addColorStop(0.6, `rgba(${r},${g},${b},0.02)`)
+    grad.addColorStop(1, 'rgba(0,0,0,0)')
+    ctx.fillStyle = grad
+    ctx.fillRect(0, 0, 256, 256)
+    const sp = new T.Sprite(new T.SpriteMaterial({
+      map: new T.CanvasTexture(c),
+      transparent: true,
+      blending: T.AdditiveBlending,
+      depthWrite: false,
+    }))
+    const scale = 30 + Math.random() * 60
+    sp.scale.set(scale, scale, 1)
+    sp.position.set(
+      (Math.random() - 0.5) * 150,
+      (Math.random() - 0.5) * 100,
+      (Math.random() - 0.5) * 150 - 40,
+    )
+    scene.add(sp)
+  }
+
+  // === DUST — colorful cyberpunk particles ===
+  const dustN = 600
   const dustArr = new Float32Array(dustN * 3)
+  const dustCol = new Float32Array(dustN * 3)
   const dustVel: number[] = []
   for (let i = 0; i < dustN; i++) {
     dustArr[i * 3] = (Math.random() - 0.5) * 40
     dustArr[i * 3 + 1] = (Math.random() - 0.5) * 20
     dustArr[i * 3 + 2] = (Math.random() - 0.5) * 40
-    dustVel.push((Math.random() - 0.5) * 0.015, (Math.random() - 0.5) * 0.015, (Math.random() - 0.5) * 0.015)
+    dustVel.push((Math.random() - 0.5) * 0.02, (Math.random() - 0.5) * 0.02, (Math.random() - 0.5) * 0.02)
+    const dc = new T.Color().setHSL(Math.random(), 0.8, 0.6)
+    dustCol[i * 3] = dc.r; dustCol[i * 3 + 1] = dc.g; dustCol[i * 3 + 2] = dc.b
   }
   const dustGeo = new T.BufferGeometry()
   dustGeo.setAttribute('position', new T.BufferAttribute(dustArr, 3))
-  const dustPts = new T.Points(dustGeo, new T.PointsMaterial({ color: 0x00ffcc, size: 0.04, transparent: true, opacity: 0.4 }))
+  dustGeo.setAttribute('color', new T.BufferAttribute(dustCol, 3))
+  const dustPts = new T.Points(dustGeo, new T.PointsMaterial({
+    size: 0.08,
+    transparent: true,
+    opacity: 0.6,
+    vertexColors: true,
+    sizeAttenuation: true,
+  }))
   scene.add(dustPts)
 
   // === LENS FLARE ===
-  const flare = createLensFlare(T)
+  const flare = createLensFlare(T, tc.accent)
   scene.add(flare)
 
-  // === WISDOM SPRITES ===
-  const wisdoms: any[] = []
-  for (let i = 0; i < 12; i++) {
-    const c = document.createElement('canvas')
-    c.width = 512; c.height = 64
-    const cx = c.getContext('2d')!
-    cx.fillStyle = `rgba(0,255,204,${0.06 + Math.random() * 0.1})`
-    cx.font = 'bold 28px monospace'
-    cx.textAlign = 'center'
-    cx.fillText(WISDOM[i % WISDOM.length], 256, 42)
-    const sp = new T.Sprite(new T.SpriteMaterial({ map: new T.CanvasTexture(c), transparent: true }))
-    sp.scale.set(10, 1.2, 1)
-    sp.position.set((Math.random() - 0.5) * 50, (Math.random() - 0.5) * 25, (Math.random() - 0.5) * 50)
-    scene.add(sp)
-    wisdoms.push(sp)
+  // === LOW-POLY PLANETS WITH WISDOM LABELS ===
+  interface CelestialBody { group: any; label: any; speed: number; orbitR: number; orbitOff: number }
+  const celestials: CelestialBody[] = []
+  const bodyColors = [accentHex, cyanHex, orangeHex, greenHex, redHex, 0x8844ff, 0xff66aa, 0x44aaff]
+
+  for (let i = 0; i < 10; i++) {
+    const group = new T.Group()
+    const bodySize = 0.8 + Math.random() * 2.5
+    const detail = Math.floor(Math.random() * 2) + 1 // low-poly: 1 or 2 subdivisions
+    const isMoon = i > 5
+    const geo = isMoon
+      ? new T.IcosahedronGeometry(bodySize, detail)
+      : new T.DodecahedronGeometry(bodySize, detail)
+    const mat = new T.MeshStandardMaterial({
+      color: bodyColors[i % bodyColors.length],
+      flatShading: true,
+      metalness: 0.2,
+      roughness: 0.6,
+    })
+    // Distort vertices for organic look
+    const posAttr = geo.attributes.position
+    for (let v = 0; v < posAttr.count; v++) {
+      const x = posAttr.getX(v), y = posAttr.getY(v), z = posAttr.getZ(v)
+      const noise = 1 + (Math.random() - 0.5) * 0.3
+      posAttr.setXYZ(v, x * noise, y * noise, z * noise)
+    }
+    geo.computeVertexNormals()
+    const body = new T.Mesh(geo, mat)
+    group.add(body)
+
+    // Optional ring for some planets
+    if (!isMoon && Math.random() > 0.5) {
+      const ringGeo = new T.RingGeometry(bodySize * 1.4, bodySize * 1.9, 24)
+      const ringMat = new T.MeshBasicMaterial({ color: bodyColors[i % bodyColors.length], transparent: true, opacity: 0.2, side: T.DoubleSide })
+      const ring = new T.Mesh(ringGeo, ringMat)
+      ring.rotation.x = Math.PI / 2 + (Math.random() - 0.5) * 0.5
+      group.add(ring)
+    }
+
+    // Bright label sprite
+    const labelCanvas = document.createElement('canvas')
+    labelCanvas.width = 512; labelCanvas.height = 64
+    const lx = labelCanvas.getContext('2d')!
+    lx.fillStyle = tc.text
+    lx.font = `bold 30px ${font}`
+    lx.textAlign = 'center'
+    lx.fillText(WISDOM[i % WISDOM.length], 256, 42)
+    const labelTex = new T.CanvasTexture(labelCanvas)
+    const label = new T.Sprite(new T.SpriteMaterial({ map: labelTex, transparent: true, opacity: 0.7 }))
+    label.scale.set(6, 0.8, 1)
+    label.position.y = bodySize + 1.2
+    group.add(label)
+
+    const orbitR = 25 + Math.random() * 50
+    const orbitOff = Math.random() * Math.PI * 2
+    const py = (Math.random() - 0.5) * 30
+    group.position.set(Math.cos(orbitOff) * orbitR, py, Math.sin(orbitOff) * orbitR)
+    scene.add(group)
+    celestials.push({ group, label, speed: 0.01 + Math.random() * 0.03, orbitR, orbitOff })
   }
 
   // === TASK CARDS ===
@@ -411,7 +565,7 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
 
   tasks.forEach((task, i) => {
     const urg = getUrgencyRatio(task)
-    const tex = createCardTexture(T, task, urg)
+    const tex = createCardTexture(T, task, urg, tc, font)
 
     const glassMat = new T.MeshPhysicalMaterial({
       color: 0xffffff,
@@ -429,8 +583,8 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
     const geo = new T.BoxGeometry(4, 2, 0.08)
     const mesh = new T.Mesh(geo, [glassMat, glassMat, glassMat, glassMat, textMat, glassMat])
 
-    // Wireframe glow
-    const wColor = urg >= 0.95 ? 0xff0040 : urg >= 0.75 ? 0xff8800 : 0x00ffcc
+    // Wireframe glow — theme urgency colors
+    const wColor = urg >= 0.95 ? redHex : urg >= 0.75 ? orangeHex : greenHex
     const wireGeo = new T.BoxGeometry(4.15, 2.1, 0.12)
     const wireMat = new T.MeshBasicMaterial({ color: wColor, wireframe: true, transparent: true, opacity: 0.25 })
     const wire = new T.Mesh(wireGeo, wireMat)
@@ -473,9 +627,17 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
         renderer.domElement.style.cursor = 'pointer'
         playSound('hover-' + card.idx)
         tooltip.style.display = 'block'
+        const cadenceStr = card.task.cadenceSeconds ? `every ${formatCadence(card.task.cadenceSeconds)}` : ''
+        const urgPct = Math.min(Math.round(card.urgency * 100), 999)
+        const urgColor = card.urgency >= 0.95 ? tc.red : card.urgency >= 0.75 ? tc.orange : tc.green
         tooltip.innerHTML = `<div style="font-weight:bold;margin-bottom:6px;">${card.task.title}</div>
           <div style="font-size:11px;opacity:0.6;">${card.task.priority.toUpperCase()} \u00B7 ${card.task.status.replace('_', ' ').toUpperCase()}${card.task.domain ? ' \u00B7 #' + card.task.domain : ''}</div>
-          <div style="margin-top:6px;font-size:10px;opacity:0.3;">CLICK TO YEET</div>`
+          ${cadenceStr ? `<div style="font-size:12px;margin-top:4px;color:${tc.cyan};">${cadenceStr}</div>` : ''}
+          <div style="margin-top:6px;height:4px;background:${tc.border};border-radius:2px;overflow:hidden;">
+            <div style="width:${Math.min(urgPct, 100)}%;height:100%;background:${urgColor};"></div>
+          </div>
+          <div style="font-size:10px;margin-top:4px;color:${urgColor};">${urgPct}% elapsed</div>
+          <div style="margin-top:4px;font-size:10px;opacity:0.3;">CLICK TO YEET</div>`
       }
       tooltip.style.left = e.clientX + 16 + 'px'
       tooltip.style.top = e.clientY + 16 + 'px'
@@ -638,16 +800,27 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
     }
     dustPts.geometry.attributes.position.needsUpdate = true
 
-    starPts.rotation.y += dt * 0.008
-
-    // Wisdom float
-    for (const sp of wisdoms) {
-      sp.position.y += dt * 0.15
-      if (sp.position.y > 18) {
-        sp.position.y = -18
-        sp.position.x = (Math.random() - 0.5) * 50
-        sp.position.z = (Math.random() - 0.5) * 50
+    // Star tracers — stream toward camera
+    const sArr = starPts.geometry.attributes.position.array as Float32Array
+    for (let i = 0; i < starN; i++) {
+      sArr[i * 3 + 2] += starVel[i * 3 + 2] * dt * 40
+      if (sArr[i * 3 + 2] > 200) {
+        sArr[i * 3] = (Math.random() - 0.5) * 400
+        sArr[i * 3 + 1] = (Math.random() - 0.5) * 400
+        sArr[i * 3 + 2] = -200
       }
+    }
+    starPts.geometry.attributes.position.needsUpdate = true
+
+    // Orbit celestial bodies & spin them
+    for (const cb of celestials) {
+      cb.orbitOff += cb.speed * dt
+      cb.group.position.x = Math.cos(cb.orbitOff) * cb.orbitR
+      cb.group.position.z = Math.sin(cb.orbitOff) * cb.orbitR
+      cb.group.children[0].rotation.y += dt * 0.3
+      cb.group.children[0].rotation.x += dt * 0.1
+      // Labels always face camera
+      cb.label.quaternion.copy(camera.quaternion)
     }
 
     // Grid pulse

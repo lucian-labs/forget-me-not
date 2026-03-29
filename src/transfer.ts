@@ -64,22 +64,35 @@ export async function showSend(container: HTMLElement): Promise<void> {
     // Generate QR
     try {
       const qrcode = await loadQRLib()
-      const qr = qrcode(0, 'L')
-      qr.addData(url)
-      qr.make()
+      // Try increasing type numbers until one fits the data
+      let qr: any = null
+      for (let typeNum = 10; typeNum <= 40; typeNum++) {
+        try {
+          qr = qrcode(typeNum, 'L')
+          qr.addData(url)
+          qr.make()
+          break
+        } catch {
+          qr = null
+        }
+      }
 
-      const qrWrap = el('div', { style: 'display:flex;justify-content:center;margin-bottom:16px;background:#fff;padding:12px;border-radius:8px;' })
-      const qrDiv = document.createElement('div')
-      qrDiv.innerHTML = qr.createSvgTag({ cellSize: 5, margin: 2, scalable: true })
-      const svg = qrDiv.querySelector('svg')
-      if (svg) { svg.style.width = '220px'; svg.style.height = '220px' }
-      qrWrap.appendChild(qrDiv)
-      overlay.appendChild(qrWrap)
+      if (qr) {
+        const qrWrap = el('div', { style: 'display:flex;justify-content:center;margin-bottom:16px;background:#fff;padding:12px;border-radius:8px;' })
+        const qrDiv = document.createElement('div')
+        qrDiv.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true })
+        const svg = qrDiv.querySelector('svg')
+        if (svg) { svg.style.width = '240px'; svg.style.height = '240px' }
+        qrWrap.appendChild(qrDiv)
+        overlay.appendChild(qrWrap)
 
-      overlay.appendChild(el('div', { style: 'font-size:12px;color:var(--dim);text-align:center;margin-bottom:12px;' },
-        'Open camera on your other device and scan this code.'))
-    } catch {
-      overlay.appendChild(el('div', { style: 'font-size:13px;color:var(--red);margin-bottom:12px;' }, 'Could not generate QR code.'))
+        overlay.appendChild(el('div', { style: 'font-size:12px;color:var(--dim);text-align:center;margin-bottom:12px;' },
+          'Open camera on your other device and scan this code.'))
+      } else {
+        overlay.appendChild(el('div', { style: 'font-size:13px;color:var(--orange);margin-bottom:12px;' }, 'Data too dense for QR. Use the link below.'))
+      }
+    } catch (err) {
+      overlay.appendChild(el('div', { style: 'font-size:13px;color:var(--red);margin-bottom:12px;' }, 'Could not load QR library.'))
     }
   }
 

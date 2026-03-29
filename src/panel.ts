@@ -60,12 +60,16 @@ export function renderPanel(container: HTMLElement): void {
   const header = el('div', { className: 'fmn-header' },
     titleWrap,
     el('div', { className: 'fmn-header-actions' },
-      catWrap,
-      sndWrap,
       createBtn('*', 'btn-ghost btn-sm', () => navigate('settings')),
     ),
   )
   container.appendChild(header)
+
+  // Toggles row below header
+  const togglesRow = el('div', { style: 'display:flex;align-items:center;gap:12px;margin-bottom:12px;' })
+  togglesRow.appendChild(catWrap)
+  togglesRow.appendChild(sndWrap)
+  container.appendChild(togglesRow)
 
   if (tasks.length === 0) {
     container.appendChild(el('div', { className: 'fmn-empty' }, 'No tasks yet. Hit + to create one.'))

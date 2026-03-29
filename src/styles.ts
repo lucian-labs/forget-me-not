@@ -147,6 +147,7 @@ button:active { opacity: 0.8; }
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--spacing) 16px;
+  animation: cardEnter 0.4s ease-out;
   margin-bottom: 8px;
   transition: border-color 0.15s;
 }
@@ -250,6 +251,11 @@ button:active { opacity: 0.8; }
 
 /* Quick capture input */
 
+@keyframes captureOpen {
+  from { max-height: 0; opacity: 0; margin-top: 0; padding: 0 10px; }
+  to { max-height: 40px; opacity: 1; margin-top: 8px; padding: 6px 10px; }
+}
+
 .fmn-capture {
   width: 100%;
   margin-top: 8px;
@@ -261,6 +267,8 @@ button:active { opacity: 0.8; }
   font-family: var(--font);
   font-size: 13px;
   outline: none;
+  animation: captureOpen 0.3s ease-out;
+  overflow: hidden;
 }
 
 .fmn-capture::placeholder { color: var(--dim); }
@@ -609,6 +617,12 @@ input[type="range"]::-webkit-slider-thumb {
   text-decoration: underline;
 }
 
+/* Card entrance */
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* === Task animations === */
 
 /* Midnight: clean fade */
@@ -719,7 +733,6 @@ input[type="range"]::-webkit-slider-thumb {
 
 /* Smooth gap collapse when a card leaves */
 .fmn-task {
-  transition: margin 0.3s ease, opacity 0.3s ease;
   overflow: hidden;
 }
 .fmn-task.fmn-collapsing {
@@ -730,7 +743,7 @@ input[type="range"]::-webkit-slider-thumb {
   border-width: 0 !important;
   max-height: 0 !important;
   opacity: 0 !important;
-  transition: all 0.3s ease;
+  transition: all 0.5s ease-in-out;
 }
 `
 

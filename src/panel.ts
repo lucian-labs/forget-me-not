@@ -165,7 +165,7 @@ function renderTaskItem(task: Task): HTMLElement {
     const input = el('input', {
       className: 'fmn-capture',
       type: 'text',
-      placeholder: cap.mode === 'note' ? 'what did you do?' : 'quick note (auto-submits in 1.5s)...',
+      placeholder: cap.mode === 'note' ? 'what did you do?' : 'quick note (auto-submits in 2s)...',
     }) as HTMLInputElement
     card.appendChild(input)
     requestAnimationFrame(() => input.focus())
@@ -209,7 +209,7 @@ function startCaptureTimer(task: Task, input: HTMLInputElement): void {
   const cap = captures.get(task.id)
   if (cap) {
     if (cap.timer) clearTimeout(cap.timer)
-    cap.timer = window.setTimeout(() => executeCapture(task, input.value), 1500)
+    cap.timer = window.setTimeout(() => executeCapture(task, input.value), 2000)
   }
 }
 
@@ -217,7 +217,7 @@ function resetCaptureTimer(task: Task, input: HTMLInputElement): void {
   const cap = captures.get(task.id)
   if (cap) {
     if (cap.timer) clearTimeout(cap.timer)
-    cap.timer = window.setTimeout(() => executeCapture(task, input.value), 1500)
+    cap.timer = window.setTimeout(() => executeCapture(task, input.value), 2000)
   }
 }
 

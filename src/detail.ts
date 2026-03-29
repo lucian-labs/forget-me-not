@@ -1,6 +1,6 @@
 import type { Task, TaskStatus, TaskPriority } from './types'
 import {
-  getTask, updateTask, resetTask, completeTask, archiveTask,
+  getTask, getTasks, updateTask, resetTask, completeTask, archiveTask,
   getUrgencyRatio, getUrgencyColor, addActionNote, getSettings,
 } from './store'
 import { el, timeAgo, formatCadence, formatTime, CADENCE_OPTIONS } from './utils'
@@ -251,6 +251,7 @@ function renderFollowUps(container: HTMLElement, task: Task): void {
   const section = el('div', { className: 'fmn-detail-section' })
   section.appendChild(el('h3', {}, 'Follow-up Chain'))
 
+  // Queued follow-ups (not yet spawned)
   if (task.followUps.length > 0) {
     const chain = el('div', { className: 'fmn-chain' })
     task.followUps.forEach((fu, idx) => {
@@ -270,6 +271,7 @@ function renderFollowUps(container: HTMLElement, task: Task): void {
     section.appendChild(chain)
   }
 
+  // Add follow-up
   const addRow = el('div', { className: 'fmn-inline-add' })
   const titleInput = el('input', { type: 'text', placeholder: 'Follow-up title...' }) as HTMLInputElement
   const cadenceSelect = el('select', {}) as HTMLSelectElement
@@ -289,6 +291,24 @@ function renderFollowUps(container: HTMLElement, task: Task): void {
   addRow.appendChild(cadenceSelect)
   addRow.appendChild(addBtn)
   section.appendChild(addRow)
+
+  // Spawned child tasks (already created from previous completions)
+  const children = getTasks().filter((t) => t.parentTaskId === task.id)
+  if (children.length > 0) {
+    section.appendChild(el('div', { style: 'font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;margin-top:12px;margin-bottom:6px;' }, 'Spawned'))
+    for (const child of children) {
+      const row = el('div', { className: 'fmn-card', style: 'cursor:pointer;padding:8px 12px;' })
+      const inner = el('div', { style: 'display:flex;align-items:center;gap:8px;' })
+      inner.appendChild(el('span', { style: 'flex:1;font-size:13px;color:var(--accent);' }, child.title))
+      inner.appendChild(el('span', { className: `fmn-badge fmn-badge-${child.status === 'done' ? 'normal' : 'recurring'}`, style: 'font-size:9px;' }, child.status))
+      if (child.followUps.length > 0) {
+        inner.appendChild(el('span', { style: 'font-size:10px;color:var(--dim);' }, `+${child.followUps.length} queued`))
+      }
+      row.appendChild(inner)
+      row.onclick = () => navigate('detail', child.id)
+      section.appendChild(row)
+    }
+  }
 
   container.appendChild(section)
 }

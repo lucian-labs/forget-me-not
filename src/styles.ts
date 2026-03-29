@@ -34,7 +34,7 @@ html, body {
 
 #app {
   width: 100%;
-  padding: 16px;
+  padding: 0 16px;
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -43,7 +43,23 @@ html, body {
 .fmn-content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.fmn-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.fmn-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fmn-content::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
 }
 
 /* Header */

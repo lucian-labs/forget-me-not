@@ -1,4 +1,4 @@
-import { getTasks, getUrgencyRatio, getSettings } from './store'
+import { getTasks, getTask, getUrgencyRatio, getSettings, resetTask } from './store'
 import { resolveTheme, getTheme } from './themes'
 import { formatCadence } from './utils'
 import type { Task, ThemeColors } from './types'
@@ -525,16 +525,17 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
 
     // Bright label sprite
     const labelCanvas = document.createElement('canvas')
-    labelCanvas.width = 512; labelCanvas.height = 64
+    labelCanvas.width = 1024; labelCanvas.height = 128
     const lx = labelCanvas.getContext('2d')!
     lx.fillStyle = tc.text
-    lx.font = `bold 30px ${font}`
+    lx.font = `bold 64px ${font}`
     lx.textAlign = 'center'
-    lx.fillText(WISDOM[i % WISDOM.length], 256, 42)
+    lx.textBaseline = 'middle'
+    lx.fillText(WISDOM[i % WISDOM.length], 512, 64)
     const labelTex = new T.CanvasTexture(labelCanvas)
-    const label = new T.Sprite(new T.SpriteMaterial({ map: labelTex, transparent: true, opacity: 0.7 }))
-    label.scale.set(6, 0.8, 1)
-    label.position.y = bodySize + 1.2
+    const label = new T.Sprite(new T.SpriteMaterial({ map: labelTex, transparent: true, opacity: 0.85 }))
+    label.scale.set(16, 2, 1)
+    label.position.y = bodySize + 2.5
     group.add(label)
 
     const orbitR = 25 + Math.random() * 50
@@ -648,14 +649,45 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
     }
   }
 
+  // Refresh a card's visuals after its task data changes
+  function refreshCard(card: CardInfo): void {
+    const updated = getTask(card.task.id)
+    if (!updated) return
+    card.task = updated
+    card.urgency = getUrgencyRatio(updated)
+
+    // Rebuild texture
+    const newTex = createCardTexture(T, updated, card.urgency, tc, font)
+    const mats = card.mesh.material as any[]
+    mats[4].map.dispose()
+    mats[4].map = newTex
+    mats[4].needsUpdate = true
+
+    // Update wireframe color
+    const wColor = card.urgency >= 0.95 ? redHex : card.urgency >= 0.75 ? orangeHex : greenHex
+    card.wire.material.color.setHex(wColor)
+
+    // New urgency-driven Y and scale
+    const newY = -4 + Math.min(card.urgency, 1.5) * 8
+    const newScale = 0.6 + Math.min(card.urgency, 1.5) * 0.7
+    card.targetY = newY
+    card.oy = newY
+    card.baseScale = newScale
+    card.targetScale = newScale
+    card.sinking = false
+  }
+
   function onClickCanvas(): void {
     if (!hCard) return
     const card = hCard
 
+    // Actually reset the task
+    resetTask(card.task.id, 'reset from vibe mode')
+
     spawnExplosion(T, scene, card.mesh.position, 80)
     shakeScreen(wrap, 30, 700)
 
-    // Fireworks: secondary bursts offset from the card
+    // Fireworks
     setTimeout(() => {
       const p = card.mesh.position
       spawnExplosion(T, scene, { x: p.x + 3, y: p.y + 4, z: p.z }, 40)
@@ -683,10 +715,13 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
     setTimeout(() => playSound('POW-' + card.idx), 100)
     setTimeout(() => playSound('BAM-' + card.idx + 'x'), 200)
 
-    // Send it to the bottom
+    // Send it to the bottom first, then refresh after animation
     card.sinking = true
     card.targetY = -8
     card.targetScale = 0.3
+
+    // After sink animation, refresh card with new data and float it back up
+    setTimeout(() => refreshCard(card), 1500)
 
     combo++
     if (comboTimer) clearTimeout(comboTimer)
@@ -736,14 +771,14 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
     // Camera entry sweep
     if (!entryDone) {
       camera.position.x += (0 - camera.position.x) * dt * 1.2
-      camera.position.y += (4 - camera.position.y) * dt * 1.2
-      camera.position.z += (16 - camera.position.z) * dt * 1.2
-      if (Math.abs(camera.position.z - 16) < 0.5) entryDone = true
+      camera.position.y += (8 - camera.position.y) * dt * 1.2
+      camera.position.z += (28 - camera.position.z) * dt * 1.2
+      if (Math.abs(camera.position.z - 28) < 0.5) entryDone = true
     } else {
-      camAngle += dt * 0.08
-      camera.position.x = Math.sin(camAngle) * 16
-      camera.position.z = Math.cos(camAngle) * 16
-      camera.position.y = 4 + Math.sin(time * 0.2) * 1.5
+      camAngle += dt * 0.06
+      camera.position.x = Math.sin(camAngle) * 28
+      camera.position.z = Math.cos(camAngle) * 28
+      camera.position.y = 8 + Math.sin(time * 0.2) * 2
     }
     camera.lookAt(0, 0, 0)
 

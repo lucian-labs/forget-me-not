@@ -8,9 +8,9 @@ import { playAlert, clearAlert } from './sounds'
 import { navigate } from './app'
 import { animateOut } from './animate'
 
-type CaptureState = { taskId: string; timer: number | null; mode: 'check' | 'note'; card: HTMLElement | null }
+type CaptureState = { timer: number | null; mode: 'check' | 'note'; card: HTMLElement | null }
 
-let capture: CaptureState | null = null
+const captures = new Map<string, CaptureState>()
 let groupByCategory = localStorage.getItem('fmn-categorize') === 'true'
 const promptCache = new Map<string, { text: string; at: number }>()
 
@@ -19,10 +19,9 @@ export function renderPanel(container: HTMLElement): void {
 
   container.innerHTML = ''
 
-  // Header
   const title = el('h1', { className: 'fmn-header-title' }, 'forget me not')
   title.onclick = () => navigate('panel')
-  // Categorize toggle in header
+
   const catToggle = el('label', { className: 'fmn-toggle', style: 'margin:0;' })
   const catInput = el('input', { type: 'checkbox' }) as HTMLInputElement
   catInput.checked = groupByCategory
@@ -92,6 +91,7 @@ function renderTaskItem(task: Task): HTMLElement {
   const urgencyClass = getUrgencyClass(ratio)
   const isOverdue = ratio >= 1.0
   const isRecurring = task.recurring
+  const cap = captures.get(task.id)
 
   if (isOverdue) playAlert(task.id)
   else clearAlert(task.id)
@@ -99,24 +99,19 @@ function renderTaskItem(task: Task): HTMLElement {
   const card = el('div', { className: `fmn-card fmn-task ${urgencyClass}` })
   const row = el('div', { className: 'fmn-task-row' })
 
-  // Check button — always opens capture input first
-  const checkBtn = createBtn('\u2713', 'btn-icon', () => startCapture(task))
+  const checkBtn = createBtn('\u2713', 'btn-icon', () => startCapture(task.id, 'check'))
   row.appendChild(checkBtn)
 
-  // Title
   const titleEl = el('span', { className: 'fmn-task-title' }, task.title)
   titleEl.onclick = () => navigate('detail', task.id)
   row.appendChild(titleEl)
 
-  // Priority badge (one-time only)
   if (!isRecurring && task.priority !== 'normal') {
     row.appendChild(el('span', { className: `fmn-badge fmn-badge-${task.priority}` }, task.priority))
   }
 
-  // Quick note button
-  row.appendChild(createBtn('\u270E', 'btn-icon btn-sm', () => startNote(task)))
+  row.appendChild(createBtn('\u270E', 'btn-icon btn-sm', () => startCapture(task.id, 'note')))
 
-  // Snooze (recurring) or delete (one-time)
   if (isRecurring) {
     row.appendChild(createBtn('zz', 'btn-icon btn-sm', () => {
       animateOut(card).then(() => { snoozeTask(task.id); navigate('panel') })
@@ -154,7 +149,7 @@ function renderTaskItem(task: Task): HTMLElement {
   progress.appendChild(fill)
   card.appendChild(progress)
 
-  // Overdue prompt — cycles every 10 seconds
+  // Overdue prompt
   if (isOverdue && task.prompts.length > 0) {
     const now = Date.now()
     const cached = promptCache.get(task.id)
@@ -164,31 +159,31 @@ function renderTaskItem(task: Task): HTMLElement {
     card.appendChild(el('div', { className: 'fmn-prompt' }, `? ${promptCache.get(task.id)!.text}`))
   }
 
-  // Quick capture (recurring check or note mode)
-  if (capture && capture.taskId === task.id) {
-    capture.card = card
+  // Capture input (each task has its own independent lifecycle)
+  if (cap) {
+    cap.card = card
     const input = el('input', {
       className: 'fmn-capture',
       type: 'text',
-      placeholder: capture.mode === 'note' ? 'what did you do?' : 'quick note (auto-submits in 1.5s)...',
+      placeholder: cap.mode === 'note' ? 'what did you do?' : 'quick note (auto-submits in 1.5s)...',
     }) as HTMLInputElement
     card.appendChild(input)
     requestAnimationFrame(() => input.focus())
 
-    if (capture.mode === 'note') {
+    if (cap.mode === 'note') {
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && input.value.trim()) {
           addActionNote(task.id, input.value.trim())
-          capture = null
+          captures.delete(task.id)
           navigate('panel')
         }
-        if (e.key === 'Escape') { capture = null; navigate('panel') }
+        if (e.key === 'Escape') { captures.delete(task.id); navigate('panel') }
       })
     } else {
       input.addEventListener('input', () => resetCaptureTimer(task, input))
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') executeCapture(task, input.value)
-        if (e.key === 'Escape') { capture = null; navigate('panel') }
+        if (e.key === 'Escape') { captures.delete(task.id); navigate('panel') }
       })
       startCaptureTimer(task, input)
     }
@@ -197,34 +192,40 @@ function renderTaskItem(task: Task): HTMLElement {
   return card
 }
 
-function startCapture(task: Task): void {
-  capture = { taskId: task.id, timer: null, mode: 'check', card: null }
-  navigate('panel')
-}
-
-function startNote(task: Task): void {
-  capture = { taskId: task.id, timer: null, mode: 'note', card: null }
+function startCapture(taskId: string, mode: 'check' | 'note'): void {
+  // Toggle off if already open in same mode
+  const existing = captures.get(taskId)
+  if (existing && existing.mode === mode) {
+    if (existing.timer) clearTimeout(existing.timer)
+    captures.delete(taskId)
+  } else {
+    if (existing?.timer) clearTimeout(existing.timer)
+    captures.set(taskId, { timer: null, mode, card: null })
+  }
   navigate('panel')
 }
 
 function startCaptureTimer(task: Task, input: HTMLInputElement): void {
-  if (capture) {
-    if (capture.timer) clearTimeout(capture.timer)
-    capture.timer = window.setTimeout(() => executeCapture(task, input.value), 1500)
+  const cap = captures.get(task.id)
+  if (cap) {
+    if (cap.timer) clearTimeout(cap.timer)
+    cap.timer = window.setTimeout(() => executeCapture(task, input.value), 1500)
   }
 }
 
 function resetCaptureTimer(task: Task, input: HTMLInputElement): void {
-  if (capture) {
-    if (capture.timer) clearTimeout(capture.timer)
-    capture.timer = window.setTimeout(() => executeCapture(task, input.value), 1500)
+  const cap = captures.get(task.id)
+  if (cap) {
+    if (cap.timer) clearTimeout(cap.timer)
+    cap.timer = window.setTimeout(() => executeCapture(task, input.value), 1500)
   }
 }
 
 function executeCapture(task: Task, note: string): void {
-  if (capture?.timer) clearTimeout(capture.timer)
-  const cardEl = capture?.card
-  capture = null
+  const cap = captures.get(task.id)
+  if (cap?.timer) clearTimeout(cap.timer)
+  const cardEl = cap?.card
+  captures.delete(task.id)
 
   const finish = () => {
     if (task.recurring) {

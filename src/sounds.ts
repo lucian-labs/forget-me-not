@@ -32,7 +32,7 @@ export async function initSound(): Promise<void> {
     await loadScript()
     const settings = getSettings()
     notify = new (window as any).YamaBruhNotify({
-      seed: 'forgetmenot',
+      seed: getSettings().soundSeed || 'forgetmenot',
       preset: settings.soundPreset,
       bpm: settings.soundBpm,
       volume: settings.soundVolume,

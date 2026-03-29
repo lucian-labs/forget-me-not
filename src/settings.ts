@@ -254,6 +254,12 @@ export function renderSettings(container: HTMLElement): void {
   const soundAdvanced = collapsible('Fine-tune', () => {
     const wrap = el('div', {})
 
+    wrap.appendChild(settingsRow('Seed', () => {
+      const input = el('input', { type: 'text', value: settings.soundSeed || 'forgetmenot', placeholder: 'forgetmenot', style: 'width:140px;' }) as HTMLInputElement
+      input.onblur = () => { updateSettings({ soundSeed: input.value || 'forgetmenot' }); refreshSound() }
+      return input
+    }))
+
     wrap.appendChild(settingsRow('Preset #', () => {
       const input = el('input', { type: 'number', value: String(settings.soundPreset), style: 'width:60px;' }) as HTMLInputElement
       input.min = '0'

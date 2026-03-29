@@ -82,6 +82,7 @@ export interface ThemeStyle {
 
 export interface Settings {
   soundEnabled: boolean
+  soundSeed: string
   soundPreset: number
   soundBpm: number
   soundVolume: number

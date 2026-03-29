@@ -62,6 +62,9 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'clear-alert') {
     alertedTasks.delete(event.data.taskId)
   }
+  if (event.data && event.data.type === 'get-version') {
+    event.source.postMessage({ type: 'sw-version', version: CACHE_NAME })
+  }
 })
 
 function scheduleAlerts(tasks) {

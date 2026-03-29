@@ -62,7 +62,7 @@ function render(): void {
 
     const footer = document.createElement('footer')
     footer.className = 'fmn-footer'
-    footer.innerHTML = `v${__APP_VERSION__} · by <a href="https://lucianlabs.ca" target="_blank" rel="noopener">lucianlabs.ca</a> · <a href="https://github.com/lucian-labs/forget-me-not" target="_blank" rel="noopener">source code</a>`
+    footer.innerHTML = `v${__APP_VERSION__} <span class="fmn-sw-version"></span> · by <a href="https://lucianlabs.ca" target="_blank" rel="noopener">lucianlabs.ca</a> · <a href="https://github.com/lucian-labs/forget-me-not" target="_blank" rel="noopener">source code</a>`
     app.appendChild(footer)
   }
 
@@ -158,6 +158,16 @@ async function init(): Promise<void> {
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {})
+    navigator.serviceWorker.addEventListener('message', (e) => {
+      if (e.data?.type === 'sw-version') {
+        document.querySelectorAll('.fmn-sw-version').forEach((el) => {
+          el.textContent = `(${e.data.version})`
+        })
+      }
+    })
+    navigator.serviceWorker.ready.then((reg) => {
+      reg.active?.postMessage({ type: 'get-version' })
+    })
   }
 
   const shopScript = document.createElement('script')

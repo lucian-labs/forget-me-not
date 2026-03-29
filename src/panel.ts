@@ -8,6 +8,7 @@ import { playAlert, clearAlert, syncAlertsToSW } from './sounds'
 import { navigate } from './app'
 import { animateOut } from './animate'
 import { appName } from './brand'
+import { renderHeaderIcon } from './icon'
 
 type CaptureState = { timer: number | null; mode: 'check' | 'note'; card: HTMLElement | null }
 
@@ -55,6 +56,7 @@ export function renderPanel(container: HTMLElement): void {
   sndWrap.appendChild(sndToggle)
 
   const titleWrap = el('div', { style: 'display:flex;align-items:center;gap:8px;' })
+  titleWrap.appendChild(renderHeaderIcon())
   titleWrap.appendChild(title)
   titleWrap.appendChild(createBtn('+', 'btn-accent btn-sm', () => navigate('create')))
 

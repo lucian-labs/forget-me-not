@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fmn-v4'
+const CACHE_NAME = 'fmn-v5'
 const PRECACHE = [
   '/',
   '/index.html',

@@ -9,6 +9,7 @@ import { initSound, requestNotificationPermission } from './sounds'
 import { applyTheme, getAllThemes, importThemeJson } from './themes'
 import { updateSettings } from './store'
 import { checkImportFromUrl } from './transfer'
+import { applyIcon } from './icon'
 
 let currentView: View = 'panel'
 let currentTaskId: string | null = null
@@ -16,27 +17,31 @@ let renderLoopId: number | null = null
 
 function viewToHash(view: View, taskId?: string | null): string {
   switch (view) {
-    case 'panel': return '#/'
-    case 'settings': return '#/settings'
-    case 'create': return '#/new'
-    case 'detail': return `#/task/${taskId}`
+    case 'panel': return ''
+    case 'settings': return '#settings'
+    case 'create': return '#new'
+    case 'detail': return `#task/${taskId}`
   }
 }
 
 function hashToRoute(): { view: View; taskId: string | null } {
-  const hash = location.hash.slice(1) || '/'
-  if (hash === '/settings') return { view: 'settings', taskId: null }
-  if (hash === '/new') return { view: 'create', taskId: null }
-  if (hash.startsWith('/task/')) return { view: 'detail', taskId: hash.slice(6) }
+  const hash = location.hash.slice(1)
+  if (hash === 'settings') return { view: 'settings', taskId: null }
+  if (hash === 'new') return { view: 'create', taskId: null }
+  if (hash.startsWith('task/')) return { view: 'detail', taskId: hash.slice(5) }
   return { view: 'panel', taskId: null }
 }
 
 export function navigate(view: View, taskId?: string): void {
   const hash = viewToHash(view, taskId)
-  if (location.hash !== hash) {
-    location.hash = hash
+  if (location.hash !== hash && !(hash === '' && location.hash === '')) {
+    if (hash) {
+      location.hash = hash
+    } else {
+      history.pushState(null, '', location.pathname)
+      onHashChange()
+    }
   } else {
-    // Same hash — just re-render
     currentView = view
     currentTaskId = taskId ?? null
     render()
@@ -95,28 +100,26 @@ function startRenderLoop(): void {
 function initTheme(): void {
   const settings = getSettings()
 
-  // Check query param for theme (e.g. ?theme=sakura or ?theme=base64...)
   const params = new URLSearchParams(location.search)
   const themeParam = params.get('theme')
 
   if (themeParam) {
     const result = applyThemeParam(themeParam, settings)
-    if (result) return
+    if (result) { applyIcon(); return }
   }
 
-  // Check hash for theme (e.g. #theme=sakura or #theme=base64...)
   const hash = location.hash
   if (hash.startsWith('#theme=')) {
     const val = hash.slice(7)
     const result = applyThemeParam(val, settings)
-    if (result) return
+    if (result) { applyIcon(); return }
   }
 
   applyTheme(settings)
+  applyIcon()
 }
 
 function applyThemeParam(param: string, settings: ReturnType<typeof getSettings>): boolean {
-  // Try as theme name first
   const allThemes = getAllThemes(settings)
   const byName = allThemes.find((t) => t.name === param)
   if (byName) {
@@ -124,7 +127,6 @@ function applyThemeParam(param: string, settings: ReturnType<typeof getSettings>
     return true
   }
 
-  // Try as base64-encoded theme JSON
   try {
     const json = decodeURIComponent(escape(atob(param)))
     const theme = importThemeJson(json, settings)
@@ -144,7 +146,6 @@ async function init(): Promise<void> {
   injectStyles()
   initTheme()
 
-  // Check for data transfer import before routing
   const imported = await checkImportFromUrl()
   if (imported) return
 

@@ -5,6 +5,7 @@ import { getAllThemes, applyTheme, resolveTheme, exportTheme, themeToShareUrl, i
 import { navigate } from './app'
 import { appName } from './brand'
 import { showTransferQR } from './transfer'
+import { applyIcon } from './icon'
 
 const SOUND_PRESETS: { value: number; label: string }[] = [
   { value: 88, label: 'Crystal' },
@@ -33,10 +34,10 @@ export function renderSettings(container: HTMLElement): void {
   const nameInput = el('input', { type: 'text', placeholder: 'forget me not', value: settings.appName }) as HTMLInputElement
   nameInput.oninput = () => {
     updateSettings({ appName: nameInput.value })
-    // Live update all visible titles
     document.querySelectorAll('.fmn-header-title').forEach((t) => {
       t.textContent = nameInput.value || 'forget me not'
     })
+    applyIcon()
   }
   nameCard.appendChild(nameInput)
   nameCard.appendChild(el('div', { style: 'font-size:11px;color:var(--dim);margin-top:4px;' }, 'Give the app your own name. Leave blank for default.'))
@@ -88,6 +89,7 @@ export function renderSettings(container: HTMLElement): void {
     select.onchange = () => {
       const updated = updateSettings({ themePreset: select.value, customColors: {}, customBorderRadius: null, customFontSize: null, customSpacing: null })
       applyTheme(updated)
+      applyIcon()
       navigate('settings')
     }
     return select

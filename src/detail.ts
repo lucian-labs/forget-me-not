@@ -105,9 +105,6 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
   // Follow-up chain
   renderFollowUps(card, task)
 
-  // Action log (always visible)
-  renderActionLog(card, task)
-
   // Actions
   const actionsSection = el('div', { className: 'fmn-detail-section' })
   const actionRow = el('div', { className: 'fmn-form-row' })
@@ -176,6 +173,22 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
   moreGrid.appendChild(el('span', { className: 'fmn-detail-label' }, 'Type'))
   moreGrid.appendChild(typeSelect)
 
+  // Cadence dropdown (for recurring tasks)
+  if (task.recurring) {
+    const cadenceSelect = el('select', { style: 'width:auto;font-size:13px;' }) as HTMLSelectElement
+    for (const opt of CADENCE_OPTIONS) {
+      const o = el('option', { value: String(opt.value) }, opt.label)
+      if (opt.value === task.cadenceSeconds) o.selected = true
+      cadenceSelect.appendChild(o)
+    }
+    cadenceSelect.onchange = () => {
+      updateTask(task.id, { cadenceSeconds: parseInt(cadenceSelect.value) })
+      navigate('detail', task.id)
+    }
+    moreGrid.appendChild(el('span', { className: 'fmn-detail-label' }, 'Every'))
+    moreGrid.appendChild(cadenceSelect)
+  }
+
   // Priority dropdown
   const prioritySelect = el('select', { className: `fmn-badge fmn-badge-${task.priority}`, style: 'border:none;font-size:10px;' }) as HTMLSelectElement
   const priorities: TaskPriority[] = ['low', 'normal', 'high', 'critical']
@@ -207,6 +220,10 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
   }
 
   moreContent.appendChild(moreGrid)
+
+  // Action log inside More
+  renderActionLog(moreContent, task)
+
   moreWrap.appendChild(moreTrigger)
   moreWrap.appendChild(moreContent)
   card.appendChild(moreWrap)

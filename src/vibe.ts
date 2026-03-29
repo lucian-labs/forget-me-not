@@ -72,7 +72,7 @@ const WISDOM = [
   'PROBABLY NOTHING', 'FEW UNDERSTAND', 'SER',
 ]
 
-function createCardTexture(T: any, task: Task, urgency: number, colors: ThemeColors, font: string): any {
+function createCardTexture(T: any, task: Task, urgency: number, colors: ThemeColors, hFont: string, bFont: string): any {
   const canvas = document.createElement('canvas')
   canvas.width = 512
   canvas.height = 256
@@ -92,17 +92,18 @@ function createCardTexture(T: any, task: Task, urgency: number, colors: ThemeCol
 
   const pColors: Record<string, string> = { critical: colors.red, high: colors.orange, normal: colors.accent, low: colors.dim }
   ctx.fillStyle = pColors[task.priority] ?? colors.accent
-  ctx.font = `bold 16px ${font}`
+  ctx.font = `bold 16px '${bFont}', monospace`
   ctx.fillText(task.priority.toUpperCase(), 16, 30)
 
   ctx.fillStyle = colors.dim
-  ctx.font = `14px ${font}`
+  ctx.font = `14px '${bFont}', monospace`
   ctx.textAlign = 'right'
   ctx.fillText(task.status.replace('_', ' ').toUpperCase(), 496, 30)
   ctx.textAlign = 'left'
 
+  // Title uses header font
   ctx.fillStyle = colors.text
-  ctx.font = `bold 26px ${font}`
+  ctx.font = `bold 26px '${hFont}', sans-serif`
   const words = task.title.split(' ')
   let line = ''
   let y = 75
@@ -121,7 +122,7 @@ function createCardTexture(T: any, task: Task, urgency: number, colors: ThemeCol
 
   if (task.domain) {
     ctx.fillStyle = colors.cyan
-    ctx.font = `14px ${font}`
+    ctx.font = `14px '${bFont}', monospace`
     ctx.fillText(`#${task.domain}`, 16, 230)
   }
 
@@ -259,7 +260,8 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
   const theme = resolveTheme(settings)
   const themeBase = getTheme(settings.themePreset, settings)
   const tc = theme.colors
-  const font = theme.bodyFont || 'monospace'
+  const headerFont = theme.headerFont || 'monospace'
+  const bodyFont = theme.bodyFont || 'monospace'
 
   // Parse theme bg to a Three.js-friendly hex
   function cssToHex(css: string): number {
@@ -319,7 +321,7 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
     @keyframes vibePulse{0%,100%{text-shadow:0 0 20px #00ffcc,0 0 40px #00ffcc}50%{text-shadow:0 0 40px #00ffcc,0 0 80px #ff00ff}}
     .vibe-tip{position:absolute;pointer-events:none;z-index:20;display:none;
       background:${tc.surface}ee;border:1px solid ${tc.accent};color:${tc.text};
-      font:13px ${font};padding:12px 16px;border-radius:4px;
+      font:13px '${bodyFont}',monospace;padding:12px 16px;border-radius:4px;
       backdrop-filter:blur(10px);box-shadow:0 0 20px ${tc.accent}50;max-width:280px;}
     #vibe-exit:hover{background:${tc.accent}33!important;border-color:${tc.accent}!important;}
   `
@@ -328,11 +330,11 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
 
   // HUD
   const hud = document.createElement('div')
-  hud.style.cssText = `position:absolute;inset:0;pointer-events:none;z-index:10;font-family:'${font}',monospace;color:${tc.text};`
+  hud.style.cssText = `position:absolute;inset:0;pointer-events:none;z-index:10;font-family:'${bodyFont}',monospace;color:${tc.text};`
   hud.innerHTML = `
     <div style="padding:20px;display:flex;justify-content:space-between;align-items:flex-start;">
       <div>
-        <div style="font-size:42px;font-weight:bold;
+        <div style="font-size:42px;font-weight:bold;font-family:'${headerFont}',sans-serif;
           background:linear-gradient(90deg,${tc.accent},${tc.cyan},${tc.orange},${tc.accent});
           -webkit-background-clip:text;-webkit-text-fill-color:transparent;
           background-size:200%;animation:vibeGrad 3s linear infinite;">
@@ -349,7 +351,7 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
     </div>
     <div style="position:absolute;bottom:20px;left:20px;pointer-events:auto;">
       <button id="vibe-exit" style="background:${tc.accent}14;border:1px solid ${tc.accent}60;
-        color:${tc.accent};padding:10px 20px;font:14px '${font}',monospace;cursor:pointer;
+        color:${tc.accent};padding:10px 20px;font:14px '${bodyFont}',monospace;cursor:pointer;
         backdrop-filter:blur(10px);border-radius:4px;transition:all .2s;">
         \u2190 BACK TO REALITY</button>
     </div>
@@ -528,7 +530,7 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
     labelCanvas.width = 1024; labelCanvas.height = 128
     const lx = labelCanvas.getContext('2d')!
     lx.fillStyle = tc.text
-    lx.font = `bold 64px ${font}`
+    lx.font = `bold 64px '${headerFont}', sans-serif`
     lx.textAlign = 'center'
     lx.textBaseline = 'middle'
     lx.fillText(WISDOM[i % WISDOM.length], 512, 64)
@@ -566,7 +568,7 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
 
   tasks.forEach((task, i) => {
     const urg = getUrgencyRatio(task)
-    const tex = createCardTexture(T, task, urg, tc, font)
+    const tex = createCardTexture(T, task, urg, tc, headerFont, bodyFont)
 
     const glassMat = new T.MeshPhysicalMaterial({
       color: 0xffffff,
@@ -657,7 +659,7 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
     card.urgency = getUrgencyRatio(updated)
 
     // Rebuild texture
-    const newTex = createCardTexture(T, updated, card.urgency, tc, font)
+    const newTex = createCardTexture(T, updated, card.urgency, tc, headerFont, bodyFont)
     const mats = card.mesh.material as any[]
     mats[4].map.dispose()
     mats[4].map = newTex

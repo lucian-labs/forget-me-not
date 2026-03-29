@@ -4,7 +4,7 @@ import {
   resetTask, completeTask, snoozeTask, archiveTask, addActionNote,
 } from './store'
 import { formatTime, formatCadence, el } from './utils'
-import { playAlert, clearAlert } from './sounds'
+import { playAlert, clearAlert, syncAlertsToSW } from './sounds'
 import { navigate } from './app'
 import { animateOut } from './animate'
 import { appName } from './brand'
@@ -16,7 +16,11 @@ let groupByCategory = localStorage.getItem('fmn-categorize') === 'true'
 const promptCache = new Map<string, { text: string; at: number }>()
 
 export function renderPanel(container: HTMLElement): void {
-  const tasks = getTasks().filter((t) => t.status !== 'done' && t.status !== 'archived' && t.status !== 'cancelled')
+  const allTasks = getTasks()
+  const tasks = allTasks.filter((t) => t.status !== 'done' && t.status !== 'archived' && t.status !== 'cancelled')
+
+  // Push schedules to SW for background notifications
+  syncAlertsToSW(allTasks)
 
   container.innerHTML = ''
 

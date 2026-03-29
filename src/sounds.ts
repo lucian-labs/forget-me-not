@@ -142,6 +142,39 @@ export function playTest(): void {
 
 export function clearAlert(taskId: string): void {
   alerted.delete(taskId)
+  // Tell SW this task is no longer overdue
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({ type: 'clear-alert', taskId })
+  }
+}
+
+/**
+ * Push active task schedules to the Service Worker.
+ * The SW will fire notifications at the exact overdue moment,
+ * even when the app is backgrounded.
+ */
+export function syncAlertsToSW(tasks: Task[]): void {
+  if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) return
+  const settings = getSettings()
+  if (!settings.soundEnabled) return
+
+  const activeTasks = tasks
+    .filter((t) => t.status !== 'done' && t.status !== 'archived' && t.status !== 'cancelled')
+    .filter((t) => (t.recurring && t.lastResetAt && t.cadenceSeconds) || t.dueDate)
+    .map((t) => ({
+      id: t.id,
+      title: t.title,
+      recurring: t.recurring,
+      lastResetAt: t.lastResetAt,
+      cadenceSeconds: t.cadenceSeconds,
+      dueDate: t.dueDate,
+      _appName: settings.appName || 'forget me not',
+    }))
+
+  navigator.serviceWorker.controller.postMessage({
+    type: 'schedule-alerts',
+    tasks: activeTasks,
+  })
 }
 
 export function requestNotificationPermission(): void {

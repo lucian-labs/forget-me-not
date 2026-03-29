@@ -51,8 +51,8 @@ export function renderPanel(container: HTMLElement): void {
   sndToggle.appendChild(el('span', { className: 'fmn-toggle-thumb' }))
 
   const sndWrap = el('div', { style: 'display:flex;align-items:center;gap:4px;' })
-  sndWrap.appendChild(sndToggle)
   sndWrap.appendChild(el('span', { style: 'font-size:11px;color:var(--dim);' }, '\u266B'))
+  sndWrap.appendChild(sndToggle)
 
   const titleWrap = el('div', { style: 'display:flex;align-items:center;gap:8px;' })
   titleWrap.appendChild(title)

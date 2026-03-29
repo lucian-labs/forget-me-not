@@ -4,7 +4,7 @@ import { refreshSound, playTest } from './sounds'
 import { getAllThemes, applyTheme, resolveTheme, exportTheme, themeToShareUrl, importThemeJson } from './themes'
 import { navigate } from './app'
 import { appName } from './brand'
-import { showTransferQR } from './transfer'
+import { showSend, showReceive } from './transfer'
 import { applyIcon } from './icon'
 
 const SOUND_PRESETS: { value: number; label: string }[] = [
@@ -318,10 +318,10 @@ export function renderSettings(container: HTMLElement): void {
   const dataCard = el('div', { className: 'fmn-card' })
   dataCard.appendChild(sectionLabel('Data'))
 
-  // Transfer via QR
-  const transferRow = el('div', { style: 'margin-bottom:12px;' })
-  transferRow.appendChild(createBtn('Transfer to device', 'btn-accent', () => showTransferQR(document.body)))
-  transferRow.appendChild(el('div', { style: 'font-size:11px;color:var(--dim);margin-top:4px;' }, 'Generate a QR code to move all your data to another device.'))
+  // Transfer
+  const transferRow = el('div', { className: 'fmn-form-row', style: 'margin-bottom:12px;' })
+  transferRow.appendChild(createBtn('Send to device', 'btn-accent', () => showSend(document.body)))
+  transferRow.appendChild(createBtn('Receive from device', 'btn-ghost', () => showReceive(document.body)))
   dataCard.appendChild(transferRow)
 
   const dataRow = el('div', { className: 'fmn-form-row' })

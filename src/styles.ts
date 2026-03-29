@@ -147,7 +147,6 @@ button:active { opacity: 0.8; }
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--spacing) 16px;
-  animation: cardEnter 0.4s ease-out;
   margin-bottom: 8px;
   transition: border-color 0.15s;
 }
@@ -615,12 +614,6 @@ input[type="range"]::-webkit-slider-thumb {
 
 .fmn-footer a:hover {
   text-decoration: underline;
-}
-
-/* Card entrance */
-@keyframes cardEnter {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 /* === Task animations === */

@@ -163,7 +163,7 @@ async function init(): Promise<void> {
   document.addEventListener('click', () => requestNotificationPermission(), { once: true })
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register(`/sw.js?v=${__APP_VERSION__}`).catch(() => {})
+    navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(() => {})
     navigator.serviceWorker.addEventListener('message', (e) => {
       if (e.data?.type === 'sw-version') {
         document.querySelectorAll('.fmn-sw-version').forEach((el) => {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fmn-v6'
+const CACHE_NAME = 'fmn-v7'
 const PRECACHE = [
   '/',
   '/index.html',
@@ -30,15 +30,32 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url)
 
+  // Never cache the service worker itself
+  if (url.pathname === '/sw.js') return
+
+  // SPA fallback for navigation
   if (event.request.mode === 'navigate' && url.origin === self.location.origin) {
     event.respondWith(
-      caches.match('/index.html').then((cached) =>
-        cached || fetch('/index.html')
-      )
+      fetch(event.request).catch(() => caches.match('/index.html'))
     )
     return
   }
 
+  // Network-first for JS/CSS assets, cache fallback
+  if (url.pathname.startsWith('/assets/')) {
+    event.respondWith(
+      fetch(event.request).then((response) => {
+        if (response && response.status === 200) {
+          const clone = response.clone()
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
+        }
+        return response
+      }).catch(() => caches.match(event.request))
+    )
+    return
+  }
+
+  // Cache-first for other static assets
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const fetched = fetch(event.request).then((response) => {

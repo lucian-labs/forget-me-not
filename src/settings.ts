@@ -4,6 +4,7 @@ import { refreshSound, playTest } from './sounds'
 import { getAllThemes, applyTheme, resolveTheme, exportTheme, themeToShareUrl, importThemeJson } from './themes'
 import { navigate } from './app'
 import { appName } from './brand'
+import { showTransferQR } from './transfer'
 
 const SOUND_PRESETS: { value: number; label: string }[] = [
   { value: 88, label: 'Crystal' },
@@ -314,6 +315,12 @@ export function renderSettings(container: HTMLElement): void {
   // Data
   const dataCard = el('div', { className: 'fmn-card' })
   dataCard.appendChild(sectionLabel('Data'))
+
+  // Transfer via QR
+  const transferRow = el('div', { style: 'margin-bottom:12px;' })
+  transferRow.appendChild(createBtn('Transfer to device', 'btn-accent', () => showTransferQR(document.body)))
+  transferRow.appendChild(el('div', { style: 'font-size:11px;color:var(--dim);margin-top:4px;' }, 'Generate a QR code to move all your data to another device.'))
+  dataCard.appendChild(transferRow)
 
   const dataRow = el('div', { className: 'fmn-form-row' })
 

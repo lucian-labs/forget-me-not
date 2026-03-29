@@ -8,6 +8,7 @@ import { renderCreate } from './create'
 import { initSound, requestNotificationPermission } from './sounds'
 import { applyTheme, getAllThemes, importThemeJson } from './themes'
 import { updateSettings } from './store'
+import { checkImportFromUrl } from './transfer'
 
 let currentView: View = 'panel'
 let currentTaskId: string | null = null
@@ -142,6 +143,10 @@ function applyThemeParam(param: string, settings: ReturnType<typeof getSettings>
 async function init(): Promise<void> {
   injectStyles()
   initTheme()
+
+  // Check for data transfer import before routing
+  const imported = await checkImportFromUrl()
+  if (imported) return
 
   const route = hashToRoute()
   currentView = route.view

@@ -48,13 +48,16 @@ export function renderPanel(container: HTMLElement): void {
   sndWrap.appendChild(sndToggle)
   sndWrap.appendChild(el('span', { style: 'font-size:11px;color:var(--dim);' }, 'sounds'))
 
+  const titleWrap = el('div', { style: 'display:flex;align-items:center;gap:8px;' })
+  titleWrap.appendChild(title)
+  titleWrap.appendChild(createBtn('+', 'btn-accent btn-sm', () => navigate('create')))
+
   const header = el('div', { className: 'fmn-header' },
-    title,
+    titleWrap,
     el('div', { className: 'fmn-header-actions' },
       catWrap,
       sndWrap,
-      createBtn('+', 'btn-accent', () => navigate('create')),
-      createBtn('*', 'btn-icon', () => navigate('settings')),
+      createBtn('*', 'btn-ghost btn-sm', () => navigate('settings')),
     ),
   )
   container.appendChild(header)

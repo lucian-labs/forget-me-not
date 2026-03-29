@@ -349,8 +349,8 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
 
   // === STARFIELD ===
   const starGeo = new T.BufferGeometry()
-  const starArr = new Float32Array(3000 * 3)
-  for (let i = 0; i < starArr.length; i++) starArr[i] = (Math.random() - 0.5) * 300
+  const starArr = new Float32Array(12000 * 3)
+  for (let i = 0; i < starArr.length; i++) starArr[i] = (Math.random() - 0.5) * 400
   starGeo.setAttribute('position', new T.BufferAttribute(starArr, 3))
   const starPts = new T.Points(starGeo, new T.PointsMaterial({ color: 0xffffff, size: 0.12, transparent: true, opacity: 0.7 }))
   scene.add(starPts)
@@ -398,8 +398,12 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
     task: Task
     urgency: number
     ox: number; oy: number; oz: number
+    targetY: number
+    baseScale: number
+    targetScale: number
     idx: number
     hovered: boolean
+    sinking: boolean
   }
 
   const cards: CardInfo[] = []
@@ -419,6 +423,9 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
       side: T.DoubleSide,
     })
     const textMat = new T.MeshBasicMaterial({ map: tex, transparent: true, side: T.FrontSide, depthWrite: false })
+
+    // Scale card size by urgency: more urgent = bigger
+    const baseScale = 0.6 + Math.min(urg, 1.5) * 0.7
     const geo = new T.BoxGeometry(4, 2, 0.08)
     const mesh = new T.Mesh(geo, [glassMat, glassMat, glassMat, glassMat, textMat, glassMat])
 
@@ -429,19 +436,19 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
     const wire = new T.Mesh(wireGeo, wireMat)
     mesh.add(wire)
 
-    // Spiral position
+    // Spiral XZ, urgency-driven Y: more urgent = higher
     const angle = i * phi
     const r = 3 + Math.sqrt(i + 1) * 2.2
     const x = r * Math.cos(angle)
     const z = r * Math.sin(angle)
-    const y = Math.sin(i * 0.6) * 2.5
+    const y = -4 + Math.min(urg, 1.5) * 8 // range: -4 (fresh) to +8 (overdue)
 
     mesh.position.set(x, y, z)
-    mesh.lookAt(0, y, 0)
+    mesh.scale.setScalar(baseScale)
     mesh.userData = { taskId: task.id, idx: i }
     scene.add(mesh)
 
-    cards.push({ mesh, wire, task, urgency: urg, ox: x, oy: y, oz: z, idx: i, hovered: false })
+    cards.push({ mesh, wire, task, urgency: urg, ox: x, oy: y, oz: z, targetY: y, baseScale, targetScale: baseScale, idx: i, hovered: false, sinking: false })
   })
 
   // === RAYCASTER & EVENTS ===
@@ -468,7 +475,7 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
         tooltip.style.display = 'block'
         tooltip.innerHTML = `<div style="font-weight:bold;margin-bottom:6px;">${card.task.title}</div>
           <div style="font-size:11px;opacity:0.6;">${card.task.priority.toUpperCase()} \u00B7 ${card.task.status.replace('_', ' ').toUpperCase()}${card.task.domain ? ' \u00B7 #' + card.task.domain : ''}</div>
-          <div style="margin-top:6px;font-size:10px;opacity:0.3;">CLICK TO ENTER POSITION</div>`
+          <div style="margin-top:6px;font-size:10px;opacity:0.3;">CLICK TO YEET</div>`
       }
       tooltip.style.left = e.clientX + 16 + 'px'
       tooltip.style.top = e.clientY + 16 + 'px'
@@ -486,10 +493,38 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
     spawnExplosion(T, scene, card.mesh.position, 80)
     shakeScreen(wrap, 30, 700)
 
+    // Fireworks: secondary bursts offset from the card
+    setTimeout(() => {
+      const p = card.mesh.position
+      spawnExplosion(T, scene, { x: p.x + 3, y: p.y + 4, z: p.z }, 40)
+      playSound('FIREWORK-A-' + card.idx)
+    }, 250)
+    setTimeout(() => {
+      const p = card.mesh.position
+      spawnExplosion(T, scene, { x: p.x - 2, y: p.y + 6, z: p.z + 2 }, 40)
+      playSound('FIREWORK-B-' + card.idx)
+    }, 500)
+    setTimeout(() => {
+      const p = card.mesh.position
+      spawnExplosion(T, scene, { x: p.x + 1, y: p.y + 8, z: p.z - 3 }, 50)
+      playSound('FIREWORK-C-' + card.idx)
+    }, 750)
+
+    // Flash overlay
+    const flash = document.createElement('div')
+    flash.style.cssText = 'position:absolute;inset:0;background:white;opacity:0.4;z-index:5;pointer-events:none;transition:opacity 0.4s;'
+    wrap.appendChild(flash)
+    requestAnimationFrame(() => { flash.style.opacity = '0' })
+    setTimeout(() => flash.remove(), 500)
+
     playSound('BOOM-' + card.task.id)
     setTimeout(() => playSound('POW-' + card.idx), 100)
     setTimeout(() => playSound('BAM-' + card.idx + 'x'), 200)
-    setTimeout(() => playSound('CRASH-' + card.idx), 300)
+
+    // Send it to the bottom
+    card.sinking = true
+    card.targetY = -8
+    card.targetScale = 0.3
 
     combo++
     if (comboTimer) clearTimeout(comboTimer)
@@ -500,12 +535,6 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
       comboEl.style.opacity = '1'
       setTimeout(() => { if (comboEl) comboEl.style.opacity = '0' }, 800)
     }
-
-    setTimeout(() => {
-      destroy()
-      history.pushState(null, '', `/task/${card.task.id}`)
-      window.dispatchEvent(new PopStateEvent('popstate'))
-    }, 900)
   }
 
   renderer.domElement.addEventListener('mousemove', onMove)
@@ -564,21 +593,19 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
 
     // Animate cards
     for (const card of cards) {
-      card.mesh.position.y = card.oy + Math.sin(time * 0.7 + card.idx * 0.5) * 0.4
+      // Lerp Y toward target (urgency position or sunk bottom)
+      const bob = Math.sin(time * 0.7 + card.idx * 0.5) * 0.3
+      const goalY = card.targetY + bob
+      card.mesh.position.y += (goalY - card.mesh.position.y) * dt * 3
 
-      // Overdue vibration
-      if (card.urgency >= 0.95) {
-        card.mesh.position.x = card.ox + (Math.random() - 0.5) * 0.15
-        card.mesh.position.z = card.oz + (Math.random() - 0.5) * 0.15
-        card.wire.material.opacity = 0.25 + Math.sin(time * 5 + card.idx) * 0.2
-      }
+      // Lerp scale toward target (urgency base or shrunk)
+      const hoverBoost = card.hovered ? 1.25 : 1
+      const goalScale = card.targetScale * hoverBoost
+      const curScale = card.mesh.scale.x
+      card.mesh.scale.setScalar(curScale + (goalScale - curScale) * dt * 6)
 
-      card.mesh.rotation.y += dt * 0.15
-
-      // Hover scale
-      const target = card.hovered ? 1.35 : 1
-      const cur = card.mesh.scale.x
-      card.mesh.scale.setScalar(cur + (target - cur) * dt * 10)
+      // Billboard: always face camera
+      card.mesh.quaternion.copy(camera.quaternion)
     }
 
     // Mouse repulsion: nearby cards push away from hovered card

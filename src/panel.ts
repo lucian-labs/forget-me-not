@@ -35,9 +35,10 @@ export function renderPanel(container: HTMLElement): void {
   catToggle.appendChild(el('span', { className: 'fmn-toggle-track' }))
   catToggle.appendChild(el('span', { className: 'fmn-toggle-thumb' }))
 
-  const catWrap = el('div', { style: 'display:flex;align-items:center;gap:5px;' })
+  const catWrap = el('div', { style: 'display:flex;align-items:center;' })
+  catToggle.style.transform = 'scale(0.75)'
+  catToggle.style.transformOrigin = 'left center'
   catWrap.appendChild(catToggle)
-  catWrap.appendChild(el('span', { style: 'font-size:11px;color:var(--dim);' }, 'categorize'))
 
   // Sound toggle
   const settings = getSettings()
@@ -49,9 +50,9 @@ export function renderPanel(container: HTMLElement): void {
   sndToggle.appendChild(el('span', { className: 'fmn-toggle-track' }))
   sndToggle.appendChild(el('span', { className: 'fmn-toggle-thumb' }))
 
-  const sndWrap = el('div', { style: 'display:flex;align-items:center;gap:5px;' })
+  const sndWrap = el('div', { style: 'display:flex;align-items:center;gap:4px;' })
   sndWrap.appendChild(sndToggle)
-  sndWrap.appendChild(el('span', { style: 'font-size:11px;color:var(--dim);' }, 'sounds'))
+  sndWrap.appendChild(el('span', { style: 'font-size:11px;color:var(--dim);' }, '\u266B'))
 
   const titleWrap = el('div', { style: 'display:flex;align-items:center;gap:8px;' })
   titleWrap.appendChild(title)
@@ -60,16 +61,12 @@ export function renderPanel(container: HTMLElement): void {
   const header = el('div', { className: 'fmn-header' },
     titleWrap,
     el('div', { className: 'fmn-header-actions' },
+      sndWrap,
       createBtn('*', 'btn-ghost btn-sm', () => navigate('settings')),
     ),
   )
   container.appendChild(header)
-
-  // Toggles row below header
-  const togglesRow = el('div', { style: 'display:flex;align-items:center;gap:12px;margin-bottom:12px;' })
-  togglesRow.appendChild(catWrap)
-  togglesRow.appendChild(sndWrap)
-  container.appendChild(togglesRow)
+  container.appendChild(catWrap)
 
   if (tasks.length === 0) {
     container.appendChild(el('div', { className: 'fmn-empty' }, 'No tasks yet. Hit + to create one.'))

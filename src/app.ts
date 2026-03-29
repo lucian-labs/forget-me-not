@@ -11,6 +11,7 @@ import { applyTheme, getAllThemes, importThemeJson } from './themes'
 import { updateSettings } from './store'
 import { checkImportFromUrl } from './transfer'
 import { applyIcon } from './icon'
+import { renderVibe } from './vibe'
 
 let currentView: View = 'panel'
 let currentTaskId: string | null = null
@@ -23,11 +24,13 @@ function viewToPath(view: View, taskId?: string | null): string {
     case 'share': return '/settings/share'
     case 'create': return '/new'
     case 'detail': return `/task/${taskId}`
+    case 'vibe': return '/vibe'
   }
 }
 
 function pathToRoute(): { view: View; taskId: string | null } {
   const path = location.pathname
+  if (path === '/vibe') return { view: 'vibe', taskId: null }
   if (path === '/settings/share') return { view: 'share', taskId: null }
   if (path === '/settings') return { view: 'settings', taskId: null }
   if (path === '/new') return { view: 'create', taskId: null }
@@ -65,7 +68,7 @@ function render(): void {
 
     const footer = document.createElement('footer')
     footer.className = 'fmn-footer'
-    footer.innerHTML = `v${__APP_VERSION__} <span class="fmn-sw-version"></span> · by <a href="https://lucianlabs.ca" target="_blank" rel="noopener">lucianlabs.ca</a> · <a href="https://github.com/lucian-labs/forget-me-not" target="_blank" rel="noopener">source code</a>`
+    footer.innerHTML = `v${__APP_VERSION__} <span class="fmn-sw-version"></span> · by <a href="https://lucianlabs.ca" target="_blank" rel="noopener">lucianlabs.ca</a> · <a href="https://github.com/lucian-labs/forget-me-not" target="_blank" rel="noopener">source code</a> · <a href="/vibe" style="opacity:0.5;">\u2726 vibe</a>`
     app.appendChild(footer)
   }
 
@@ -84,6 +87,9 @@ function render(): void {
       break
     case 'share':
       renderShare(content)
+      break
+    case 'vibe':
+      renderVibe(content)
       break
   }
 }

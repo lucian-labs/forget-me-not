@@ -54,7 +54,7 @@ export function renderPanel(container: HTMLElement): void {
       catWrap,
       sndWrap,
       createBtn('+', 'btn-accent', () => navigate('create')),
-      createBtn('\u2699', 'btn-icon', () => navigate('settings')),
+      createBtn('*', 'btn-icon', () => navigate('settings')),
     ),
   )
   container.appendChild(header)

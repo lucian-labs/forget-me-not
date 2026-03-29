@@ -32,6 +32,8 @@ export interface Task {
 
   recurring: boolean
   cadenceSeconds: number | null
+  cadenceMore: number | null
+  cadenceLess: number | null
   lastResetAt: string | null
 
   followUps: FollowUp[]

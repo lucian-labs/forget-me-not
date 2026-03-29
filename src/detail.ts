@@ -188,6 +188,21 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
     }
     moreGrid.appendChild(el('span', { className: 'fmn-detail-label' }, 'Every'))
     moreGrid.appendChild(cadenceSelect)
+
+    // Variance: less / more (in minutes)
+    const lessInput = el('input', { type: 'number', value: String(Math.round((task.cadenceLess ?? 0) / 60)), style: 'width:60px;font-size:13px;' }) as HTMLInputElement
+    lessInput.min = '0'
+    lessInput.placeholder = '0'
+    lessInput.onchange = () => updateTask(task.id, { cadenceLess: parseInt(lessInput.value || '0') * 60 })
+    moreGrid.appendChild(el('span', { className: 'fmn-detail-label' }, 'Less (min)'))
+    moreGrid.appendChild(lessInput)
+
+    const moreInput = el('input', { type: 'number', value: String(Math.round((task.cadenceMore ?? 0) / 60)), style: 'width:60px;font-size:13px;' }) as HTMLInputElement
+    moreInput.min = '0'
+    moreInput.placeholder = '0'
+    moreInput.onchange = () => updateTask(task.id, { cadenceMore: parseInt(moreInput.value || '0') * 60 })
+    moreGrid.appendChild(el('span', { className: 'fmn-detail-label' }, 'More (min)'))
+    moreGrid.appendChild(moreInput)
   }
 
   // Priority dropdown

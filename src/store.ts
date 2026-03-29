@@ -70,6 +70,8 @@ export function createTask(partial: Partial<Task> & { title: string }): Task {
     estimatedHours: partial.estimatedHours ?? null,
     recurring: partial.recurring ?? false,
     cadenceSeconds: partial.cadenceSeconds ?? null,
+    cadenceMore: partial.cadenceMore ?? null,
+    cadenceLess: partial.cadenceLess ?? null,
     lastResetAt: partial.recurring ? now : null,
     followUps: partial.followUps ?? [],
     parentTaskId: partial.parentTaskId ?? null,
@@ -100,8 +102,20 @@ export function resetTask(id: string, note: string): Task | undefined {
   if (!task) return undefined
   const now = new Date().toISOString()
   const entry = { note, at: now, action: 'reset' as const }
+  // Randomize cadence within range on reset
+  let newCadence = task.cadenceSeconds
+  if (task.cadenceSeconds && (task.cadenceMore || task.cadenceLess)) {
+    const base = task.cadenceSeconds
+    const less = task.cadenceLess ?? 0
+    const more = task.cadenceMore ?? 0
+    const min = base - less
+    const max = base + more
+    newCadence = Math.round(min + Math.random() * (max - min))
+  }
+
   const updates: Partial<Task> = {
     lastResetAt: now,
+    cadenceSeconds: newCadence,
     actionLog: [...task.actionLog, entry],
   }
   const updated = updateTask(id, updates)

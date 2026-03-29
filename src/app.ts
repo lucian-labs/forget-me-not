@@ -59,10 +59,6 @@ function render(): void {
   const app = document.getElementById('app')
   if (!app) return
 
-  // Apply full width setting
-  const settings = getSettings()
-  app.classList.toggle('fmn-full-width', settings.fullWidth)
-
   let content = app.querySelector('.fmn-content') as HTMLElement
   if (!content) {
     app.innerHTML = ''

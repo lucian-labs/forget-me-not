@@ -33,16 +33,11 @@ html, body {
 }
 
 #app {
-  max-width: 640px;
-  margin: 0 auto;
+  width: 100%;
   padding: 16px;
   display: flex;
   flex-direction: column;
   height: 100vh;
-}
-
-#app.fmn-full-width {
-  max-width: none;
 }
 
 .fmn-content {

@@ -153,11 +153,6 @@ export function renderSettings(container: HTMLElement): void {
       return select
     }))
 
-    wrap.appendChild(settingsRow('Full width', () => toggle(settings.fullWidth, (v) => {
-      updateSettings({ fullWidth: v })
-      navigate('settings')
-    })))
-
     const colorLabels: { key: string; label: string }[] = [
       { key: 'accent', label: 'Accent' },
       { key: 'bg', label: 'Background' },

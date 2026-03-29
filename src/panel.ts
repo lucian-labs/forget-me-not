@@ -1,6 +1,6 @@
 import type { Task } from './types'
 import {
-  getTasks, getUrgencyRatio, getUrgencyColor, getUrgencyClass,
+  getTasks, getSettings, updateSettings, getUrgencyRatio, getUrgencyColor, getUrgencyClass,
   resetTask, completeTask, snoozeTask, archiveTask, addActionNote,
 } from './store'
 import { formatTime, formatCadence, el } from './utils'
@@ -34,10 +34,25 @@ export function renderPanel(container: HTMLElement): void {
   catWrap.appendChild(catToggle)
   catWrap.appendChild(el('span', { style: 'font-size:11px;color:var(--dim);' }, 'categorize'))
 
+  // Sound toggle
+  const settings = getSettings()
+  const sndToggle = el('label', { className: 'fmn-toggle', style: 'margin:0;' })
+  const sndInput = el('input', { type: 'checkbox' }) as HTMLInputElement
+  sndInput.checked = settings.soundEnabled
+  sndInput.onchange = () => { updateSettings({ soundEnabled: sndInput.checked }); navigate('panel') }
+  sndToggle.appendChild(sndInput)
+  sndToggle.appendChild(el('span', { className: 'fmn-toggle-track' }))
+  sndToggle.appendChild(el('span', { className: 'fmn-toggle-thumb' }))
+
+  const sndWrap = el('div', { style: 'display:flex;align-items:center;gap:5px;' })
+  sndWrap.appendChild(sndToggle)
+  sndWrap.appendChild(el('span', { style: 'font-size:11px;color:var(--dim);' }, 'sounds'))
+
   const header = el('div', { className: 'fmn-header' },
     title,
     el('div', { className: 'fmn-header-actions' },
       catWrap,
+      sndWrap,
       createBtn('+', 'btn-accent', () => navigate('create')),
       createBtn('\u2699', 'btn-icon', () => navigate('settings')),
     ),

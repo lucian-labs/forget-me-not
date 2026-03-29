@@ -1,5 +1,6 @@
 import { getSettings } from './store'
 import type { Task } from './types'
+import { appName } from './brand'
 
 declare class YamaBruhNotify {
   constructor(opts: { seed: string; preset: number; bpm: number; volume: number; mode: number })
@@ -10,6 +11,11 @@ let notify: YamaBruhNotify | null = null
 const alerted = new Map<string, boolean>()
 
 let loaded = false
+let keepAliveAudio: HTMLAudioElement | null = null
+let keepAliveStarted = false
+
+// Minimal silent WAV: 44-byte header + 2 bytes of silence (1 sample, mono, 8-bit)
+const SILENT_WAV = 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAZGF0YQIAAACA'
 
 function loadScript(): Promise<void> {
   if (loaded) return Promise.resolve()
@@ -50,18 +56,63 @@ export function refreshSound(): void {
   })
 }
 
+/**
+ * Start a silent audio loop with media session registration.
+ * Keeps the audio pipeline alive when the PWA is backgrounded,
+ * allowing YamaBruh to play notification sounds in the background.
+ * Must be called from a user gesture (click/tap).
+ */
+export function startKeepAlive(): void {
+  if (keepAliveStarted) return
+  keepAliveStarted = true
+
+  keepAliveAudio = new Audio(SILENT_WAV)
+  keepAliveAudio.loop = true
+  keepAliveAudio.volume = 0.01
+
+  keepAliveAudio.play().catch(() => {
+    // Autoplay blocked — will retry on next interaction
+    keepAliveStarted = false
+  })
+
+  // Register media session so OS treats us as an active audio app
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: appName(),
+      artist: 'Task Reminders',
+      album: appName(),
+    })
+    // Prevent media controls from doing anything unexpected
+    navigator.mediaSession.setActionHandler('play', () => {})
+    navigator.mediaSession.setActionHandler('pause', () => {})
+    navigator.mediaSession.setActionHandler('stop', () => {})
+  }
+}
+
+export function stopKeepAlive(): void {
+  if (keepAliveAudio) {
+    keepAliveAudio.pause()
+    keepAliveAudio.src = ''
+    keepAliveAudio = null
+  }
+  keepAliveStarted = false
+}
+
 export function playAlert(taskId: string, task?: Task): void {
   const settings = getSettings()
   if (!settings.soundEnabled) return
   if (alerted.get(taskId)) return
   alerted.set(taskId, true)
 
-  // Web Audio synth — only works in foreground
-  if (notify && !document.hidden) {
+  // Start keep-alive if not already running (piggybacks on this being called from render)
+  if (!keepAliveStarted) startKeepAlive()
+
+  // YamaBruh synth — with keep-alive, should work even when backgrounded
+  if (notify) {
     notify.play(taskId)
   }
 
-  // System notification — works in background, plays device notification sound
+  // System notification as backup + visual alert
   if ('Notification' in window && Notification.permission === 'granted') {
     const title = task?.title ?? 'Task overdue'
     const opts: NotificationOptions & { renotify?: boolean } = {
@@ -71,12 +122,10 @@ export function playAlert(taskId: string, task?: Task): void {
       renotify: false,
       silent: false,
     }
-    const n = new Notification('Forget Me Not', opts)
-    // Vibrate on supported devices
+    const n = new Notification(appName(), opts)
     if ('vibrate' in navigator) {
       navigator.vibrate([200, 100, 200])
     }
-    // Tap notification → focus app
     n.onclick = () => {
       window.focus()
       n.close()
@@ -85,6 +134,7 @@ export function playAlert(taskId: string, task?: Task): void {
 }
 
 export function playTest(): void {
+  if (!keepAliveStarted) startKeepAlive()
   if (!notify) return
   notify.play('test-' + Date.now())
 }

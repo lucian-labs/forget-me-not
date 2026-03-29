@@ -338,7 +338,7 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
           background:linear-gradient(90deg,${tc.accent},${tc.cyan},${tc.orange},${tc.accent});
           -webkit-background-clip:text;-webkit-text-fill-color:transparent;
           background-size:200%;animation:vibeGrad 3s linear infinite;">
-          \u2726 VIBE MODE \u2726
+          \u2726 VIBE TASK \u2726
         </div>
         <div style="font-size:11px;opacity:0.35;margin-top:4px;">powered by web3 productivity protocol\u2122</div>
       </div>

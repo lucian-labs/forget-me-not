@@ -96,6 +96,24 @@ export async function showSend(container: HTMLElement): Promise<void> {
     }
   }
 
+  // Native share (AirDrop, Nearby Share, etc.)
+  if (navigator.share) {
+    const shareBtn = el('button', { className: 'btn-accent', style: 'margin-bottom:8px;' }, 'AirDrop / Share') as HTMLButtonElement
+    shareBtn.onclick = async () => {
+      const file = new File([json], `forget-me-not-${new Date().toISOString().slice(0, 10)}.json`, { type: 'application/json' })
+      const shareData: ShareData = { title: 'Forget Me Not', text: 'Task data export' }
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        (shareData as any).files = [file]
+      } else {
+        shareData.url = url
+      }
+      try {
+        await navigator.share(shareData)
+      } catch { /* user cancelled */ }
+    }
+    overlay.appendChild(el('div', { style: 'text-align:center;margin-bottom:8px;' }, shareBtn))
+  }
+
   // Copy link button
   const copyBtn = el('button', { className: 'btn-ghost' }, 'Copy transfer link') as HTMLButtonElement
   copyBtn.onclick = () => {

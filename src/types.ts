@@ -99,6 +99,7 @@ export interface Settings {
   customBodyFont: string | null
   customSpacing: string | null
   userThemes: ThemeStyle[]
+  fullWidth: boolean
   panelCollapsed: boolean
 
   syncEndpoint: string

@@ -15,6 +15,7 @@ type CaptureState = { timer: number | null; mode: 'check' | 'note'; card: HTMLEl
 const captures = new Map<string, CaptureState>()
 let groupByCategory = localStorage.getItem('fmn-categorize') === 'true'
 const promptCache = new Map<string, { text: string; at: number }>()
+let catWrap: HTMLElement
 
 export function renderPanel(container: HTMLElement): void {
   const allTasks = getTasks()
@@ -36,7 +37,7 @@ export function renderPanel(container: HTMLElement): void {
   catToggle.appendChild(el('span', { className: 'fmn-toggle-track' }))
   catToggle.appendChild(el('span', { className: 'fmn-toggle-thumb' }))
 
-  const catWrap = el('div', { style: 'display:flex;align-items:center;' })
+  catWrap = el('div', { style: 'display:flex;align-items:center;' })
   catToggle.style.transform = 'scale(0.75)'
   catToggle.style.transformOrigin = 'left center'
   catWrap.appendChild(catToggle)
@@ -68,7 +69,6 @@ export function renderPanel(container: HTMLElement): void {
     ),
   )
   container.appendChild(header)
-  container.appendChild(catWrap)
 
   if (tasks.length === 0) {
     container.appendChild(el('div', { className: 'fmn-empty' }, 'No tasks yet. Hit + to create one.'))
@@ -82,17 +82,26 @@ export function renderPanel(container: HTMLElement): void {
   }
 }
 
+function sectionWithToggle(label: string, toggleEl: HTMLElement): HTMLElement {
+  const row = el('div', { className: 'fmn-section', style: 'display:flex;align-items:center;justify-content:space-between;' })
+  row.appendChild(document.createTextNode(label))
+  row.appendChild(toggleEl)
+  return row
+}
+
 function renderByType(container: HTMLElement, tasks: Task[]): void {
   const recurring = tasks.filter((t) => t.recurring).sort((a, b) => getUrgencyRatio(b) - getUrgencyRatio(a))
   const oneTime = tasks.filter((t) => !t.recurring).sort((a, b) => getUrgencyRatio(b) - getUrgencyRatio(a))
 
+  let first = true
   if (recurring.length > 0) {
-    container.appendChild(el('div', { className: 'fmn-section' }, 'Recurring'))
+    container.appendChild(first ? sectionWithToggle('Recurring', catWrap) : el('div', { className: 'fmn-section' }, 'Recurring'))
+    first = false
     for (const task of recurring) container.appendChild(renderTaskItem(task))
   }
 
   if (oneTime.length > 0) {
-    container.appendChild(el('div', { className: 'fmn-section' }, 'Tasks'))
+    container.appendChild(first ? sectionWithToggle('Tasks', catWrap) : el('div', { className: 'fmn-section' }, 'Tasks'))
     for (const task of oneTime) container.appendChild(renderTaskItem(task))
   }
 }
@@ -104,8 +113,10 @@ function renderGroupedByCategory(container: HTMLElement, tasks: Task[]): void {
     if (!groups.has(cat)) groups.set(cat, [])
     groups.get(cat)!.push(t)
   }
+  let first = true
   for (const [cat, catTasks] of groups) {
-    container.appendChild(el('div', { className: 'fmn-section' }, cat))
+    container.appendChild(first ? sectionWithToggle(cat, catWrap) : el('div', { className: 'fmn-section' }, cat))
+    first = false
     const sorted = catTasks.sort((a, b) => getUrgencyRatio(b) - getUrgencyRatio(a))
     for (const task of sorted) container.appendChild(renderTaskItem(task))
   }

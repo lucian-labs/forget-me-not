@@ -41,6 +41,10 @@ html, body {
   height: 100vh;
 }
 
+#app.fmn-full-width {
+  max-width: none;
+}
+
 .fmn-content {
   flex: 1;
   overflow-y: auto;
@@ -53,9 +57,13 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 0 16px;
+  padding: 12px 0 12px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 10;
 }
 
 .fmn-header h1, .fmn-header-title {

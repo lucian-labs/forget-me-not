@@ -20,6 +20,7 @@ const DEFAULT_SETTINGS: Settings = {
   customBodyFont: null,
   customSpacing: null,
   userThemes: [],
+  fullWidth: true,
   panelCollapsed: false,
   syncEndpoint: '',
   syncApiKey: '',

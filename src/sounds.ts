@@ -1,6 +1,5 @@
 import { getSettings } from './store'
 import type { Task } from './types'
-import { appName } from './brand'
 
 declare class YamaBruhNotify {
   constructor(opts: { seed: string; preset: number; bpm: number; volume: number; mode: number })
@@ -66,26 +65,28 @@ export function startKeepAlive(): void {
   if (keepAliveStarted) return
   keepAliveStarted = true
 
-  keepAliveAudio = new Audio(SILENT_WAV)
-  keepAliveAudio.loop = true
-  keepAliveAudio.volume = 0.01
+  try {
+    keepAliveAudio = new Audio(SILENT_WAV)
+    keepAliveAudio.loop = true
+    keepAliveAudio.volume = 0.01
 
-  keepAliveAudio.play().catch(() => {
-    // Autoplay blocked — will retry on next interaction
-    keepAliveStarted = false
-  })
-
-  // Register media session so OS treats us as an active audio app
-  if ('mediaSession' in navigator) {
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: appName(),
-      artist: 'Task Reminders',
-      album: appName(),
+    keepAliveAudio.play().catch(() => {
+      keepAliveStarted = false
     })
-    // Prevent media controls from doing anything unexpected
-    navigator.mediaSession.setActionHandler('play', () => {})
-    navigator.mediaSession.setActionHandler('pause', () => {})
-    navigator.mediaSession.setActionHandler('stop', () => {})
+
+    if ('mediaSession' in navigator) {
+      const name = getSettings().appName || 'forget me not'
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: name,
+        artist: 'Task Reminders',
+        album: name,
+      })
+      navigator.mediaSession.setActionHandler('play', () => {})
+      navigator.mediaSession.setActionHandler('pause', () => {})
+      navigator.mediaSession.setActionHandler('stop', () => {})
+    }
+  } catch {
+    keepAliveStarted = false
   }
 }
 
@@ -122,7 +123,7 @@ export function playAlert(taskId: string, task?: Task): void {
       renotify: false,
       silent: false,
     }
-    const n = new Notification(appName(), opts)
+    const n = new Notification(getSettings().appName || 'forget me not', opts)
     if ('vibrate' in navigator) {
       navigator.vibrate([200, 100, 200])
     }

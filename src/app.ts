@@ -5,6 +5,7 @@ import { renderPanel } from './panel'
 import { renderDetail } from './detail'
 import { renderSettings } from './settings'
 import { renderCreate } from './create'
+import { renderShare } from './share'
 import { initSound, requestNotificationPermission } from './sounds'
 import { applyTheme, getAllThemes, importThemeJson } from './themes'
 import { updateSettings } from './store'
@@ -15,41 +16,37 @@ let currentView: View = 'panel'
 let currentTaskId: string | null = null
 let renderLoopId: number | null = null
 
-function viewToHash(view: View, taskId?: string | null): string {
+function viewToPath(view: View, taskId?: string | null): string {
   switch (view) {
-    case 'panel': return ''
-    case 'settings': return '#settings'
-    case 'create': return '#new'
-    case 'detail': return `#task/${taskId}`
+    case 'panel': return '/'
+    case 'settings': return '/settings'
+    case 'share': return '/settings/share'
+    case 'create': return '/new'
+    case 'detail': return `/task/${taskId}`
   }
 }
 
-function hashToRoute(): { view: View; taskId: string | null } {
-  const hash = location.hash.slice(1)
-  if (hash === 'settings') return { view: 'settings', taskId: null }
-  if (hash === 'new') return { view: 'create', taskId: null }
-  if (hash.startsWith('task/')) return { view: 'detail', taskId: hash.slice(5) }
+function pathToRoute(): { view: View; taskId: string | null } {
+  const path = location.pathname
+  if (path === '/settings/share') return { view: 'share', taskId: null }
+  if (path === '/settings') return { view: 'settings', taskId: null }
+  if (path === '/new') return { view: 'create', taskId: null }
+  if (path.startsWith('/task/')) return { view: 'detail', taskId: path.slice(6) }
   return { view: 'panel', taskId: null }
 }
 
 export function navigate(view: View, taskId?: string): void {
-  const hash = viewToHash(view, taskId)
-  if (location.hash !== hash && !(hash === '' && location.hash === '')) {
-    if (hash) {
-      location.hash = hash
-    } else {
-      history.pushState(null, '', location.pathname)
-      onHashChange()
-    }
-  } else {
-    currentView = view
-    currentTaskId = taskId ?? null
-    render()
+  const path = viewToPath(view, taskId)
+  if (location.pathname !== path) {
+    history.pushState(null, '', path)
   }
+  currentView = view
+  currentTaskId = taskId ?? null
+  render()
 }
 
-function onHashChange(): void {
-  const route = hashToRoute()
+function onPopState(): void {
+  const route = pathToRoute()
   currentView = route.view
   currentTaskId = route.taskId
   render()
@@ -85,6 +82,9 @@ function render(): void {
     case 'create':
       renderCreate(content)
       break
+    case 'share':
+      renderShare(content)
+      break
   }
 }
 
@@ -105,13 +105,6 @@ function initTheme(): void {
 
   if (themeParam) {
     const result = applyThemeParam(themeParam, settings)
-    if (result) { applyIcon(); return }
-  }
-
-  const hash = location.hash
-  if (hash.startsWith('#theme=')) {
-    const val = hash.slice(7)
-    const result = applyThemeParam(val, settings)
     if (result) { applyIcon(); return }
   }
 
@@ -149,11 +142,11 @@ async function init(): Promise<void> {
   const imported = await checkImportFromUrl()
   if (imported) return
 
-  const route = hashToRoute()
+  const route = pathToRoute()
   currentView = route.view
   currentTaskId = route.taskId
 
-  window.addEventListener('hashchange', onHashChange)
+  window.addEventListener('popstate', onPopState)
 
   render()
   startRenderLoop()

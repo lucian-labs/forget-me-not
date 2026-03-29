@@ -161,12 +161,11 @@ export function themeToShareUrl(settings: Settings): string {
   const theme = getTheme(settings.themePreset, settings)
   // For built-in themes, share by name
   if (THEMES.some((t) => t.name === theme.name)) {
-    return `${location.origin}${location.pathname}#theme=${theme.name}`
+    return `${location.origin}/?theme=${theme.name}`
   }
-  // For custom themes, base64 encode
   const json = exportTheme(settings)
   const encoded = btoa(unescape(encodeURIComponent(json)))
-  return `${location.origin}${location.pathname}#theme=${encoded}`
+  return `${location.origin}/?theme=${encoded}`
 }
 
 export function importThemeJson(json: string, settings: Settings): ThemeStyle | null {

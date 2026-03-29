@@ -4,7 +4,7 @@ import { refreshSound, playTest } from './sounds'
 import { getAllThemes, applyTheme, resolveTheme, exportTheme, themeToShareUrl, importThemeJson } from './themes'
 import { navigate } from './app'
 import { appName } from './brand'
-import { showSend, showReceive } from './transfer'
+// transfer UI moved to /settings/share
 import { applyIcon } from './icon'
 
 const SOUND_PRESETS: { value: number; label: string }[] = [
@@ -318,11 +318,11 @@ export function renderSettings(container: HTMLElement): void {
   const dataCard = el('div', { className: 'fmn-card' })
   dataCard.appendChild(sectionLabel('Data'))
 
-  // Transfer
-  const transferRow = el('div', { className: 'fmn-form-row', style: 'margin-bottom:12px;' })
-  transferRow.appendChild(createBtn('Send to device', 'btn-accent', () => showSend(document.body)))
-  transferRow.appendChild(createBtn('Receive from device', 'btn-ghost', () => showReceive(document.body)))
-  dataCard.appendChild(transferRow)
+  // Transfer link
+  const transferBtn = createBtn('Transfer between devices', 'btn-accent', () => navigate('share'))
+  transferBtn.style.width = '100%'
+  transferBtn.style.marginBottom = '12px'
+  dataCard.appendChild(transferBtn)
 
   const dataRow = el('div', { className: 'fmn-form-row' })
 

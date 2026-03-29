@@ -85,6 +85,7 @@ export interface Settings {
   soundVolume: number
   soundMode: number
 
+  appName: string
   domains: string[]
 
   themePreset: string

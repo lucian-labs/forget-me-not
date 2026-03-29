@@ -9,6 +9,7 @@ const DEFAULT_SETTINGS: Settings = {
   soundBpm: 160,
   soundVolume: 0.4,
   soundMode: 1,
+  appName: '',
   domains: ['home', 'work', 'health', 'errands'],
   themePreset: 'midnight',
   customColors: {},

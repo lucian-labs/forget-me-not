@@ -2,6 +2,7 @@ import type { FollowUp, Task } from './types'
 import { createTask, getSettings } from './store'
 import { el, CADENCE_OPTIONS, formatCadence } from './utils'
 import { navigate } from './app'
+import { appName } from './brand'
 
 // Persists across re-renders within the create view
 let stickyRecurring = true
@@ -12,7 +13,7 @@ export function renderCreate(container: HTMLElement): void {
   const settings = getSettings()
   container.innerHTML = ''
 
-  const headerTitle = el('h1', { className: 'fmn-header-title' }, 'forget me not')
+  const headerTitle = el('h1', { className: 'fmn-header-title' }, appName())
   headerTitle.onclick = () => { createdTasks = []; navigate('panel') }
   container.appendChild(el('div', { className: 'fmn-header' }, headerTitle, el('div', { className: 'fmn-section', style: 'margin:0;' }, 'New Task')))
 

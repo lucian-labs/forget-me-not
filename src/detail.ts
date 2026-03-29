@@ -5,12 +5,13 @@ import {
 } from './store'
 import { el, timeAgo, formatCadence, formatTime, CADENCE_OPTIONS } from './utils'
 import { navigate } from './app'
+import { appName } from './brand'
 
 export function renderDetail(container: HTMLElement, taskId: string): void {
   const task = getTask(taskId)
   if (!task) {
     container.innerHTML = ''
-    const title = el('h1', { className: 'fmn-header-title' }, 'forget me not')
+    const title = el('h1', { className: 'fmn-header-title' }, appName())
     title.onclick = () => navigate('panel')
     container.appendChild(el('div', { className: 'fmn-header' }, title))
     container.appendChild(el('div', { className: 'fmn-empty' }, 'Task not found.'))
@@ -19,7 +20,7 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
 
   container.innerHTML = ''
 
-  const headerTitle = el('h1', { className: 'fmn-header-title' }, 'forget me not')
+  const headerTitle = el('h1', { className: 'fmn-header-title' }, appName())
   headerTitle.onclick = () => navigate('panel')
   container.appendChild(el('div', { className: 'fmn-header' }, headerTitle))
 

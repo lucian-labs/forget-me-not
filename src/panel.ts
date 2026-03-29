@@ -7,6 +7,7 @@ import { formatTime, formatCadence, el } from './utils'
 import { playAlert, clearAlert } from './sounds'
 import { navigate } from './app'
 import { animateOut } from './animate'
+import { appName } from './brand'
 
 type CaptureState = { timer: number | null; mode: 'check' | 'note'; card: HTMLElement | null }
 
@@ -19,7 +20,7 @@ export function renderPanel(container: HTMLElement): void {
 
   container.innerHTML = ''
 
-  const title = el('h1', { className: 'fmn-header-title' }, 'forget me not')
+  const title = el('h1', { className: 'fmn-header-title' }, appName())
   title.onclick = () => navigate('panel')
 
   const catToggle = el('label', { className: 'fmn-toggle', style: 'margin:0;' })

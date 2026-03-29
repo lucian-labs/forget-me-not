@@ -3,6 +3,7 @@ import { el, downloadJson } from './utils'
 import { refreshSound, playTest } from './sounds'
 import { getAllThemes, applyTheme, resolveTheme, exportTheme, themeToShareUrl, importThemeJson } from './themes'
 import { navigate } from './app'
+import { appName } from './brand'
 
 const SOUND_PRESETS: { value: number; label: string }[] = [
   { value: 88, label: 'Crystal' },
@@ -21,11 +22,26 @@ export function renderSettings(container: HTMLElement): void {
   const settings = getSettings()
   container.innerHTML = ''
 
-  const title = el('h1', { className: 'fmn-header-title' }, 'forget me not')
+  const title = el('h1', { className: 'fmn-header-title' }, appName())
   title.onclick = () => navigate('panel')
   container.appendChild(el('div', { className: 'fmn-header' }, title, el('div', { className: 'fmn-section', style: 'margin:0;' }, 'Settings')))
 
-  // Categories (at top)
+  // App name
+  const nameCard = el('div', { className: 'fmn-card' })
+  nameCard.appendChild(sectionLabel('App Name'))
+  const nameInput = el('input', { type: 'text', placeholder: 'forget me not', value: settings.appName }) as HTMLInputElement
+  nameInput.oninput = () => {
+    updateSettings({ appName: nameInput.value })
+    // Live update all visible titles
+    document.querySelectorAll('.fmn-header-title').forEach((t) => {
+      t.textContent = nameInput.value || 'forget me not'
+    })
+  }
+  nameCard.appendChild(nameInput)
+  nameCard.appendChild(el('div', { style: 'font-size:11px;color:var(--dim);margin-top:4px;' }, 'Give the app your own name. Leave blank for default.'))
+  container.appendChild(nameCard)
+
+  // Categories
   const domainCard = el('div', { className: 'fmn-card' })
   domainCard.appendChild(sectionLabel('Categories'))
 

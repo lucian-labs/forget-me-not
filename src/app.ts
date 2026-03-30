@@ -24,13 +24,13 @@ function viewToPath(view: View, taskId?: string | null): string {
     case 'share': return '/settings/share'
     case 'create': return '/new'
     case 'detail': return `/task/${taskId}`
-    case 'taskyeet': return '/taskyeet'
+    case 'taskyeet': return '/vibe'
   }
 }
 
 function pathToRoute(): { view: View; taskId: string | null } {
   const path = location.pathname
-  if (path === '/taskyeet') return { view: 'taskyeet', taskId: null }
+  if (path === '/vibe') return { view: 'taskyeet', taskId: null }
   if (path === '/settings/share') return { view: 'share', taskId: null }
   if (path === '/settings') return { view: 'settings', taskId: null }
   if (path === '/new') return { view: 'create', taskId: null }
@@ -68,7 +68,7 @@ function render(): void {
 
     const footer = document.createElement('footer')
     footer.className = 'fmn-footer'
-    footer.innerHTML = `v${__APP_VERSION__} <span class="fmn-sw-version"></span> · by <a href="https://lucianlabs.ca" target="_blank" rel="noopener">lucianlabs.ca</a> · <a href="https://github.com/lucian-labs/forget-me-not" target="_blank" rel="noopener">source code</a> · <a href="/taskyeet" style="opacity:0.5;">\u2726 vibe</a>`
+    footer.innerHTML = `v${__APP_VERSION__} <span class="fmn-sw-version"></span> · by <a href="https://lucianlabs.ca" target="_blank" rel="noopener">lucianlabs.ca</a> · <a href="https://github.com/lucian-labs/forget-me-not" target="_blank" rel="noopener">source code</a> · <a href="/vibe" style="opacity:0.5;">\u2726 vibe</a>`
     app.appendChild(footer)
   }
 

@@ -252,7 +252,9 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
   }
 
   const T = (window as any).THREE
-  const tasks = getTasks().filter((t) => t.status !== 'archived' && t.status !== 'cancelled')
+  const tasks = getTasks().filter((t) => t.status !== 'archived' && t.status !== 'cancelled' && t.status !== 'done')
+  document.title = '\u2726 TASK YEET \u2726'
+  cleanupFns.push(() => { document.title = getSettings().appName || 'forget me not' })
   const playSound = createSoundPlayer()
 
   // Resolve current theme
@@ -338,7 +340,7 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
           background:linear-gradient(90deg,${tc.accent},${tc.cyan},${tc.orange},${tc.accent});
           -webkit-background-clip:text;-webkit-text-fill-color:transparent;
           background-size:200%;animation:vibeGrad 3s linear infinite;">
-          \u2726 VIBE TASK \u2726
+          \u2726 TASK YEET \u2726
         </div>
         <div style="font-size:11px;opacity:0.35;margin-top:4px;">powered by web3 productivity protocol\u2122</div>
       </div>
@@ -631,15 +633,17 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
         playSound('hover-' + card.idx)
         tooltip.style.display = 'block'
         const cadenceStr = card.task.cadenceSeconds ? `every ${formatCadence(card.task.cadenceSeconds)}` : ''
-        const urgPct = Math.min(Math.round(card.urgency * 100), 999)
-        const urgColor = card.urgency >= 0.95 ? tc.red : card.urgency >= 0.75 ? tc.orange : tc.green
+        const urgRaw = card.urgency
+        const urgPct = Math.round(Math.min(urgRaw, 1) * 100)
+        const urgColor = urgRaw >= 0.95 ? tc.red : urgRaw >= 0.75 ? tc.orange : tc.green
+        const urgLabel = urgRaw >= 1 ? 'OVERDUE' : `${urgPct}%`
         tooltip.innerHTML = `<div style="font-weight:bold;margin-bottom:6px;">${card.task.title}</div>
           <div style="font-size:11px;opacity:0.6;">${card.task.priority.toUpperCase()} \u00B7 ${card.task.status.replace('_', ' ').toUpperCase()}${card.task.domain ? ' \u00B7 #' + card.task.domain : ''}</div>
           ${cadenceStr ? `<div style="font-size:12px;margin-top:4px;color:${tc.cyan};">${cadenceStr}</div>` : ''}
           <div style="margin-top:6px;height:4px;background:${tc.border};border-radius:2px;overflow:hidden;">
             <div style="width:${Math.min(urgPct, 100)}%;height:100%;background:${urgColor};"></div>
           </div>
-          <div style="font-size:10px;margin-top:4px;color:${urgColor};">${urgPct}% elapsed</div>
+          <div style="font-size:10px;margin-top:4px;color:${urgColor};">${urgLabel}</div>
           <div style="margin-top:4px;font-size:10px;opacity:0.3;">CLICK TO YEET</div>`
       }
       tooltip.style.left = e.clientX + 16 + 'px'

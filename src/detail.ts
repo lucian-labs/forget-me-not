@@ -3,7 +3,7 @@ import {
   getTask, getTasks, updateTask, resetTask, completeTask, archiveTask,
   getUrgencyRatio, getUrgencyColor, addActionNote, getSettings,
 } from './store'
-import { el, timeAgo, formatCadence, formatTime, CADENCE_OPTIONS } from './utils'
+import { el, timeAgo, formatCadence, formatTime, CADENCE_OPTIONS, createCadencePicker } from './utils'
 import { navigate } from './app'
 import { appName } from './brand'
 
@@ -91,6 +91,19 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
 
   card.appendChild(badgeRow)
 
+  // Cadence picker
+  const cadenceSection = el('div', { className: 'fmn-detail-section' })
+  cadenceSection.appendChild(el('h3', {}, task.recurring ? 'Every' : 'Time'))
+  cadenceSection.appendChild(createCadencePicker(task.cadenceSeconds, (s) => {
+    const updates: Partial<typeof task> = { cadenceSeconds: s }
+    if (!task.recurring) {
+      updates.dueDate = new Date(Date.now() + s * 1000).toISOString()
+      updates.startedAt = new Date().toISOString()
+    }
+    updateTask(task.id, updates)
+  }))
+  card.appendChild(cadenceSection)
+
   // Description
   const descSection = el('div', { className: 'fmn-detail-section' })
   descSection.appendChild(el('h3', {}, 'Description'))
@@ -174,22 +187,8 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
   moreGrid.appendChild(el('span', { className: 'fmn-detail-label' }, 'Type'))
   moreGrid.appendChild(typeSelect)
 
-  // Cadence dropdown (for recurring tasks)
+  // Variance: less / more (in minutes) — recurring only
   if (task.recurring) {
-    const cadenceSelect = el('select', { style: 'width:auto;font-size:13px;' }) as HTMLSelectElement
-    for (const opt of CADENCE_OPTIONS) {
-      const o = el('option', { value: String(opt.value) }, opt.label)
-      if (opt.value === task.cadenceSeconds) o.selected = true
-      cadenceSelect.appendChild(o)
-    }
-    cadenceSelect.onchange = () => {
-      updateTask(task.id, { cadenceSeconds: parseInt(cadenceSelect.value) })
-      navigate('detail', task.id)
-    }
-    moreGrid.appendChild(el('span', { className: 'fmn-detail-label' }, 'Every'))
-    moreGrid.appendChild(cadenceSelect)
-
-    // Variance: less / more (in minutes)
     const lessInput = el('input', { type: 'number', value: String(Math.round((task.cadenceLess ?? 0) / 60)), style: 'width:60px;font-size:13px;' }) as HTMLInputElement
     lessInput.min = '0'
     lessInput.placeholder = '0'

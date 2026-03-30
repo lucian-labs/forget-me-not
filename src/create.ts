@@ -1,6 +1,6 @@
 import type { FollowUp, Task } from './types'
 import { createTask, getSettings } from './store'
-import { el, CADENCE_OPTIONS, formatCadence } from './utils'
+import { el, CADENCE_OPTIONS, formatCadence, createCadencePicker } from './utils'
 import { navigate } from './app'
 import { appName } from './brand'
 
@@ -45,39 +45,11 @@ export function renderCreate(container: HTMLElement): void {
   // Cadence + Category side by side
   const secondRow = el('div', { className: 'fmn-form-row', style: 'margin-top:12px;' })
 
+  let cadenceSeconds = 0
   const cadenceGroup = el('div', { className: 'fmn-form-group', style: stickyRecurring ? 'display:block;' : 'display:none;' })
   cadenceGroup.appendChild(el('label', {}, 'Every'))
-
-  const cadenceRow = el('div', { style: 'display:flex;gap:6px;' })
-
-  const dayOpts = [0, 1, 2, 3, 4, 5, 6, 7, 14, 28]
-  const daySelect = el('select', { style: 'flex:1;' }) as HTMLSelectElement
-  for (const d of dayOpts) {
-    daySelect.appendChild(el('option', { value: String(d) }, d === 0 ? '0d' : `${d}d`))
-  }
-
-  const hourOpts = [0, 1, 2, 3, 4, 6, 8, 12]
-  const hourSelect = el('select', { style: 'flex:1;' }) as HTMLSelectElement
-  for (const h of hourOpts) {
-    hourSelect.appendChild(el('option', { value: String(h) }, h === 0 ? '0h' : `${h}h`))
-  }
-  hourSelect.value = '1'
-
-  const minOpts = [0, 5, 10, 15, 30, 45, 55]
-  const minSelect = el('select', { style: 'flex:1;' }) as HTMLSelectElement
-  for (const m of minOpts) {
-    minSelect.appendChild(el('option', { value: String(m) }, m === 0 ? '0m' : `${m}m`))
-  }
-
-  cadenceRow.appendChild(daySelect)
-  cadenceRow.appendChild(hourSelect)
-  cadenceRow.appendChild(minSelect)
-  cadenceGroup.appendChild(cadenceRow)
+  cadenceGroup.appendChild(createCadencePicker(null, (s) => { cadenceSeconds = s }))
   secondRow.appendChild(cadenceGroup)
-
-  function getCadenceSeconds(): number {
-    return parseInt(daySelect.value) * 86400 + parseInt(hourSelect.value) * 3600 + parseInt(minSelect.value) * 60
-  }
 
   const domainGroup = el('div', { className: 'fmn-form-group' })
   domainGroup.appendChild(el('label', {}, 'Category'))
@@ -234,7 +206,7 @@ export function renderCreate(container: HTMLElement): void {
       priority: prioritySelect.value as any,
       tags,
       recurring: isRecurring,
-      cadenceSeconds: isRecurring ? getCadenceSeconds() || 3600 : null,
+      cadenceSeconds: isRecurring ? cadenceSeconds || 3600 : null,
       dueDate: isRecurring ? null : dueDate,
       startedAt: dueDate ? new Date().toISOString() : null,
       followUps: [...followUps],

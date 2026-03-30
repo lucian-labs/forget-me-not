@@ -71,3 +71,65 @@ export const CADENCE_OPTIONS: { label: string; value: number }[] = [
   { label: '2 days', value: 172800 },
   { label: '1 week', value: 604800 },
 ]
+
+export function createCadencePicker(currentSeconds: number | null, onChange: (seconds: number) => void): HTMLElement {
+  const total = currentSeconds ?? 0
+  const days = Math.floor(total / 86400)
+  const hours = Math.floor((total % 86400) / 3600)
+  const mins = Math.floor((total % 3600) / 60)
+
+  const row = el('div', { style: 'display:flex;gap:6px;' })
+
+  const dayOpts = [0, 1, 2, 3, 4, 5, 6, 7, 14, 28]
+  const daySelect = el('select', { style: 'flex:1;' }) as HTMLSelectElement
+  for (const d of dayOpts) {
+    const o = el('option', { value: String(d) }, `${d}d`)
+    if (d === days) o.selected = true
+    daySelect.appendChild(o)
+  }
+  // If current value not in list, add it
+  if (!dayOpts.includes(days) && days > 0) {
+    const o = el('option', { value: String(days) }, `${days}d`)
+    o.selected = true
+    daySelect.appendChild(o)
+  }
+
+  const hourOpts = [0, 1, 2, 3, 4, 6, 8, 12]
+  const hourSelect = el('select', { style: 'flex:1;' }) as HTMLSelectElement
+  for (const h of hourOpts) {
+    const o = el('option', { value: String(h) }, `${h}h`)
+    if (h === hours) o.selected = true
+    hourSelect.appendChild(o)
+  }
+  if (!hourOpts.includes(hours) && hours > 0) {
+    const o = el('option', { value: String(hours) }, `${hours}h`)
+    o.selected = true
+    hourSelect.appendChild(o)
+  }
+
+  const minOpts = [0, 5, 10, 15, 30, 45, 55]
+  const minSelect = el('select', { style: 'flex:1;' }) as HTMLSelectElement
+  for (const m of minOpts) {
+    const o = el('option', { value: String(m) }, `${m}m`)
+    if (m === mins) o.selected = true
+    minSelect.appendChild(o)
+  }
+  if (!minOpts.includes(mins) && mins > 0) {
+    const o = el('option', { value: String(mins) }, `${mins}m`)
+    o.selected = true
+    minSelect.appendChild(o)
+  }
+
+  const fire = () => {
+    const sec = parseInt(daySelect.value) * 86400 + parseInt(hourSelect.value) * 3600 + parseInt(minSelect.value) * 60
+    onChange(sec || 60) // minimum 1 minute
+  }
+  daySelect.onchange = fire
+  hourSelect.onchange = fire
+  minSelect.onchange = fire
+
+  row.appendChild(daySelect)
+  row.appendChild(hourSelect)
+  row.appendChild(minSelect)
+  return row
+}

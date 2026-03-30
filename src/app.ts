@@ -161,6 +161,17 @@ async function init(): Promise<void> {
 
   document.addEventListener('click', () => requestNotificationPermission(), { once: true })
 
+  // Keep screen on
+  if ('wakeLock' in navigator) {
+    const requestWakeLock = () => {
+      (navigator as any).wakeLock.request('screen').catch(() => {})
+    }
+    requestWakeLock()
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') requestWakeLock()
+    })
+  }
+
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(() => {})
     navigator.serviceWorker.addEventListener('message', (e) => {

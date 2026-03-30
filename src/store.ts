@@ -200,6 +200,18 @@ export function exportAll(): string {
   }, null, 2)
 }
 
+export function exportTasks(): string {
+  return JSON.stringify({
+    tasks: getTasks(),
+    exportedAt: new Date().toISOString(),
+    version: 1,
+  }, null, 2)
+}
+
+export function isFirstRun(): boolean {
+  return localStorage.getItem(SETTINGS_KEY) === null
+}
+
 export function importAll(json: string): { tasks: number } {
   const data = JSON.parse(json)
   if (data.tasks && Array.isArray(data.tasks)) {

@@ -7,8 +7,8 @@ import { renderSettings } from './settings'
 import { renderCreate } from './create'
 import { renderShare } from './share'
 import { initSound, requestNotificationPermission } from './sounds'
-import { applyTheme, getAllThemes, importThemeJson } from './themes'
-import { updateSettings } from './store'
+import { applyTheme, getAllThemes, importThemeJson, THEMES } from './themes'
+import { updateSettings, isFirstRun } from './store'
 import { checkImportFromUrl } from './transfer'
 import { applyIcon } from './icon'
 import { renderVibe } from './vibe'
@@ -104,6 +104,15 @@ function startRenderLoop(): void {
 }
 
 function initTheme(): void {
+  // Randomize theme on first visit
+  if (isFirstRun()) {
+    const random = THEMES[Math.floor(Math.random() * THEMES.length)]
+    const settings = updateSettings({ themePreset: random.name })
+    applyTheme(settings)
+    applyIcon()
+    return
+  }
+
   const settings = getSettings()
 
   const params = new URLSearchParams(location.search)

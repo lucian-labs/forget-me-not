@@ -1,4 +1,4 @@
-import { getSettings, updateSettings, exportAll, importAll, clearAll } from './store'
+import { getSettings, updateSettings, exportAll, exportTasks, importAll, clearAll } from './store'
 import { el, downloadJson } from './utils'
 import { refreshSound, playTest } from './sounds'
 import { getAllThemes, applyTheme, resolveTheme, exportTheme, themeToShareUrl, importThemeJson } from './themes'
@@ -326,9 +326,14 @@ export function renderSettings(container: HTMLElement): void {
 
   const dataRow = el('div', { className: 'fmn-form-row' })
 
-  dataRow.appendChild(createBtn('Export JSON', 'btn-ghost', () => {
+  dataRow.appendChild(createBtn('Export All', 'btn-ghost', () => {
     const data = exportAll()
     downloadJson(data, `forget-me-not-${new Date().toISOString().slice(0, 10)}.json`)
+  }))
+
+  dataRow.appendChild(createBtn('Export Tasks', 'btn-ghost', () => {
+    const data = exportTasks()
+    downloadJson(data, `fmn-tasks-${new Date().toISOString().slice(0, 10)}.json`)
   }))
 
   const importBtn = createBtn('Import JSON', 'btn-ghost', () => {

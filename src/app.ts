@@ -68,7 +68,7 @@ function render(): void {
 
     const footer = document.createElement('footer')
     footer.className = 'fmn-footer'
-    footer.innerHTML = `v${__APP_VERSION__} <span class="fmn-sw-version"></span> · by <a href="https://lucianlabs.ca" target="_blank" rel="noopener">lucianlabs.ca</a> · <a href="https://github.com/lucian-labs/forget-me-not" target="_blank" rel="noopener">source code</a> · <a href="/taskyeet" style="opacity:0.5;">\u2726 taskyeet</a>`
+    footer.innerHTML = `v${__APP_VERSION__} <span class="fmn-sw-version"></span> · by <a href="https://lucianlabs.ca" target="_blank" rel="noopener">lucianlabs.ca</a> · <a href="https://github.com/lucian-labs/forget-me-not" target="_blank" rel="noopener">source code</a> · <a href="/taskyeet" style="opacity:0.5;">\u2726 vibe</a>`
     app.appendChild(footer)
   }
 

@@ -47,12 +47,37 @@ export function renderCreate(container: HTMLElement): void {
 
   const cadenceGroup = el('div', { className: 'fmn-form-group', style: stickyRecurring ? 'display:block;' : 'display:none;' })
   cadenceGroup.appendChild(el('label', {}, 'Every'))
-  const cadenceSelect = el('select', {}) as HTMLSelectElement
-  for (const opt of CADENCE_OPTIONS) {
-    cadenceSelect.appendChild(el('option', { value: String(opt.value) }, opt.label))
+
+  const cadenceRow = el('div', { style: 'display:flex;gap:6px;' })
+
+  const dayOpts = [0, 1, 2, 3, 4, 5, 6, 7, 14, 28]
+  const daySelect = el('select', { style: 'flex:1;' }) as HTMLSelectElement
+  for (const d of dayOpts) {
+    daySelect.appendChild(el('option', { value: String(d) }, d === 0 ? '0d' : `${d}d`))
   }
-  cadenceGroup.appendChild(cadenceSelect)
+
+  const hourOpts = [0, 1, 2, 3, 4, 6, 8, 12]
+  const hourSelect = el('select', { style: 'flex:1;' }) as HTMLSelectElement
+  for (const h of hourOpts) {
+    hourSelect.appendChild(el('option', { value: String(h) }, h === 0 ? '0h' : `${h}h`))
+  }
+  hourSelect.value = '1'
+
+  const minOpts = [0, 5, 10, 15, 30, 45, 55]
+  const minSelect = el('select', { style: 'flex:1;' }) as HTMLSelectElement
+  for (const m of minOpts) {
+    minSelect.appendChild(el('option', { value: String(m) }, m === 0 ? '0m' : `${m}m`))
+  }
+
+  cadenceRow.appendChild(daySelect)
+  cadenceRow.appendChild(hourSelect)
+  cadenceRow.appendChild(minSelect)
+  cadenceGroup.appendChild(cadenceRow)
   secondRow.appendChild(cadenceGroup)
+
+  function getCadenceSeconds(): number {
+    return parseInt(daySelect.value) * 86400 + parseInt(hourSelect.value) * 3600 + parseInt(minSelect.value) * 60
+  }
 
   const domainGroup = el('div', { className: 'fmn-form-group' })
   domainGroup.appendChild(el('label', {}, 'Category'))
@@ -209,7 +234,7 @@ export function renderCreate(container: HTMLElement): void {
       priority: prioritySelect.value as any,
       tags,
       recurring: isRecurring,
-      cadenceSeconds: isRecurring ? parseInt(cadenceSelect.value) : null,
+      cadenceSeconds: isRecurring ? getCadenceSeconds() || 3600 : null,
       dueDate: isRecurring ? null : dueDate,
       startedAt: dueDate ? new Date().toISOString() : null,
       followUps: [...followUps],

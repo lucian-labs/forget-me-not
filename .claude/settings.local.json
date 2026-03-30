@@ -12,7 +12,16 @@
       "Bash(git push:*)",
       "Bash(curl:*)",
       "Bash(python3 -m json.tool)",
-      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(f''''Total tasks: {len\\(d[\"\"tasks\"\"]\\)}''''\\); print\\(\\); [print\\(f''''  [{t[\"\"status\"\"]}] {t[\"\"title\"\"]} \\(domain={t[\"\"domain\"\"]}, project={t.get\\(\"\"project\"\",\"\"n/a\"\"\\)}\\)''''\\) for t in d[''''tasks'''']]\")"
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(f''''Total tasks: {len\\(d[\"\"tasks\"\"]\\)}''''\\); print\\(\\); [print\\(f''''  [{t[\"\"status\"\"]}] {t[\"\"title\"\"]} \\(domain={t[\"\"domain\"\"]}, project={t.get\\(\"\"project\"\",\"\"n/a\"\"\\)}\\)''''\\) for t in d[''''tasks'''']]\")",
+      "WebFetch(domain:lucianlabs.ca)",
+      "WebFetch(domain:cdn.lucianlabs.ca)",
+      "Bash(git tag:*)",
+      "Bash(wc -l /Users/elijahlucian/repos/forget-me-not/src/*.ts)",
+      "Bash(grep:*)",
+      "Bash(xcodegen generate:*)",
+      "Bash(xcodebuild -project ForgetMeNot.xcodeproj -scheme ForgetMeNot -destination 'generic/platform=iOS Simulator' -sdk iphonesimulator build)",
+      "Bash(npm list:*)",
+      "Bash(node:*)"
     ]
   }
 }

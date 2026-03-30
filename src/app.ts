@@ -11,7 +11,7 @@ import { applyTheme, getAllThemes, importThemeJson, THEMES } from './themes'
 import { updateSettings, isFirstRun } from './store'
 import { checkImportFromUrl } from './transfer'
 import { applyIcon } from './icon'
-import { renderVibe } from './vibe'
+import { renderVibe } from './taskyeet'
 
 let currentView: View = 'panel'
 let currentTaskId: string | null = null
@@ -24,13 +24,13 @@ function viewToPath(view: View, taskId?: string | null): string {
     case 'share': return '/settings/share'
     case 'create': return '/new'
     case 'detail': return `/task/${taskId}`
-    case 'vibe': return '/vibe'
+    case 'taskyeet': return '/taskyeet'
   }
 }
 
 function pathToRoute(): { view: View; taskId: string | null } {
   const path = location.pathname
-  if (path === '/vibe') return { view: 'vibe', taskId: null }
+  if (path === '/taskyeet') return { view: 'taskyeet', taskId: null }
   if (path === '/settings/share') return { view: 'share', taskId: null }
   if (path === '/settings') return { view: 'settings', taskId: null }
   if (path === '/new') return { view: 'create', taskId: null }
@@ -68,7 +68,7 @@ function render(): void {
 
     const footer = document.createElement('footer')
     footer.className = 'fmn-footer'
-    footer.innerHTML = `v${__APP_VERSION__} <span class="fmn-sw-version"></span> · by <a href="https://lucianlabs.ca" target="_blank" rel="noopener">lucianlabs.ca</a> · <a href="https://github.com/lucian-labs/forget-me-not" target="_blank" rel="noopener">source code</a> · <a href="/vibe" style="opacity:0.5;">\u2726 vibe</a>`
+    footer.innerHTML = `v${__APP_VERSION__} <span class="fmn-sw-version"></span> · by <a href="https://lucianlabs.ca" target="_blank" rel="noopener">lucianlabs.ca</a> · <a href="https://github.com/lucian-labs/forget-me-not" target="_blank" rel="noopener">source code</a> · <a href="/taskyeet" style="opacity:0.5;">\u2726 taskyeet</a>`
     app.appendChild(footer)
   }
 
@@ -88,7 +88,7 @@ function render(): void {
     case 'share':
       renderShare(content)
       break
-    case 'vibe':
+    case 'taskyeet':
       renderVibe(content)
       break
   }

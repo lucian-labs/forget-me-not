@@ -90,20 +90,9 @@ function sectionWithToggle(label: string, toggleEl: HTMLElement): HTMLElement {
 }
 
 function renderByType(container: HTMLElement, tasks: Task[]): void {
-  const recurring = tasks.filter((t) => t.recurring).sort((a, b) => getUrgencyRatio(b) - getUrgencyRatio(a))
-  const oneTime = tasks.filter((t) => !t.recurring).sort((a, b) => getUrgencyRatio(b) - getUrgencyRatio(a))
-
-  let first = true
-  if (recurring.length > 0) {
-    container.appendChild(first ? sectionWithToggle('Recurring', catWrap) : el('div', { className: 'fmn-section' }, 'Recurring'))
-    first = false
-    for (const task of recurring) container.appendChild(renderTaskItem(task))
-  }
-
-  if (oneTime.length > 0) {
-    container.appendChild(first ? sectionWithToggle('Tasks', catWrap) : el('div', { className: 'fmn-section' }, 'Tasks'))
-    for (const task of oneTime) container.appendChild(renderTaskItem(task))
-  }
+  const sorted = [...tasks].sort((a, b) => getUrgencyRatio(b) - getUrgencyRatio(a))
+  container.appendChild(sectionWithToggle('Reminders', catWrap))
+  for (const task of sorted) container.appendChild(renderTaskItem(task))
 }
 
 function renderGroupedByCategory(container: HTMLElement, tasks: Task[]): void {

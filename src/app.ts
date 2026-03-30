@@ -170,6 +170,28 @@ async function init(): Promise<void> {
 
   document.addEventListener('click', () => requestNotificationPermission(), { once: true })
 
+  // Capture install prompt for on-demand triggering
+  let installPrompt: any = null
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault()
+    installPrompt = e
+    // Show install button in footer
+    const footer = document.querySelector('.fmn-footer')
+    if (footer && !footer.querySelector('.fmn-install')) {
+      const btn = document.createElement('a')
+      btn.className = 'fmn-install'
+      btn.textContent = 'install app'
+      btn.style.cssText = 'color:var(--accent);cursor:pointer;margin-left:4px;'
+      btn.onclick = () => {
+        installPrompt?.prompt()
+        installPrompt = null
+        btn.remove()
+      }
+      footer.appendChild(document.createTextNode(' · '))
+      footer.appendChild(btn)
+    }
+  })
+
   // Keep screen on
   if ('wakeLock' in navigator) {
     const requestWakeLock = () => {

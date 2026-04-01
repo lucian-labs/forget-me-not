@@ -170,6 +170,16 @@ async function init(): Promise<void> {
 
   document.addEventListener('click', () => requestNotificationPermission(), { once: true })
 
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return
+    const active = document.activeElement
+    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT')) {
+      ;(active as HTMLElement).blur()
+      return
+    }
+    if (currentView !== 'panel') navigate('panel')
+  })
+
   // Capture install prompt for on-demand triggering
   let installPrompt: any = null
   window.addEventListener('beforeinstallprompt', (e) => {

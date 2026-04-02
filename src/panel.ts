@@ -123,6 +123,7 @@ function renderTaskItem(task: Task): HTMLElement {
   else clearAlert(task.id)
 
   const card = el('div', { className: `fmn-card fmn-task ${urgencyClass}` })
+  card.dataset.taskId = task.id
   const row = el('div', { className: 'fmn-task-row' })
 
   const checkBtn = createBtn('\u2713', 'btn-icon', () => startCapture(task.id, 'check'))
@@ -273,4 +274,76 @@ function createBtn(text: string, className: string, onClick: () => void): HTMLBu
   const btn = el('button', { className }, text) as HTMLButtonElement
   btn.addEventListener('click', (e) => { e.stopPropagation(); onClick() })
   return btn
+}
+
+/** Update only dynamic time-based content in existing cards — no DOM rebuild */
+export function updatePanelTimers(container: HTMLElement): void {
+  const tasks = getTasks().filter((t) => t.status !== 'done' && t.status !== 'archived' && t.status !== 'cancelled')
+  const taskMap = new Map(tasks.map((t) => [t.id, t]))
+
+  const cards = container.querySelectorAll<HTMLElement>('.fmn-card[data-task-id]')
+  if (cards.length === 0) return
+
+  for (const card of cards) {
+    const task = taskMap.get(card.dataset.taskId!)
+    if (!task) continue
+
+    const ratio = getUrgencyRatio(task)
+    const color = getUrgencyColor(ratio)
+    const urgencyClass = getUrgencyClass(ratio)
+    const isOverdue = ratio >= 1.0
+
+    if (isOverdue) playAlert(task.id, task)
+    else clearAlert(task.id)
+
+    // Update urgency class
+    card.classList.toggle('fmn-overdue', urgencyClass === 'fmn-overdue')
+
+    // Update meta line
+    const metaEl = card.querySelector('.fmn-task-meta')
+    if (metaEl) {
+      const metaParts: string[] = []
+      if (task.recurring && task.cadenceSeconds && task.lastResetAt) {
+        const elapsed = (Date.now() - new Date(task.lastResetAt).getTime()) / 1000
+        const remaining = task.cadenceSeconds - elapsed
+        if (remaining > 0) metaParts.push(`${formatTime(remaining)} left`)
+        else metaParts.push(`${formatTime(Math.abs(remaining))} over`)
+        metaParts.push(`every ${formatCadence(task.cadenceSeconds)}`)
+      } else if (task.dueDate) {
+        const remaining = (new Date(task.dueDate).getTime() - Date.now()) / 1000
+        if (remaining > 0) metaParts.push(`${formatTime(remaining)} left`)
+        else metaParts.push(`${formatTime(Math.abs(remaining))} over`)
+      }
+      metaEl.textContent = metaParts.join(' \u00B7 ')
+    }
+
+    // Update progress bar
+    const fill = card.querySelector<HTMLElement>('.fmn-progress-fill')
+    if (fill) {
+      fill.style.width = `${Math.min(ratio * 100, 100)}%`
+      fill.style.background = color
+    }
+
+    // Update overdue prompt
+    const existingPrompt = card.querySelector('.fmn-prompt')
+    if (isOverdue && task.prompts.length > 0) {
+      const now = Date.now()
+      const cached = promptCache.get(task.id)
+      if (!cached || now - cached.at > 10000) {
+        promptCache.set(task.id, { text: task.prompts[Math.floor(Math.random() * task.prompts.length)], at: now })
+      }
+      const promptText = `? ${promptCache.get(task.id)!.text}`
+      if (existingPrompt) {
+        existingPrompt.textContent = promptText
+      } else {
+        const promptEl = el('div', { className: 'fmn-prompt' }, promptText)
+        // Insert before capture input if present, otherwise append
+        const capture = card.querySelector('.fmn-capture')
+        if (capture) card.insertBefore(promptEl, capture)
+        else card.appendChild(promptEl)
+      }
+    } else if (existingPrompt) {
+      existingPrompt.remove()
+    }
+  }
 }

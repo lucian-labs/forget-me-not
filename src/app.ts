@@ -1,7 +1,7 @@
 import type { View } from './types'
 import { injectStyles } from './styles'
 import { getSettings } from './store'
-import { renderPanel } from './panel'
+import { renderPanel, updatePanelTimers } from './panel'
 import { renderDetail } from './detail'
 import { renderSettings } from './settings'
 import { renderCreate } from './create'
@@ -99,7 +99,10 @@ function startRenderLoop(): void {
   renderLoopId = window.setInterval(() => {
     const active = document.activeElement
     if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT')) return
-    if (currentView === 'panel') render()
+    if (currentView === 'panel') {
+      const content = document.querySelector('.fmn-content') as HTMLElement
+      if (content) updatePanelTimers(content)
+    }
   }, 1000)
 }
 

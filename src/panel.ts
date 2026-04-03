@@ -174,7 +174,10 @@ function renderTaskItem(task: Task): HTMLElement {
     const remaining = (new Date(task.dueDate).getTime() - Date.now()) / 1000
     tipParts.push(remaining > 0 ? `${formatTime(remaining)} remaining` : `${formatTime(Math.abs(remaining))} overdue`)
   }
-  if (tipParts.length) card.dataset.tip = tipParts.join(' \u00B7 ')
+  if (tipParts.length) {
+    card.dataset.tip = tipParts.join(' \u00B7 ')
+    card.dataset.tipPos = 'below'
+  }
 
   const checkBtn = createBtn('\u2713', 'btn-icon', () => startCapture(task.id, 'check'))
   checkBtn.dataset.tip = 'done'

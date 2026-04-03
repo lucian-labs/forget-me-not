@@ -176,6 +176,7 @@ button:active { opacity: 0.8; }
 
 .fmn-card:hover {
   border-color: var(--dim);
+  z-index: 10;
 }
 
 /* Task item */

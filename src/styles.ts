@@ -263,8 +263,11 @@ button:active { opacity: 0.8; }
   font-size: 12px;
   color: var(--orange);
   font-style: italic;
-  margin-top: 4px;
-  padding-left: 2px;
+  flex: 1;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Quick capture input */

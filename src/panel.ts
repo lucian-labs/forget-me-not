@@ -133,6 +133,16 @@ function renderTaskItem(task: Task): HTMLElement {
   titleEl.onclick = () => navigate('detail', task.id)
   row.appendChild(titleEl)
 
+  // Overdue prompt — inline next to title
+  if (isOverdue && task.prompts.length > 0) {
+    const now = Date.now()
+    const cached = promptCache.get(task.id)
+    if (!cached || now - cached.at > 10000) {
+      promptCache.set(task.id, { text: task.prompts[Math.floor(Math.random() * task.prompts.length)], at: now })
+    }
+    row.appendChild(el('span', { className: 'fmn-prompt' }, `? ${promptCache.get(task.id)!.text}`))
+  }
+
   if (!isRecurring && task.priority !== 'normal') {
     row.appendChild(el('span', { className: `fmn-badge fmn-badge-${task.priority}` }, task.priority))
   }
@@ -176,15 +186,6 @@ function renderTaskItem(task: Task): HTMLElement {
   progress.appendChild(fill)
   card.appendChild(progress)
 
-  // Overdue prompt
-  if (isOverdue && task.prompts.length > 0) {
-    const now = Date.now()
-    const cached = promptCache.get(task.id)
-    if (!cached || now - cached.at > 10000) {
-      promptCache.set(task.id, { text: task.prompts[Math.floor(Math.random() * task.prompts.length)], at: now })
-    }
-    card.appendChild(el('div', { className: 'fmn-prompt' }, `? ${promptCache.get(task.id)!.text}`))
-  }
 
   // Capture input (each task has its own independent lifecycle)
   if (cap) {
@@ -324,8 +325,9 @@ export function updatePanelTimers(container: HTMLElement): void {
       fill.style.background = color
     }
 
-    // Update overdue prompt
-    const existingPrompt = card.querySelector('.fmn-prompt')
+    // Update overdue prompt (lives in the task row, next to title)
+    const row = card.querySelector('.fmn-task-row')
+    const existingPrompt = row?.querySelector('.fmn-prompt')
     if (isOverdue && task.prompts.length > 0) {
       const now = Date.now()
       const cached = promptCache.get(task.id)
@@ -335,12 +337,11 @@ export function updatePanelTimers(container: HTMLElement): void {
       const promptText = `? ${promptCache.get(task.id)!.text}`
       if (existingPrompt) {
         existingPrompt.textContent = promptText
-      } else {
-        const promptEl = el('div', { className: 'fmn-prompt' }, promptText)
-        // Insert before capture input if present, otherwise append
-        const capture = card.querySelector('.fmn-capture')
-        if (capture) card.insertBefore(promptEl, capture)
-        else card.appendChild(promptEl)
+      } else if (row) {
+        const titleEl = row.querySelector('.fmn-task-title')
+        const promptEl = el('span', { className: 'fmn-prompt' }, promptText)
+        if (titleEl?.nextSibling) row.insertBefore(promptEl, titleEl.nextSibling)
+        else row.appendChild(promptEl)
       }
     } else if (existingPrompt) {
       existingPrompt.remove()

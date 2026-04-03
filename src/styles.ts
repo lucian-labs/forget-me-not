@@ -270,6 +270,7 @@ button:active { opacity: 0.8; }
   font-style: italic;
   flex: 1;
   text-align: right;
+  margin-right: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

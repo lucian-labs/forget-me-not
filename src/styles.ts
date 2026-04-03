@@ -45,6 +45,9 @@ html, body {
   overflow-y: auto;
   overflow-x: hidden;
   min-height: 0;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
@@ -204,7 +207,8 @@ button:active { opacity: 0.8; }
 .fmn-task-meta {
   font-size: 11px;
   color: var(--dim);
-  margin-top: 2px;
+  margin-left: auto;
+  white-space: nowrap;
 }
 
 .fmn-task-category {

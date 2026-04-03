@@ -129,6 +129,16 @@ function renderTaskItem(task: Task): HTMLElement {
   const checkBtn = createBtn('\u2713', 'btn-icon', () => startCapture(task.id, 'check'))
   row.appendChild(checkBtn)
 
+  if (isRecurring) {
+    row.appendChild(createBtn('zz', 'btn-icon btn-sm', () => {
+      animateOut(card).then(() => { snoozeTask(task.id); navigate('panel') })
+    }))
+  } else {
+    row.appendChild(createBtn('\u00D7', 'btn-icon btn-sm', () => {
+      animateOut(card).then(() => { archiveTask(task.id); navigate('panel') })
+    }))
+  }
+
   const titleEl = el('span', { className: 'fmn-task-title' }, task.title)
   titleEl.onclick = () => navigate('detail', task.id)
   row.appendChild(titleEl)
@@ -147,21 +157,7 @@ function renderTaskItem(task: Task): HTMLElement {
     row.appendChild(el('span', { className: `fmn-badge fmn-badge-${task.priority}` }, task.priority))
   }
 
-  row.appendChild(createBtn('\u270E', 'btn-icon btn-sm', () => startCapture(task.id, 'note')))
-
-  if (isRecurring) {
-    row.appendChild(createBtn('zz', 'btn-icon btn-sm', () => {
-      animateOut(card).then(() => { snoozeTask(task.id); navigate('panel') })
-    }))
-  } else {
-    row.appendChild(createBtn('\u00D7', 'btn-icon btn-sm', () => {
-      animateOut(card).then(() => { archiveTask(task.id); navigate('panel') })
-    }))
-  }
-
-  card.appendChild(row)
-
-  // Meta line
+  // Meta line — right-aligned in the row
   const metaParts: string[] = []
   if (isRecurring && task.cadenceSeconds && task.lastResetAt) {
     const elapsed = (Date.now() - new Date(task.lastResetAt).getTime()) / 1000
@@ -175,8 +171,10 @@ function renderTaskItem(task: Task): HTMLElement {
     else metaParts.push(`${formatTime(Math.abs(remaining))} over`)
   }
   if (metaParts.length > 0) {
-    card.appendChild(el('div', { className: 'fmn-task-meta' }, metaParts.join(' \u00B7 ')))
+    row.appendChild(el('span', { className: 'fmn-task-meta' }, metaParts.join(' \u00B7 ')))
   }
+
+  card.appendChild(row)
 
   // Progress bar
   const progress = el('div', { className: 'fmn-progress' })

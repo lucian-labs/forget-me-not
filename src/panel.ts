@@ -10,7 +10,7 @@ import { animateOut } from './animate'
 import { appName } from './brand'
 import { renderHeaderIcon } from './icon'
 
-type CaptureState = { timer: number | null; mode: 'check' | 'note'; card: HTMLElement | null }
+type CaptureState = { timer: number | null; mode: 'check' | 'note'; card: HTMLElement | null; startedAt: number }
 
 const captures = new Map<string, CaptureState>()
 let groupByCategory = localStorage.getItem('fmn-categorize') === 'true'
@@ -227,7 +227,7 @@ function startCapture(taskId: string, mode: 'check' | 'note'): void {
     captures.delete(taskId)
   } else {
     if (existing?.timer) clearTimeout(existing.timer)
-    captures.set(taskId, { timer: null, mode, card: null })
+    captures.set(taskId, { timer: null, mode, card: null, startedAt: Date.now() })
   }
   navigate('panel')
 }
@@ -236,7 +236,9 @@ function startCaptureTimer(task: Task, input: HTMLInputElement): void {
   const cap = captures.get(task.id)
   if (cap) {
     if (cap.timer) clearTimeout(cap.timer)
-    cap.timer = window.setTimeout(() => executeCapture(task, input.value), 2000)
+    const elapsed = Date.now() - cap.startedAt
+    const remaining = Math.max(2000 - elapsed, 0)
+    cap.timer = window.setTimeout(() => executeCapture(task, input.value), remaining)
   }
 }
 
@@ -244,6 +246,7 @@ function resetCaptureTimer(task: Task, input: HTMLInputElement): void {
   const cap = captures.get(task.id)
   if (cap) {
     if (cap.timer) clearTimeout(cap.timer)
+    cap.startedAt = Date.now()
     cap.timer = window.setTimeout(() => executeCapture(task, input.value), 2000)
   }
 }

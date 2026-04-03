@@ -171,6 +171,7 @@ button:active { opacity: 0.8; }
   padding: var(--spacing) 16px;
   margin-bottom: 8px;
   transition: border-color 0.15s;
+  position: relative;
 }
 
 .fmn-card:hover {
@@ -205,7 +206,7 @@ button:active { opacity: 0.8; }
 }
 
 .fmn-task-meta {
-  font-size: 11px;
+  font-size: 9px;
   color: var(--dim);
   margin-left: auto;
   white-space: nowrap;
@@ -282,18 +283,20 @@ button:active { opacity: 0.8; }
 }
 
 .fmn-capture {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  margin-top: 8px;
-  padding: 6px 10px;
+  height: 100%;
+  padding: 0 16px;
   background: var(--bg);
   border: 2px solid var(--orange);
-  border-radius: 4px;
+  border-radius: var(--radius);
   color: var(--text);
   font-family: var(--font);
   font-size: 13px;
   outline: none;
-  animation: captureOpen 0.3s ease-out;
-  overflow: hidden;
+  box-sizing: border-box;
+  z-index: 1;
 }
 
 .fmn-capture::placeholder { color: var(--dim); }

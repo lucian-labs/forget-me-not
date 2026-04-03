@@ -187,23 +187,27 @@ function renderTaskItem(task: Task): HTMLElement {
 
   // Meta line — right-aligned in the row (hidden in bar/percentage mode)
   if (sortByTime) {
-    const metaParts: string[] = []
+    let metaText = ''
+    let metaOverdue = false
     if (isRecurring && task.instance) {
       const elapsed = (Date.now() - new Date(task.instance.startedAt).getTime()) / 1000
       const remaining = task.instance.actualCadenceSeconds - elapsed
-      if (remaining > 0) metaParts.push(`${formatTime(remaining)} left`)
-      else metaParts.push(`${formatTime(Math.abs(remaining))} over`)
-      metaParts.push(`every ${formatCadence(task.baseCadenceSeconds!)}`)
+      if (remaining > 0) metaText = `${formatTime(remaining)} left`
+      else { metaText = `${formatTime(Math.abs(remaining))} over`; metaOverdue = true }
     } else if (isRecurring && !task.instance) {
-      metaParts.push('paused')
-      if (task.baseCadenceSeconds) metaParts.push(`every ${formatCadence(task.baseCadenceSeconds)}`)
+      metaText = 'paused'
     } else if (task.dueDate) {
       const remaining = (new Date(task.dueDate).getTime() - Date.now()) / 1000
-      if (remaining > 0) metaParts.push(`${formatTime(remaining)} left`)
-      else metaParts.push(`${formatTime(Math.abs(remaining))} over`)
+      if (remaining > 0) metaText = `${formatTime(remaining)} left`
+      else { metaText = `${formatTime(Math.abs(remaining))} over`; metaOverdue = true }
     }
-    if (metaParts.length > 0) {
-      row.appendChild(el('span', { className: 'fmn-task-meta' }, metaParts.join(' \u00B7 ')))
+    if (metaText) {
+      const meta = el('span', { className: 'fmn-task-meta' })
+      if (metaOverdue) {
+        meta.appendChild(el('span', { style: 'color:var(--red);font-weight:700;margin-right:3px;' }, '!'))
+      }
+      meta.appendChild(document.createTextNode(metaText))
+      row.appendChild(meta)
     }
   }
 
@@ -347,22 +351,23 @@ export function updatePanelTimers(container: HTMLElement): boolean {
     // Update meta line
     const metaEl = card.querySelector('.fmn-task-meta')
     if (metaEl) {
-      const metaParts: string[] = []
+      let metaText = ''
+      let metaOverdue = false
       if (task.recurring && task.instance) {
         const elapsed = (Date.now() - new Date(task.instance.startedAt).getTime()) / 1000
         const remaining = task.instance.actualCadenceSeconds - elapsed
-        if (remaining > 0) metaParts.push(`${formatTime(remaining)} left`)
-        else metaParts.push(`${formatTime(Math.abs(remaining))} over`)
-        metaParts.push(`every ${formatCadence(task.baseCadenceSeconds!)}`)
+        if (remaining > 0) metaText = `${formatTime(remaining)} left`
+        else { metaText = `${formatTime(Math.abs(remaining))} over`; metaOverdue = true }
       } else if (task.recurring && !task.instance) {
-        metaParts.push('paused')
-        if (task.baseCadenceSeconds) metaParts.push(`every ${formatCadence(task.baseCadenceSeconds)}`)
+        metaText = 'paused'
       } else if (task.dueDate) {
         const remaining = (new Date(task.dueDate).getTime() - Date.now()) / 1000
-        if (remaining > 0) metaParts.push(`${formatTime(remaining)} left`)
-        else metaParts.push(`${formatTime(Math.abs(remaining))} over`)
+        if (remaining > 0) metaText = `${formatTime(remaining)} left`
+        else { metaText = `${formatTime(Math.abs(remaining))} over`; metaOverdue = true }
       }
-      metaEl.textContent = metaParts.join(' \u00B7 ')
+      metaEl.innerHTML = ''
+      if (metaOverdue) metaEl.appendChild(el('span', { style: 'color:var(--red);font-weight:700;margin-right:3px;' }, '!'))
+      metaEl.appendChild(document.createTextNode(metaText))
     }
 
     // Update progress bar

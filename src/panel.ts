@@ -185,24 +185,26 @@ function renderTaskItem(task: Task): HTMLElement {
     row.appendChild(el('span', { className: `fmn-badge fmn-badge-${task.priority}` }, task.priority))
   }
 
-  // Meta line — right-aligned in the row
-  const metaParts: string[] = []
-  if (isRecurring && task.instance) {
-    const elapsed = (Date.now() - new Date(task.instance.startedAt).getTime()) / 1000
-    const remaining = task.instance.actualCadenceSeconds - elapsed
-    if (remaining > 0) metaParts.push(`${formatTime(remaining)} left`)
-    else metaParts.push(`${formatTime(Math.abs(remaining))} over`)
-    metaParts.push(`every ${formatCadence(task.baseCadenceSeconds!)}`)
-  } else if (isRecurring && !task.instance) {
-    metaParts.push('paused')
-    if (task.baseCadenceSeconds) metaParts.push(`every ${formatCadence(task.baseCadenceSeconds)}`)
-  } else if (task.dueDate) {
-    const remaining = (new Date(task.dueDate).getTime() - Date.now()) / 1000
-    if (remaining > 0) metaParts.push(`${formatTime(remaining)} left`)
-    else metaParts.push(`${formatTime(Math.abs(remaining))} over`)
-  }
-  if (metaParts.length > 0) {
-    row.appendChild(el('span', { className: 'fmn-task-meta' }, metaParts.join(' \u00B7 ')))
+  // Meta line — right-aligned in the row (hidden in bar/percentage mode)
+  if (sortByTime) {
+    const metaParts: string[] = []
+    if (isRecurring && task.instance) {
+      const elapsed = (Date.now() - new Date(task.instance.startedAt).getTime()) / 1000
+      const remaining = task.instance.actualCadenceSeconds - elapsed
+      if (remaining > 0) metaParts.push(`${formatTime(remaining)} left`)
+      else metaParts.push(`${formatTime(Math.abs(remaining))} over`)
+      metaParts.push(`every ${formatCadence(task.baseCadenceSeconds!)}`)
+    } else if (isRecurring && !task.instance) {
+      metaParts.push('paused')
+      if (task.baseCadenceSeconds) metaParts.push(`every ${formatCadence(task.baseCadenceSeconds)}`)
+    } else if (task.dueDate) {
+      const remaining = (new Date(task.dueDate).getTime() - Date.now()) / 1000
+      if (remaining > 0) metaParts.push(`${formatTime(remaining)} left`)
+      else metaParts.push(`${formatTime(Math.abs(remaining))} over`)
+    }
+    if (metaParts.length > 0) {
+      row.appendChild(el('span', { className: 'fmn-task-meta' }, metaParts.join(' \u00B7 ')))
+    }
   }
 
   card.appendChild(row)

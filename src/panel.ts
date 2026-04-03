@@ -432,5 +432,14 @@ export function updatePanelTimers(container: HTMLElement): boolean {
     }
   }
 
+  // Check if sort order has drifted from current DOM order
+  if (!needsRebuild) {
+    const sorted = sortTasks(tasks)
+    const domIds = Array.from(cards).map((c) => c.dataset.taskId)
+    for (let i = 0; i < sorted.length; i++) {
+      if (sorted[i].id !== domIds[i]) { needsRebuild = true; break }
+    }
+  }
+
   return needsRebuild
 }

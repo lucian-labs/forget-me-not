@@ -249,7 +249,9 @@ export function renderSettings(container: HTMLElement): void {
   presetSelect.onchange = () => { updateSettings({ soundPreset: parseInt(presetSelect.value) }); refreshSound() }
   soundBasicRow.appendChild(presetSelect)
 
-  soundBasicRow.appendChild(createBtn('\u25B6', 'btn-ghost btn-sm', () => playTest()))
+  const playBtn = createBtn('\u25B6', 'btn-ghost btn-sm', () => playTest())
+  playBtn.dataset.tip = 'test sound'
+  soundBasicRow.appendChild(playBtn)
 
   soundCard.appendChild(soundBasicRow)
 
@@ -359,13 +361,16 @@ export function renderSettings(container: HTMLElement): void {
   })
   dataRow.appendChild(importBtn)
 
-  dataRow.appendChild(createBtn('Load helpers', 'btn-ghost', () => {
+  const loadBtn = createBtn('Load helpers', 'btn-ghost', () => {
     if (confirm('Load sample reminder tasks? This adds tasks but won\u2019t remove existing ones.')) {
       const count = loadSeedTasks()
       alert(`Loaded ${count} helper tasks.`)
       navigate('panel')
     }
-  }))
+  })
+  loadBtn.dataset.tip = 'add sample reminders like hydrate, stretch, dishes'
+  loadBtn.dataset.tipPos = 'below'
+  dataRow.appendChild(loadBtn)
 
   dataRow.appendChild(createBtn('Clear All', 'btn-danger', () => {
     if (confirm('Delete all tasks and settings? This cannot be undone.')) {

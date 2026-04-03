@@ -126,30 +126,25 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
   const actionRow = el('div', { className: 'fmn-form-row' })
 
   if (task.recurring) {
-    actionRow.appendChild(createActionBtn('Reset', 'btn-accent', () => {
-      resetTask(task.id, '')
-      navigate('panel')
-    }))
+    const resetBtn = createActionBtn('Reset', 'btn-accent', () => { resetTask(task.id, ''); navigate('panel') })
+    resetBtn.dataset.tip = 'restart the timer'
+    actionRow.appendChild(resetBtn)
     if (task.instance) {
-      actionRow.appendChild(createActionBtn('Pause', 'btn-ghost', () => {
-        killInstance(task.id)
-        navigate('detail', task.id)
-      }))
+      const pauseBtn = createActionBtn('Pause', 'btn-ghost', () => { killInstance(task.id); navigate('detail', task.id) })
+      pauseBtn.dataset.tip = 'stop the clock'
+      actionRow.appendChild(pauseBtn)
     } else {
-      actionRow.appendChild(createActionBtn('Restart', 'btn-accent', () => {
-        restartInstance(task.id)
-        navigate('detail', task.id)
-      }))
+      const restartBtn = createActionBtn('Restart', 'btn-accent', () => { restartInstance(task.id); navigate('detail', task.id) })
+      restartBtn.dataset.tip = 'start a fresh cycle'
+      actionRow.appendChild(restartBtn)
     }
   }
-  actionRow.appendChild(createActionBtn('Complete', 'btn-ghost', () => {
-    completeTask(task.id, '')
-    navigate('panel')
-  }))
-  actionRow.appendChild(createActionBtn('Archive', 'btn-danger', () => {
-    archiveTask(task.id)
-    navigate('panel')
-  }))
+  const completeBtn = createActionBtn('Complete', 'btn-ghost', () => { completeTask(task.id, ''); navigate('panel') })
+  completeBtn.dataset.tip = 'mark as done forever'
+  actionRow.appendChild(completeBtn)
+  const archiveBtn = createActionBtn('Archive', 'btn-danger', () => { archiveTask(task.id); navigate('panel') })
+  archiveBtn.dataset.tip = 'hide from view'
+  actionRow.appendChild(archiveBtn)
 
   actionsSection.appendChild(actionRow)
   card.appendChild(actionsSection)
@@ -211,14 +206,16 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
     lessInput.min = '0'
     lessInput.placeholder = '0'
     lessInput.onchange = () => updateTask(task.id, { cadenceLess: parseInt(lessInput.value || '0') * 60 })
-    moreGrid.appendChild(el('span', { className: 'fmn-detail-label' }, 'Less (min)'))
+    const lessLabel = el('span', { className: 'fmn-detail-label', 'data-tip': 'can fire this many minutes early', 'data-tip-pos': 'below' }, 'Less (min)')
+    moreGrid.appendChild(lessLabel)
     moreGrid.appendChild(lessInput)
 
     const moreInput = el('input', { type: 'number', value: String(Math.round((task.cadenceMore ?? 0) / 60)), style: 'width:60px;font-size:13px;' }) as HTMLInputElement
     moreInput.min = '0'
     moreInput.placeholder = '0'
     moreInput.onchange = () => updateTask(task.id, { cadenceMore: parseInt(moreInput.value || '0') * 60 })
-    moreGrid.appendChild(el('span', { className: 'fmn-detail-label' }, 'More (min)'))
+    const moreLabel = el('span', { className: 'fmn-detail-label', 'data-tip': 'can fire this many minutes late', 'data-tip-pos': 'below' }, 'More (min)')
+    moreGrid.appendChild(moreLabel)
     moreGrid.appendChild(moreInput)
   }
 

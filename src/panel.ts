@@ -13,7 +13,7 @@ type CaptureState = { timer: number | null; mode: 'check' | 'note'; card: HTMLEl
 
 const captures = new Map<string, CaptureState>()
 let groupByCategory = localStorage.getItem('fmn-categorize') === 'true'
-let sortByTime = localStorage.getItem('fmn-sort') !== 'pct'
+let sortByTime = localStorage.getItem('fmn-sort') === 'time'
 const promptCache = new Map<string, { text: string; at: number }>()
 let catWrap: HTMLElement
 const prevOverdue = new Set<string>()
@@ -50,7 +50,7 @@ export function renderPanel(container: HTMLElement): void {
   sndToggle.appendChild(el('span', { className: 'fmn-toggle-track' }))
   sndToggle.appendChild(el('span', { className: 'fmn-toggle-thumb' }))
 
-  const sndWrap = el('div', { style: 'display:flex;align-items:center;gap:4px;' })
+  const sndWrap = el('div', { style: 'display:flex;align-items:center;gap:4px;', 'data-tip': 'notification sounds', 'data-tip-pos': 'below' })
   sndWrap.appendChild(el('span', { style: 'font-size:11px;color:var(--dim);' }, '\u266B'))
   sndWrap.appendChild(sndToggle)
 
@@ -77,21 +77,28 @@ export function renderPanel(container: HTMLElement): void {
 
   const sortIcon = el('span', { className: 'fmn-sort-icon', style: 'font-size:11px;color:var(--dim);display:inline-block;' }, sortByTime ? '\u29D7' : '\u2630')
 
-  const sortWrap = el('div', { style: 'display:flex;align-items:center;gap:4px;' })
+  const sortWrap = el('div', { style: 'display:flex;align-items:center;gap:4px;', 'data-tip': sortByTime ? 'sort by time left' : 'sort by urgency', 'data-tip-pos': 'below' })
   sortWrap.appendChild(sortIcon)
   sortWrap.appendChild(sortToggle)
 
   const titleWrap = el('div', { style: 'display:flex;align-items:center;gap:8px;' })
   titleWrap.appendChild(renderHeaderIcon())
   titleWrap.appendChild(title)
-  titleWrap.appendChild(createBtn('+', 'btn-accent btn-sm', () => navigate('create')))
+  const addBtn = createBtn('+', 'btn-accent btn-sm', () => navigate('create'))
+  addBtn.dataset.tip = 'new reminder'
+  addBtn.dataset.tipPos = 'below'
+  titleWrap.appendChild(addBtn)
+
+  const settingsBtn = createBtn('*', 'btn-ghost btn-sm', () => navigate('settings'))
+  settingsBtn.dataset.tip = 'settings'
+  settingsBtn.dataset.tipPos = 'below'
 
   const header = el('div', { className: 'fmn-header' },
     titleWrap,
     el('div', { className: 'fmn-header-actions' },
       sortWrap,
       sndWrap,
-      createBtn('*', 'btn-ghost btn-sm', () => navigate('settings')),
+      settingsBtn,
     ),
   )
   container.appendChild(header)
@@ -154,17 +161,37 @@ function renderTaskItem(task: Task): HTMLElement {
   card.dataset.taskId = task.id
   const row = el('div', { className: 'fmn-task-row' })
 
+  // Card tooltip — shows time + cadence info
+  const tipParts: string[] = []
+  if (isRecurring && task.instance) {
+    const elapsed = (Date.now() - new Date(task.instance.startedAt).getTime()) / 1000
+    const remaining = task.instance.actualCadenceSeconds - elapsed
+    tipParts.push(remaining > 0 ? `${formatTime(remaining)} remaining` : `${formatTime(Math.abs(remaining))} overdue`)
+    tipParts.push(`repeats every ${formatCadence(task.baseCadenceSeconds!)}`)
+  } else if (isRecurring && !task.instance) {
+    tipParts.push('paused')
+  } else if (task.dueDate) {
+    const remaining = (new Date(task.dueDate).getTime() - Date.now()) / 1000
+    tipParts.push(remaining > 0 ? `${formatTime(remaining)} remaining` : `${formatTime(Math.abs(remaining))} overdue`)
+  }
+  if (tipParts.length) card.dataset.tip = tipParts.join(' \u00B7 ')
+
   const checkBtn = createBtn('\u2713', 'btn-icon', () => startCapture(task.id, 'check'))
+  checkBtn.dataset.tip = 'done'
   row.appendChild(checkBtn)
 
   if (isRecurring) {
-    row.appendChild(createBtn('zz', 'btn-icon btn-sm', () => {
+    const snzBtn = createBtn('zz', 'btn-icon btn-sm', () => {
       animateOut(card).then(() => { snoozeTask(task.id); navigate('panel') })
-    }))
+    })
+    snzBtn.dataset.tip = 'snooze'
+    row.appendChild(snzBtn)
   } else {
-    row.appendChild(createBtn('\u00D7', 'btn-icon btn-sm', () => {
+    const archBtn = createBtn('\u00D7', 'btn-icon btn-sm', () => {
       animateOut(card).then(() => { archiveTask(task.id); navigate('panel') })
-    }))
+    })
+    archBtn.dataset.tip = 'archive'
+    row.appendChild(archBtn)
   }
 
   const titleEl = el('span', { className: 'fmn-task-title' }, task.title)

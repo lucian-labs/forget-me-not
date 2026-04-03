@@ -823,6 +823,59 @@ input[type="range"]::-webkit-slider-thumb {
   opacity: 0 !important;
   transition: all 0.5s ease-in-out;
 }
+
+/* Tooltips */
+
+[data-tip] {
+  position: relative;
+}
+
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.9);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-family: var(--font);
+  font-style: normal;
+  font-weight: 400;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+[data-tip]:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+[data-tip-pos="below"]::after {
+  bottom: auto;
+  top: calc(100% + 6px);
+}
+
+[data-tip-pos="left"]::after {
+  bottom: auto;
+  top: 50%;
+  left: auto;
+  right: calc(100% + 6px);
+  transform: translateY(-50%) scale(0.9);
+}
+
+[data-tip-pos="left"]:hover::after {
+  transform: translateY(-50%) scale(1);
+}
 `
 
 export function injectStyles(): void {

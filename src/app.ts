@@ -47,6 +47,8 @@ export function navigate(view: View, taskId?: string): void {
   currentView = view
   currentTaskId = taskId ?? null
   render()
+  // Sync alerts after task mutations (reset, complete, snooze, etc.)
+  lastSyncCount = -1
 }
 
 function onPopState(): void {
@@ -95,14 +97,26 @@ function render(): void {
   }
 }
 
+const alertedIds = new Set<string>()
+let lastSyncCount = -1
+
 function checkAlerts(): void {
   const tasks = getTasks().filter((t) => t.status !== 'done' && t.status !== 'archived' && t.status !== 'cancelled')
   for (const task of tasks) {
     const ratio = getUrgencyRatio(task)
-    if (ratio >= 1.0) playAlert(task.id, task)
-    else clearAlert(task.id)
+    if (ratio >= 1.0) {
+      alertedIds.add(task.id)
+      playAlert(task.id, task)
+    } else if (alertedIds.has(task.id)) {
+      alertedIds.delete(task.id)
+      clearAlert(task.id)
+    }
   }
-  syncAlertsToSW(tasks)
+  // Sync to SW periodically (every 10 ticks) to avoid flooding
+  if (lastSyncCount === -1 || tasks.length !== lastSyncCount) {
+    syncAlertsToSW(tasks)
+  }
+  lastSyncCount = tasks.length
 }
 
 function startRenderLoop(): void {

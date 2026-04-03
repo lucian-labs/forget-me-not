@@ -101,7 +101,7 @@ function startRenderLoop(): void {
     if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT')) return
     if (currentView === 'panel') {
       const content = document.querySelector('.fmn-content') as HTMLElement
-      if (content) updatePanelTimers(content)
+      if (content && updatePanelTimers(content)) renderPanel(content)
     }
   }, 1000)
 }

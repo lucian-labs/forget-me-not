@@ -16,6 +16,7 @@ const captures = new Map<string, CaptureState>()
 let groupByCategory = localStorage.getItem('fmn-categorize') === 'true'
 const promptCache = new Map<string, { text: string; at: number }>()
 let catWrap: HTMLElement
+const prevOverdue = new Set<string>()
 
 export function renderPanel(container: HTMLElement): void {
   const allTasks = getTasks()
@@ -275,22 +276,35 @@ function createBtn(text: string, className: string, onClick: () => void): HTMLBu
   return btn
 }
 
-/** Update only dynamic time-based content in existing cards — no DOM rebuild */
-export function updatePanelTimers(container: HTMLElement): void {
+/** Update only dynamic time-based content in existing cards — no DOM rebuild.
+ *  Returns true if a full rebuild is needed (task count changed or new overdue). */
+export function updatePanelTimers(container: HTMLElement): boolean {
   const tasks = getTasks().filter((t) => t.status !== 'done' && t.status !== 'archived' && t.status !== 'cancelled')
   const taskMap = new Map(tasks.map((t) => [t.id, t]))
 
   const cards = container.querySelectorAll<HTMLElement>('.fmn-card[data-task-id]')
-  if (cards.length === 0) return
+
+  // Task count changed — need structural rebuild
+  if (cards.length === 0 || cards.length !== tasks.length) return true
+
+  let needsRebuild = false
 
   for (const card of cards) {
     const task = taskMap.get(card.dataset.taskId!)
-    if (!task) continue
+    if (!task) { needsRebuild = true; continue }
 
     const ratio = getUrgencyRatio(task)
     const color = getUrgencyColor(ratio)
     const urgencyClass = getUrgencyClass(ratio)
     const isOverdue = ratio >= 1.0
+
+    // New overdue transition — trigger full rebuild for re-sort + structural changes
+    if (isOverdue && !prevOverdue.has(task.id)) {
+      prevOverdue.add(task.id)
+      needsRebuild = true
+    } else if (!isOverdue) {
+      prevOverdue.delete(task.id)
+    }
 
     if (isOverdue) playAlert(task.id, task)
     else clearAlert(task.id)
@@ -345,4 +359,6 @@ export function updatePanelTimers(container: HTMLElement): void {
       existingPrompt.remove()
     }
   }
+
+  return needsRebuild
 }

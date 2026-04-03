@@ -4,8 +4,8 @@ import { refreshSound, playTest } from './sounds'
 import { getAllThemes, applyTheme, resolveTheme, exportTheme, themeToShareUrl, importThemeJson } from './themes'
 import { navigate } from './app'
 import { appName } from './brand'
-// transfer UI moved to /settings/share
 import { applyIcon } from './icon'
+import { loadSeedTasks } from './seed'
 
 const SOUND_PRESETS: { value: number; label: string }[] = [
   { value: 88, label: 'Crystal' },
@@ -358,6 +358,14 @@ export function renderSettings(container: HTMLElement): void {
     fileInput.click()
   })
   dataRow.appendChild(importBtn)
+
+  dataRow.appendChild(createBtn('Load helpers', 'btn-ghost', () => {
+    if (confirm('Load sample reminder tasks? This adds tasks but won\u2019t remove existing ones.')) {
+      const count = loadSeedTasks()
+      alert(`Loaded ${count} helper tasks.`)
+      navigate('panel')
+    }
+  }))
 
   dataRow.appendChild(createBtn('Clear All', 'btn-danger', () => {
     if (confirm('Delete all tasks and settings? This cannot be undone.')) {

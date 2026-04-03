@@ -12,6 +12,7 @@ import { updateSettings, isFirstRun } from './store'
 import { checkImportFromUrl } from './transfer'
 import { applyIcon } from './icon'
 import { renderVibe } from './taskyeet'
+import { loadSeedIfEmpty } from './seed'
 
 let currentView: View = 'panel'
 let currentTaskId: string | null = null
@@ -171,6 +172,13 @@ async function init(): Promise<void> {
 
   const imported = await checkImportFromUrl()
   if (imported) return
+
+  // ?seeded — load helper tasks if none exist
+  const params = new URLSearchParams(location.search)
+  if (params.has('seeded')) {
+    loadSeedIfEmpty()
+    history.replaceState(null, '', location.pathname)
+  }
 
   const route = pathToRoute()
   currentView = route.view

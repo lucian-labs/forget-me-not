@@ -58,7 +58,7 @@ export function renderPanel(container: HTMLElement): void {
   const sortBtn = el('button', {
     className: 'btn-ghost btn-sm',
     style: 'font-size:13px;min-width:24px;padding:2px 4px;',
-  }, sortByTime ? '\u{1F552}' : '\u2593')
+  }, sortByTime ? '\u29D7' : '\u2630')
   sortBtn.title = sortByTime ? 'Sorted by time remaining' : 'Sorted by percentage'
   sortBtn.onclick = () => {
     sortByTime = !sortByTime

@@ -4,7 +4,6 @@ import {
   getRemainingSeconds, resetTask, completeTask, snoozeTask, archiveTask, addActionNote,
 } from './store'
 import { formatTime, formatCadence, el } from './utils'
-import { playAlert, clearAlert, syncAlertsToSW } from './sounds'
 import { navigate } from './app'
 import { animateOut } from './animate'
 import { appName } from './brand'
@@ -21,9 +20,6 @@ const prevOverdue = new Set<string>()
 export function renderPanel(container: HTMLElement): void {
   const allTasks = getTasks()
   const tasks = allTasks.filter((t) => t.status !== 'done' && t.status !== 'archived' && t.status !== 'cancelled')
-
-  // Push schedules to SW for background notifications
-  syncAlertsToSW(allTasks)
 
   container.innerHTML = ''
 
@@ -120,9 +116,6 @@ function renderTaskItem(task: Task): HTMLElement {
   const isRecurring = task.recurring
   const cap = captures.get(task.id)
 
-  if (isOverdue) playAlert(task.id, task)
-  else clearAlert(task.id)
-
   const card = el('div', { className: `fmn-card fmn-task ${urgencyClass}` })
   card.dataset.taskId = task.id
   const row = el('div', { className: 'fmn-task-row' })
@@ -160,12 +153,15 @@ function renderTaskItem(task: Task): HTMLElement {
 
   // Meta line — right-aligned in the row
   const metaParts: string[] = []
-  if (isRecurring && task.cadenceSeconds && task.lastResetAt) {
-    const elapsed = (Date.now() - new Date(task.lastResetAt).getTime()) / 1000
-    const remaining = task.cadenceSeconds - elapsed
+  if (isRecurring && task.instance) {
+    const elapsed = (Date.now() - new Date(task.instance.startedAt).getTime()) / 1000
+    const remaining = task.instance.actualCadenceSeconds - elapsed
     if (remaining > 0) metaParts.push(`${formatTime(remaining)} left`)
     else metaParts.push(`${formatTime(Math.abs(remaining))} over`)
-    metaParts.push(`every ${formatCadence(task.cadenceSeconds)}`)
+    metaParts.push(`every ${formatCadence(task.baseCadenceSeconds!)}`)
+  } else if (isRecurring && !task.instance) {
+    metaParts.push('paused')
+    if (task.baseCadenceSeconds) metaParts.push(`every ${formatCadence(task.baseCadenceSeconds)}`)
   } else if (task.dueDate) {
     const remaining = (new Date(task.dueDate).getTime() - Date.now()) / 1000
     if (remaining > 0) metaParts.push(`${formatTime(remaining)} left`)
@@ -309,9 +305,6 @@ export function updatePanelTimers(container: HTMLElement): boolean {
       prevOverdue.delete(task.id)
     }
 
-    if (isOverdue) playAlert(task.id, task)
-    else clearAlert(task.id)
-
     // Update urgency class
     card.classList.toggle('fmn-overdue', urgencyClass === 'fmn-overdue')
 
@@ -319,12 +312,15 @@ export function updatePanelTimers(container: HTMLElement): boolean {
     const metaEl = card.querySelector('.fmn-task-meta')
     if (metaEl) {
       const metaParts: string[] = []
-      if (task.recurring && task.cadenceSeconds && task.lastResetAt) {
-        const elapsed = (Date.now() - new Date(task.lastResetAt).getTime()) / 1000
-        const remaining = task.cadenceSeconds - elapsed
+      if (task.recurring && task.instance) {
+        const elapsed = (Date.now() - new Date(task.instance.startedAt).getTime()) / 1000
+        const remaining = task.instance.actualCadenceSeconds - elapsed
         if (remaining > 0) metaParts.push(`${formatTime(remaining)} left`)
         else metaParts.push(`${formatTime(Math.abs(remaining))} over`)
-        metaParts.push(`every ${formatCadence(task.cadenceSeconds)}`)
+        metaParts.push(`every ${formatCadence(task.baseCadenceSeconds!)}`)
+      } else if (task.recurring && !task.instance) {
+        metaParts.push('paused')
+        if (task.baseCadenceSeconds) metaParts.push(`every ${formatCadence(task.baseCadenceSeconds)}`)
       } else if (task.dueDate) {
         const remaining = (new Date(task.dueDate).getTime() - Date.now()) / 1000
         if (remaining > 0) metaParts.push(`${formatTime(remaining)} left`)

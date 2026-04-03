@@ -632,7 +632,7 @@ export async function renderVibe(container: HTMLElement): Promise<void> {
         renderer.domElement.style.cursor = 'pointer'
         playSound('hover-' + card.idx)
         tooltip.style.display = 'block'
-        const cadenceStr = card.task.cadenceSeconds ? `every ${formatCadence(card.task.cadenceSeconds)}` : ''
+        const cadenceStr = card.task.baseCadenceSeconds ? `every ${formatCadence(card.task.baseCadenceSeconds)}` : ''
         const urgRaw = card.urgency
         const urgPct = Math.round(Math.min(urgRaw, 1) * 100)
         const urgColor = urgRaw >= 0.95 ? tc.red : urgRaw >= 0.75 ? tc.orange : tc.green

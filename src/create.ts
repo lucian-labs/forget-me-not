@@ -206,7 +206,7 @@ export function renderCreate(container: HTMLElement): void {
       priority: prioritySelect.value as any,
       tags,
       recurring: isRecurring,
-      cadenceSeconds: isRecurring ? cadenceSeconds || 3600 : null,
+      baseCadenceSeconds: isRecurring ? cadenceSeconds || 3600 : null,
       dueDate: isRecurring ? null : dueDate,
       startedAt: dueDate ? new Date().toISOString() : null,
       followUps: [...followUps],
@@ -230,7 +230,7 @@ export function renderCreate(container: HTMLElement): void {
       const row = el('div', { className: 'fmn-card', style: 'cursor:pointer;' })
       const inner = el('div', { style: 'display:flex;align-items:center;gap:8px;' })
       inner.appendChild(el('span', { style: 'flex:1;font-size:14px;' }, task.title))
-      if (task.recurring && task.cadenceSeconds) inner.appendChild(el('span', { className: 'fmn-badge fmn-badge-recurring' }, `every ${formatCadence(task.cadenceSeconds)}`))
+      if (task.recurring && task.baseCadenceSeconds) inner.appendChild(el('span', { className: 'fmn-badge fmn-badge-recurring' }, `every ${formatCadence(task.baseCadenceSeconds)}`))
       if (task.domain) inner.appendChild(el('span', { style: 'font-size:11px;color:var(--cyan);' }, task.domain))
       row.appendChild(inner)
       row.onclick = () => { createdTasks = []; navigate('detail', task.id) }

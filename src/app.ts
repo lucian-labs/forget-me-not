@@ -1,12 +1,12 @@
 import type { View } from './types'
 import { injectStyles } from './styles'
-import { getSettings } from './store'
+import { getSettings, getTasks, getUrgencyRatio } from './store'
 import { renderPanel, updatePanelTimers } from './panel'
 import { renderDetail } from './detail'
 import { renderSettings } from './settings'
 import { renderCreate } from './create'
 import { renderShare } from './share'
-import { initSound, requestNotificationPermission } from './sounds'
+import { initSound, requestNotificationPermission, playAlert, clearAlert, syncAlertsToSW } from './sounds'
 import { applyTheme, getAllThemes, importThemeJson, THEMES } from './themes'
 import { updateSettings, isFirstRun } from './store'
 import { checkImportFromUrl } from './transfer'
@@ -94,9 +94,21 @@ function render(): void {
   }
 }
 
+function checkAlerts(): void {
+  const tasks = getTasks().filter((t) => t.status !== 'done' && t.status !== 'archived' && t.status !== 'cancelled')
+  for (const task of tasks) {
+    const ratio = getUrgencyRatio(task)
+    if (ratio >= 1.0) playAlert(task.id, task)
+    else clearAlert(task.id)
+  }
+  syncAlertsToSW(tasks)
+}
+
 function startRenderLoop(): void {
   if (renderLoopId) return
   renderLoopId = window.setInterval(() => {
+    checkAlerts()
+
     const active = document.activeElement
     if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT')) return
     if (currentView === 'panel') {

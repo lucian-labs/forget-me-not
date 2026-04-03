@@ -14,6 +14,12 @@ export interface ActionLogEntry {
   action: ActionType
 }
 
+export interface ReminderInstance {
+  startedAt: string
+  actualCadenceSeconds: number
+  snoozed: boolean
+}
+
 export interface Task {
   id: string
   title: string
@@ -31,10 +37,10 @@ export interface Task {
   estimatedHours: number | null
 
   recurring: boolean
-  cadenceSeconds: number | null
+  baseCadenceSeconds: number | null
   cadenceMore: number | null
   cadenceLess: number | null
-  lastResetAt: string | null
+  instance: ReminderInstance | null
 
   followUps: FollowUp[]
   parentTaskId: string | null

@@ -160,13 +160,13 @@ export function syncAlertsToSW(tasks: Task[]): void {
 
   const activeTasks = tasks
     .filter((t) => t.status !== 'done' && t.status !== 'archived' && t.status !== 'cancelled')
-    .filter((t) => (t.recurring && t.lastResetAt && t.cadenceSeconds) || t.dueDate)
+    .filter((t) => (t.recurring && t.instance) || t.dueDate)
     .map((t) => ({
       id: t.id,
       title: t.title,
       recurring: t.recurring,
-      lastResetAt: t.lastResetAt,
-      cadenceSeconds: t.cadenceSeconds,
+      lastResetAt: t.instance?.startedAt ?? null,
+      cadenceSeconds: t.instance?.actualCadenceSeconds ?? null,
       dueDate: t.dueDate,
       _appName: settings.appName || 'forget me not',
     }))

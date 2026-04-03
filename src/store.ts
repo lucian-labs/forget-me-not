@@ -1,4 +1,4 @@
-import type { Task, Settings, FollowUp } from './types'
+import type { Task, ReminderInstance, Settings, FollowUp } from './types'
 
 const TASKS_KEY = 'fmn-tasks'
 const SETTINGS_KEY = 'fmn-settings'
@@ -40,10 +40,39 @@ function write<T>(key: string, value: T): void {
   localStorage.setItem(key, JSON.stringify(value))
 }
 
+// --- Migration ---
+
+function migrateTask(raw: any): Task {
+  if ('baseCadenceSeconds' in raw) return raw as Task
+  const task: Task = {
+    ...raw,
+    baseCadenceSeconds: raw.cadenceSeconds ?? null,
+    instance: (raw.recurring && raw.lastResetAt && raw.cadenceSeconds)
+      ? { startedAt: raw.lastResetAt, actualCadenceSeconds: raw.cadenceSeconds, snoozed: false }
+      : null,
+  }
+  delete (task as any).cadenceSeconds
+  delete (task as any).lastResetAt
+  return task
+}
+
+function randomizeCadence(base: number, more: number | null, less: number | null): number {
+  if (!more && !less) return base
+  const min = base - (less ?? 0)
+  const max = base + (more ?? 0)
+  return Math.round(min + Math.random() * (max - min))
+}
+
 // --- Tasks ---
 
 export function getTasks(): Task[] {
-  return read<Task[]>(TASKS_KEY, [])
+  const raw = read<any[]>(TASKS_KEY, [])
+  if (raw.length > 0 && raw.some((r: any) => !('baseCadenceSeconds' in r))) {
+    const migrated = raw.map(migrateTask)
+    saveTasks(migrated)
+    return migrated
+  }
+  return raw as Task[]
 }
 
 function saveTasks(tasks: Task[]): void {
@@ -56,6 +85,8 @@ export function getTask(id: string): Task | undefined {
 
 export function createTask(partial: Partial<Task> & { title: string }): Task {
   const now = new Date().toISOString()
+  const isRecurring = partial.recurring ?? false
+  const base = partial.baseCadenceSeconds ?? null
   const task: Task = {
     id: crypto.randomUUID(),
     title: partial.title,
@@ -70,11 +101,13 @@ export function createTask(partial: Partial<Task> & { title: string }): Task {
     startedAt: partial.startedAt ?? (partial.dueDate ? now : null),
     completedAt: null,
     estimatedHours: partial.estimatedHours ?? null,
-    recurring: partial.recurring ?? false,
-    cadenceSeconds: partial.cadenceSeconds ?? null,
+    recurring: isRecurring,
+    baseCadenceSeconds: base,
     cadenceMore: partial.cadenceMore ?? null,
     cadenceLess: partial.cadenceLess ?? null,
-    lastResetAt: partial.recurring ? now : null,
+    instance: (isRecurring && base)
+      ? { startedAt: now, actualCadenceSeconds: randomizeCadence(base, partial.cadenceMore ?? null, partial.cadenceLess ?? null), snoozed: false }
+      : null,
     followUps: partial.followUps ?? [],
     parentTaskId: partial.parentTaskId ?? null,
     prompts: partial.prompts ?? [],
@@ -101,23 +134,16 @@ export function deleteTask(id: string): void {
 
 export function resetTask(id: string, note: string): Task | undefined {
   const task = getTask(id)
-  if (!task) return undefined
+  if (!task || !task.baseCadenceSeconds) return undefined
   const now = new Date().toISOString()
   const entry = { note, at: now, action: 'reset' as const }
-  // Randomize cadence within range on reset
-  let newCadence = task.cadenceSeconds
-  if (task.cadenceSeconds && (task.cadenceMore || task.cadenceLess)) {
-    const base = task.cadenceSeconds
-    const less = task.cadenceLess ?? 0
-    const more = task.cadenceMore ?? 0
-    const min = base - less
-    const max = base + more
-    newCadence = Math.round(min + Math.random() * (max - min))
+  const newInstance: ReminderInstance = {
+    startedAt: now,
+    actualCadenceSeconds: randomizeCadence(task.baseCadenceSeconds, task.cadenceMore, task.cadenceLess),
+    snoozed: false,
   }
-
   const updates: Partial<Task> = {
-    lastResetAt: now,
-    cadenceSeconds: newCadence,
+    instance: newInstance,
     actionLog: [...task.actionLog, entry],
   }
   const updated = updateTask(id, updates)
@@ -146,9 +172,25 @@ export function completeTask(id: string, note: string): Task | undefined {
 
 export function snoozeTask(id: string): Task | undefined {
   const task = getTask(id)
-  if (!task || !task.cadenceSeconds) return undefined
-  const snoozeTime = new Date(Date.now() - task.cadenceSeconds * 750).toISOString()
-  return updateTask(id, { lastResetAt: snoozeTime })
+  if (!task?.instance) return undefined
+  const snoozeTime = new Date(Date.now() - task.instance.actualCadenceSeconds * 750).toISOString()
+  return updateTask(id, { instance: { ...task.instance, startedAt: snoozeTime, snoozed: true } })
+}
+
+export function killInstance(id: string): Task | undefined {
+  return updateTask(id, { instance: null })
+}
+
+export function restartInstance(id: string): Task | undefined {
+  const task = getTask(id)
+  if (!task || !task.baseCadenceSeconds) return undefined
+  const now = new Date().toISOString()
+  const newInstance: ReminderInstance = {
+    startedAt: now,
+    actualCadenceSeconds: randomizeCadence(task.baseCadenceSeconds, task.cadenceMore, task.cadenceLess),
+    snoozed: false,
+  }
+  return updateTask(id, { instance: newInstance })
 }
 
 export function archiveTask(id: string): Task | undefined {
@@ -215,7 +257,7 @@ export function isFirstRun(): boolean {
 export function importAll(json: string): { tasks: number } {
   const data = JSON.parse(json)
   if (data.tasks && Array.isArray(data.tasks)) {
-    saveTasks(data.tasks)
+    saveTasks(data.tasks.map(migrateTask))
   }
   if (data.settings) {
     write(SETTINGS_KEY, { ...getSettings(), ...data.settings })
@@ -232,9 +274,9 @@ export function clearAll(): void {
 
 export function getUrgencyRatio(task: Task): number {
   const now = Date.now()
-  if (task.recurring && task.lastResetAt && task.cadenceSeconds) {
-    const elapsed = now - new Date(task.lastResetAt).getTime()
-    return elapsed / (task.cadenceSeconds * 1000)
+  if (task.recurring && task.instance) {
+    const elapsed = now - new Date(task.instance.startedAt).getTime()
+    return elapsed / (task.instance.actualCadenceSeconds * 1000)
   }
   if (task.dueDate && task.startedAt) {
     const start = new Date(task.startedAt).getTime()
@@ -249,9 +291,9 @@ export function getUrgencyRatio(task: Task): number {
 /** Seconds remaining until due/overdue. Negative = overdue. Infinity = no deadline. */
 export function getRemainingSeconds(task: Task): number {
   const now = Date.now()
-  if (task.recurring && task.lastResetAt && task.cadenceSeconds) {
-    const elapsed = (now - new Date(task.lastResetAt).getTime()) / 1000
-    return task.cadenceSeconds - elapsed
+  if (task.recurring && task.instance) {
+    const elapsed = (now - new Date(task.instance.startedAt).getTime()) / 1000
+    return task.instance.actualCadenceSeconds - elapsed
   }
   if (task.dueDate) {
     return (new Date(task.dueDate).getTime() - now) / 1000

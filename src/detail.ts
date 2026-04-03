@@ -1,6 +1,7 @@
 import type { Task, TaskStatus, TaskPriority } from './types'
 import {
   getTask, getTasks, updateTask, resetTask, completeTask, archiveTask,
+  killInstance, restartInstance,
   getUrgencyRatio, getUrgencyColor, addActionNote, getSettings,
 } from './store'
 import { el, timeAgo, formatCadence, formatTime, CADENCE_OPTIONS, createCadencePicker } from './utils'
@@ -62,16 +63,17 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
 
   if (task.recurring) {
     badgeRow.appendChild(el('span', { className: 'fmn-badge fmn-badge-recurring' }, 'recurring'))
-    if (task.cadenceSeconds) {
-      badgeRow.appendChild(el('span', { style: 'font-size:12px;color:var(--dim);' }, `every ${formatCadence(task.cadenceSeconds)}`))
+    if (task.baseCadenceSeconds) {
+      badgeRow.appendChild(el('span', { style: 'font-size:12px;color:var(--dim);' }, `every ${formatCadence(task.baseCadenceSeconds)}`))
     }
-    if (task.lastResetAt && task.cadenceSeconds) {
+    if (task.instance) {
       const ratio = getUrgencyRatio(task)
-      const elapsed = (Date.now() - new Date(task.lastResetAt).getTime()) / 1000
-      const remaining = task.cadenceSeconds - elapsed
+      const elapsed = (Date.now() - new Date(task.instance.startedAt).getTime()) / 1000
+      const remaining = task.instance.actualCadenceSeconds - elapsed
       const urgencyText = remaining > 0 ? `${formatTime(remaining)} left` : `${formatTime(Math.abs(remaining))} over`
-      const urgencyEl = el('span', { style: `font-size:12px;font-weight:600;color:${getUrgencyColor(ratio)};` }, urgencyText)
-      badgeRow.appendChild(urgencyEl)
+      badgeRow.appendChild(el('span', { style: `font-size:12px;font-weight:600;color:${getUrgencyColor(ratio)};` }, urgencyText))
+    } else {
+      badgeRow.appendChild(el('span', { style: 'font-size:12px;color:var(--dim);font-style:italic;' }, 'paused'))
     }
   } else {
     // Status select
@@ -94,8 +96,8 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
   // Cadence picker
   const cadenceSection = el('div', { className: 'fmn-detail-section' })
   cadenceSection.appendChild(el('h3', {}, task.recurring ? 'Every' : 'Time'))
-  cadenceSection.appendChild(createCadencePicker(task.cadenceSeconds, (s) => {
-    const updates: Partial<typeof task> = { cadenceSeconds: s }
+  cadenceSection.appendChild(createCadencePicker(task.baseCadenceSeconds, (s) => {
+    const updates: Partial<typeof task> = { baseCadenceSeconds: s }
     if (!task.recurring) {
       updates.dueDate = new Date(Date.now() + s * 1000).toISOString()
       updates.startedAt = new Date().toISOString()
@@ -128,6 +130,17 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
       resetTask(task.id, '')
       navigate('panel')
     }))
+    if (task.instance) {
+      actionRow.appendChild(createActionBtn('Pause', 'btn-ghost', () => {
+        killInstance(task.id)
+        navigate('detail', task.id)
+      }))
+    } else {
+      actionRow.appendChild(createActionBtn('Restart', 'btn-accent', () => {
+        restartInstance(task.id)
+        navigate('detail', task.id)
+      }))
+    }
   }
   actionRow.appendChild(createActionBtn('Complete', 'btn-ghost', () => {
     completeTask(task.id, '')
@@ -178,10 +191,15 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
   typeSelect.value = task.recurring ? 'recurring' : 'one-time'
   typeSelect.onchange = () => {
     const isRecurring = typeSelect.value === 'recurring'
-    updateTask(task.id, {
-      recurring: isRecurring,
-      lastResetAt: isRecurring && !task.lastResetAt ? new Date().toISOString() : task.lastResetAt,
-    })
+    const updates: Partial<Task> = { recurring: isRecurring }
+    if (isRecurring && !task.instance && task.baseCadenceSeconds) {
+      updates.instance = {
+        startedAt: new Date().toISOString(),
+        actualCadenceSeconds: task.baseCadenceSeconds,
+        snoozed: false,
+      }
+    }
+    updateTask(task.id, updates)
     navigate('detail', task.id)
   }
   moreGrid.appendChild(el('span', { className: 'fmn-detail-label' }, 'Type'))

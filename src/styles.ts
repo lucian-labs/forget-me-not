@@ -825,18 +825,10 @@ input[type="range"]::-webkit-slider-thumb {
   transition: all 0.5s ease-in-out;
 }
 
-/* Tooltips */
+/* Tooltips (positioned via JS on body) */
 
-[data-tip] {
-  position: relative;
-}
-
-[data-tip]::after {
-  content: attr(data-tip);
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%) scale(0.9);
+.fmn-tip {
+  position: fixed;
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--border);
@@ -848,34 +840,18 @@ input[type="range"]::-webkit-slider-thumb {
   font-weight: 400;
   white-space: nowrap;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  z-index: 100;
+  z-index: 9999;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   letter-spacing: 0;
   text-transform: none;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
-[data-tip]:hover::after {
+.fmn-tip.fmn-tip-visible {
   opacity: 1;
-  transform: translateX(-50%) scale(1);
-}
-
-[data-tip-pos="below"]::after {
-  bottom: auto;
-  top: calc(100% + 6px);
-}
-
-[data-tip-pos="left"]::after {
-  bottom: auto;
-  top: 50%;
-  left: auto;
-  right: calc(100% + 6px);
-  transform: translateY(-50%) scale(0.9);
-}
-
-[data-tip-pos="left"]:hover::after {
-  transform: translateY(-50%) scale(1);
+  transform: scale(1);
 }
 `
 
@@ -883,4 +859,66 @@ export function injectStyles(): void {
   const style = document.createElement('style')
   style.textContent = CSS
   document.head.appendChild(style)
+  initTooltips()
+}
+
+function initTooltips(): void {
+  let tip: HTMLElement | null = null
+  let hideTimer: number | null = null
+
+  function show(target: HTMLElement): void {
+    const text = target.dataset.tip
+    if (!text) return
+    if (hideTimer) { clearTimeout(hideTimer); hideTimer = null }
+
+    if (!tip) {
+      tip = document.createElement('div')
+      tip.className = 'fmn-tip'
+      document.body.appendChild(tip)
+    }
+
+    tip.textContent = text
+    tip.classList.remove('fmn-tip-visible')
+
+    const rect = target.getBoundingClientRect()
+    const pos = target.dataset.tipPos || 'above'
+
+    // Position off-screen first to measure
+    tip.style.left = '0'
+    tip.style.top = '0'
+    const tipRect = tip.getBoundingClientRect()
+
+    let x = rect.left + rect.width / 2 - tipRect.width / 2
+    let y: number
+
+    if (pos === 'below') {
+      y = rect.bottom + 6
+    } else {
+      y = rect.top - tipRect.height - 6
+    }
+
+    // Clamp to viewport
+    x = Math.max(4, Math.min(x, window.innerWidth - tipRect.width - 4))
+    y = Math.max(4, Math.min(y, window.innerHeight - tipRect.height - 4))
+
+    tip.style.left = `${x}px`
+    tip.style.top = `${y}px`
+    requestAnimationFrame(() => tip?.classList.add('fmn-tip-visible'))
+  }
+
+  function hide(): void {
+    hideTimer = window.setTimeout(() => {
+      tip?.classList.remove('fmn-tip-visible')
+    }, 50)
+  }
+
+  document.addEventListener('pointerenter', (e) => {
+    const target = (e.target as HTMLElement).closest?.('[data-tip]') as HTMLElement | null
+    if (target) show(target)
+  }, true)
+
+  document.addEventListener('pointerleave', (e) => {
+    const target = (e.target as HTMLElement).closest?.('[data-tip]') as HTMLElement | null
+    if (target) hide()
+  }, true)
 }

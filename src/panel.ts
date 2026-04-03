@@ -13,6 +13,7 @@ type CaptureState = { timer: number | null; mode: 'check' | 'note'; card: HTMLEl
 
 const captures = new Map<string, CaptureState>()
 let groupByCategory = localStorage.getItem('fmn-categorize') === 'true'
+let sortByTime = localStorage.getItem('fmn-sort') !== 'pct'
 const promptCache = new Map<string, { text: string; at: number }>()
 let catWrap: HTMLElement
 const prevOverdue = new Set<string>()
@@ -53,6 +54,18 @@ export function renderPanel(container: HTMLElement): void {
   sndWrap.appendChild(el('span', { style: 'font-size:11px;color:var(--dim);' }, '\u266B'))
   sndWrap.appendChild(sndToggle)
 
+  // Sort toggle
+  const sortBtn = el('button', {
+    className: 'btn-ghost btn-sm',
+    style: 'font-size:13px;min-width:24px;padding:2px 4px;',
+  }, sortByTime ? '\u{1F552}' : '\u2593')
+  sortBtn.title = sortByTime ? 'Sorted by time remaining' : 'Sorted by percentage'
+  sortBtn.onclick = () => {
+    sortByTime = !sortByTime
+    localStorage.setItem('fmn-sort', sortByTime ? 'time' : 'pct')
+    navigate('panel')
+  }
+
   const titleWrap = el('div', { style: 'display:flex;align-items:center;gap:8px;' })
   titleWrap.appendChild(renderHeaderIcon())
   titleWrap.appendChild(title)
@@ -61,6 +74,7 @@ export function renderPanel(container: HTMLElement): void {
   const header = el('div', { className: 'fmn-header' },
     titleWrap,
     el('div', { className: 'fmn-header-actions' },
+      sortBtn,
       sndWrap,
       createBtn('*', 'btn-ghost btn-sm', () => navigate('settings')),
     ),
@@ -86,8 +100,13 @@ function sectionWithToggle(label: string, toggleEl: HTMLElement): HTMLElement {
   return row
 }
 
+function sortTasks(tasks: Task[]): Task[] {
+  if (sortByTime) return [...tasks].sort((a, b) => getRemainingSeconds(a) - getRemainingSeconds(b))
+  return [...tasks].sort((a, b) => getUrgencyRatio(b) - getUrgencyRatio(a))
+}
+
 function renderByType(container: HTMLElement, tasks: Task[]): void {
-  const sorted = [...tasks].sort((a, b) => getRemainingSeconds(a) - getRemainingSeconds(b))
+  const sorted = sortTasks(tasks)
   container.appendChild(sectionWithToggle('Reminders', catWrap))
   for (const task of sorted) container.appendChild(renderTaskItem(task))
 }
@@ -103,7 +122,7 @@ function renderGroupedByCategory(container: HTMLElement, tasks: Task[]): void {
   for (const [cat, catTasks] of groups) {
     container.appendChild(first ? sectionWithToggle(cat, catWrap) : el('div', { className: 'fmn-section' }, cat))
     first = false
-    const sorted = catTasks.sort((a, b) => getRemainingSeconds(a) - getRemainingSeconds(b))
+    const sorted = sortTasks(catTasks)
     for (const task of sorted) container.appendChild(renderTaskItem(task))
   }
 }
@@ -173,10 +192,10 @@ function renderTaskItem(task: Task): HTMLElement {
 
   card.appendChild(row)
 
-  // Progress bar
-  const progress = el('div', { className: 'fmn-progress' })
+  // Progress bar — hidden in clock mode via height transition
+  const progress = el('div', { className: `fmn-progress${sortByTime ? ' fmn-progress-hidden' : ''}` })
   const fill = el('div', { className: 'fmn-progress-fill' })
-  fill.style.width = `${Math.min(ratio * 100, 100)}%`
+  fill.style.width = sortByTime ? '0%' : `${Math.min(ratio * 100, 100)}%`
   fill.style.background = color
   progress.appendChild(fill)
   card.appendChild(progress)
@@ -330,9 +349,11 @@ export function updatePanelTimers(container: HTMLElement): boolean {
     }
 
     // Update progress bar
+    const progressEl = card.querySelector<HTMLElement>('.fmn-progress')
+    if (progressEl) progressEl.classList.toggle('fmn-progress-hidden', sortByTime)
     const fill = card.querySelector<HTMLElement>('.fmn-progress-fill')
     if (fill) {
-      fill.style.width = `${Math.min(ratio * 100, 100)}%`
+      fill.style.width = sortByTime ? '0%' : `${Math.min(ratio * 100, 100)}%`
       fill.style.background = color
     }
 

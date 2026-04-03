@@ -225,6 +225,13 @@ button:active { opacity: 0.8; }
   border-radius: 2px;
   margin-top: 8px;
   overflow: hidden;
+  transition: height 0.3s ease, margin-top 0.3s ease, opacity 0.3s ease;
+}
+
+.fmn-progress-hidden {
+  height: 0;
+  margin-top: 0;
+  opacity: 0;
 }
 
 .fmn-progress-fill {

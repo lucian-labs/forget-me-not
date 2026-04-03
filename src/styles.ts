@@ -240,6 +240,54 @@ button:active { opacity: 0.8; }
   transition: width 1s linear;
 }
 
+/* Sort icon animations */
+
+@keyframes sortFlip {
+  0% { transform: rotateX(0deg) scale(1); }
+  40% { transform: rotateX(90deg) scale(0.8); }
+  60% { transform: rotateX(90deg) scale(0.8); }
+  100% { transform: rotateX(0deg) scale(1); }
+}
+
+@keyframes sortBounce {
+  0% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-6px) rotate(-15deg); }
+  50% { transform: translateY(0) rotate(0deg); }
+  75% { transform: translateY(-3px) rotate(10deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+@keyframes sortSpin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.3); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes sortPop {
+  0% { transform: scale(1); opacity: 1; }
+  30% { transform: scale(0) rotate(90deg); opacity: 0; }
+  60% { transform: scale(0) rotate(-90deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes sortWobble {
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(20deg); }
+  40% { transform: rotate(-15deg); }
+  60% { transform: rotate(10deg); }
+  80% { transform: rotate(-5deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.fmn-sort-icon {
+  display: inline-block;
+  cursor: default;
+}
+
+.fmn-sort-icon.fmn-sort-animate {
+  animation: var(--sort-anim) 0.5s ease;
+}
+
 /* Overdue flash */
 
 @keyframes overdueFlash {

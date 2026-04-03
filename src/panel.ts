@@ -55,16 +55,31 @@ export function renderPanel(container: HTMLElement): void {
   sndWrap.appendChild(sndToggle)
 
   // Sort toggle
-  const sortBtn = el('button', {
-    className: 'btn-ghost btn-sm',
-    style: 'font-size:13px;min-width:24px;padding:2px 4px;',
-  }, sortByTime ? '\u29D7' : '\u2630')
-  sortBtn.title = sortByTime ? 'Sorted by time remaining' : 'Sorted by percentage'
-  sortBtn.onclick = () => {
-    sortByTime = !sortByTime
+  const sortToggle = el('label', { className: 'fmn-toggle', style: 'margin:0;' })
+  const sortInput = el('input', { type: 'checkbox' }) as HTMLInputElement
+  sortInput.checked = !sortByTime
+  sortInput.onchange = () => {
+    sortByTime = !sortInput.checked
     localStorage.setItem('fmn-sort', sortByTime ? 'time' : 'pct')
+    // Pick a random animation
+    const anims = ['sortFlip', 'sortBounce', 'sortSpin', 'sortPop', 'sortWobble']
+    const pick = anims[Math.floor(Math.random() * anims.length)]
+    sortIcon.style.setProperty('--sort-anim', pick)
+    sortIcon.classList.remove('fmn-sort-animate')
+    void sortIcon.offsetWidth // force reflow
+    sortIcon.textContent = sortByTime ? '\u29D7' : '\u2630'
+    sortIcon.classList.add('fmn-sort-animate')
     navigate('panel')
   }
+  sortToggle.appendChild(sortInput)
+  sortToggle.appendChild(el('span', { className: 'fmn-toggle-track' }))
+  sortToggle.appendChild(el('span', { className: 'fmn-toggle-thumb' }))
+
+  const sortIcon = el('span', { className: 'fmn-sort-icon', style: 'font-size:11px;color:var(--dim);display:inline-block;' }, sortByTime ? '\u29D7' : '\u2630')
+
+  const sortWrap = el('div', { style: 'display:flex;align-items:center;gap:4px;' })
+  sortWrap.appendChild(sortIcon)
+  sortWrap.appendChild(sortToggle)
 
   const titleWrap = el('div', { style: 'display:flex;align-items:center;gap:8px;' })
   titleWrap.appendChild(renderHeaderIcon())
@@ -74,7 +89,7 @@ export function renderPanel(container: HTMLElement): void {
   const header = el('div', { className: 'fmn-header' },
     titleWrap,
     el('div', { className: 'fmn-header-actions' },
-      sortBtn,
+      sortWrap,
       sndWrap,
       createBtn('*', 'btn-ghost btn-sm', () => navigate('settings')),
     ),

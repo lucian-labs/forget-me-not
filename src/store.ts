@@ -246,6 +246,19 @@ export function getUrgencyRatio(task: Task): number {
   return 0
 }
 
+/** Seconds remaining until due/overdue. Negative = overdue. Infinity = no deadline. */
+export function getRemainingSeconds(task: Task): number {
+  const now = Date.now()
+  if (task.recurring && task.lastResetAt && task.cadenceSeconds) {
+    const elapsed = (now - new Date(task.lastResetAt).getTime()) / 1000
+    return task.cadenceSeconds - elapsed
+  }
+  if (task.dueDate) {
+    return (new Date(task.dueDate).getTime() - now) / 1000
+  }
+  return Infinity
+}
+
 export function getUrgencyColor(ratio: number): string {
   if (ratio < 0.75) return 'var(--green)'
   if (ratio < 0.95) return 'var(--orange)'

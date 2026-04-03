@@ -1,7 +1,7 @@
 import type { Task } from './types'
 import {
   getTasks, getSettings, updateSettings, getUrgencyRatio, getUrgencyColor, getUrgencyClass,
-  resetTask, completeTask, snoozeTask, archiveTask, addActionNote,
+  getRemainingSeconds, resetTask, completeTask, snoozeTask, archiveTask, addActionNote,
 } from './store'
 import { formatTime, formatCadence, el } from './utils'
 import { playAlert, clearAlert, syncAlertsToSW } from './sounds'
@@ -91,7 +91,7 @@ function sectionWithToggle(label: string, toggleEl: HTMLElement): HTMLElement {
 }
 
 function renderByType(container: HTMLElement, tasks: Task[]): void {
-  const sorted = [...tasks].sort((a, b) => getUrgencyRatio(b) - getUrgencyRatio(a))
+  const sorted = [...tasks].sort((a, b) => getRemainingSeconds(a) - getRemainingSeconds(b))
   container.appendChild(sectionWithToggle('Reminders', catWrap))
   for (const task of sorted) container.appendChild(renderTaskItem(task))
 }
@@ -107,7 +107,7 @@ function renderGroupedByCategory(container: HTMLElement, tasks: Task[]): void {
   for (const [cat, catTasks] of groups) {
     container.appendChild(first ? sectionWithToggle(cat, catWrap) : el('div', { className: 'fmn-section' }, cat))
     first = false
-    const sorted = catTasks.sort((a, b) => getUrgencyRatio(b) - getUrgencyRatio(a))
+    const sorted = catTasks.sort((a, b) => getRemainingSeconds(a) - getRemainingSeconds(b))
     for (const task of sorted) container.appendChild(renderTaskItem(task))
   }
 }

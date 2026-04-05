@@ -467,6 +467,7 @@ button:active { opacity: 0.8; }
 .fmn-log-badge-reset { background: rgba(34, 211, 238, 0.15); color: var(--cyan); }
 .fmn-log-badge-complete { background: rgba(74, 222, 128, 0.15); color: var(--green); }
 .fmn-log-badge-note { background: rgba(96, 165, 250, 0.15); color: var(--accent); }
+.fmn-log-badge-lapsed { background: rgba(251, 146, 60, 0.15); color: var(--orange); }
 
 .fmn-log-note { color: var(--text); flex: 1; }
 .fmn-log-time { color: var(--dim); font-size: 11px; white-space: nowrap; }

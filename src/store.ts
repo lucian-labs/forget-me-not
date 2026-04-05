@@ -177,6 +177,33 @@ export function snoozeTask(id: string): Task | undefined {
   return updateTask(id, { instance: { ...task.instance, startedAt: snoozeTime, snoozed: true } })
 }
 
+/** Auto-reset tasks that have been overdue for 2x their cadence */
+export function checkDoubleLapsed(): boolean {
+  const tasks = getTasks().filter((t) =>
+    t.recurring && t.instance && t.baseCadenceSeconds &&
+    t.status !== 'done' && t.status !== 'archived' && t.status !== 'cancelled'
+  )
+  let anyLapsed = false
+  for (const task of tasks) {
+    if (!task.instance || !task.baseCadenceSeconds) continue
+    const elapsed = (Date.now() - new Date(task.instance.startedAt).getTime()) / 1000
+    if (elapsed >= task.instance.actualCadenceSeconds * 2) {
+      const now = new Date().toISOString()
+      const newInstance: ReminderInstance = {
+        startedAt: now,
+        actualCadenceSeconds: randomizeCadence(task.baseCadenceSeconds, task.cadenceMore, task.cadenceLess),
+        snoozed: false,
+      }
+      updateTask(task.id, {
+        instance: newInstance,
+        actionLog: [...task.actionLog, { note: 'auto-reset: double lapsed', at: now, action: 'lapsed' as const }],
+      })
+      anyLapsed = true
+    }
+  }
+  return anyLapsed
+}
+
 export function killInstance(id: string): Task | undefined {
   return updateTask(id, { instance: null })
 }

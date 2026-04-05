@@ -1,6 +1,6 @@
 export type TaskStatus = 'open' | 'in_progress' | 'blocked' | 'done' | 'cancelled' | 'archived'
 export type TaskPriority = 'low' | 'normal' | 'high' | 'critical'
-export type ActionType = 'reset' | 'complete' | 'note'
+export type ActionType = 'reset' | 'complete' | 'note' | 'lapsed'
 
 export interface FollowUp {
   title: string

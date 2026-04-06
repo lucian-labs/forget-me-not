@@ -1,7 +1,7 @@
 import type { View } from './types'
 import { injectStyles } from './styles'
 import { getSettings, getTasks, getUrgencyRatio, checkDoubleLapsed } from './store'
-import { renderPanel, updatePanelTimers } from './panel'
+import { renderPanel, updatePanelTimers, isSleepMode } from './panel'
 import { renderDetail } from './detail'
 import { renderSettings } from './settings'
 import { renderCreate } from './create'
@@ -102,7 +102,7 @@ let lastSyncCount = -1
 
 function checkAlerts(): void {
   // Auto-reset tasks overdue for 2x their cadence — restarts the notification loop
-  checkDoubleLapsed()
+  if (!isSleepMode()) checkDoubleLapsed()
 
   const tasks = getTasks().filter((t) => t.status !== 'done' && t.status !== 'archived' && t.status !== 'cancelled')
   for (const task of tasks) {

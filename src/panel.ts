@@ -14,6 +14,9 @@ type CaptureState = { timer: number | null; mode: 'check' | 'note'; card: HTMLEl
 const captures = new Map<string, CaptureState>()
 let groupByCategory = localStorage.getItem('fmn-categorize') === 'true'
 let sortByTime = localStorage.getItem('fmn-sort') === 'time'
+let sleepMode = localStorage.getItem('fmn-sleep') === 'true'
+
+export function isSleepMode(): boolean { return sleepMode }
 const promptCache = new Map<string, { text: string; at: number }>()
 let catWrap: HTMLElement
 const prevOverdue = new Set<string>()
@@ -53,6 +56,24 @@ export function renderPanel(container: HTMLElement): void {
   const sndWrap = el('div', { style: 'display:flex;align-items:center;gap:4px;', 'data-tip': 'notification sounds', 'data-tip-pos': 'below' })
   sndWrap.appendChild(el('span', { style: 'font-size:11px;color:var(--dim);' }, '\u266B'))
   sndWrap.appendChild(sndToggle)
+
+  // Sleep toggle
+  const sleepToggle = el('label', { className: 'fmn-toggle', style: 'margin:0;' })
+  const sleepInput = el('input', { type: 'checkbox' }) as HTMLInputElement
+  sleepInput.checked = sleepMode
+  sleepInput.onchange = () => {
+    sleepMode = sleepInput.checked
+    localStorage.setItem('fmn-sleep', String(sleepMode))
+    navigate('panel')
+  }
+  sleepToggle.appendChild(sleepInput)
+  sleepToggle.appendChild(el('span', { className: 'fmn-toggle-track' }))
+  sleepToggle.appendChild(el('span', { className: 'fmn-toggle-thumb' }))
+
+  const sleepIcon = el('span', { style: 'font-size:11px;color:var(--dim);' }, sleepMode ? '\u{1F319}' : '\u263E')
+  const sleepWrap = el('div', { style: 'display:flex;align-items:center;gap:4px;', 'data-tip': sleepMode ? 'sleep mode \u2014 no auto-resets' : 'sleep mode off', 'data-tip-pos': 'below' })
+  sleepWrap.appendChild(sleepIcon)
+  sleepWrap.appendChild(sleepToggle)
 
   // Sort toggle
   const sortToggle = el('label', { className: 'fmn-toggle', style: 'margin:0;' })
@@ -96,6 +117,7 @@ export function renderPanel(container: HTMLElement): void {
   const header = el('div', { className: 'fmn-header' },
     titleWrap,
     el('div', { className: 'fmn-header-actions' },
+      sleepWrap,
       sortWrap,
       sndWrap,
       settingsBtn,

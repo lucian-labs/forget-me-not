@@ -7,7 +7,6 @@ import {
 import { el, timeAgo, formatCadence, formatTime, CADENCE_OPTIONS, createCadencePicker } from './utils'
 import { navigate } from './app'
 import { appName } from './brand'
-import { playTestSeed, playTest } from './sounds'
 
 export function renderDetail(container: HTMLElement, taskId: string): void {
   const task = getTask(taskId)
@@ -220,26 +219,15 @@ export function renderDetail(container: HTMLElement, taskId: string): void {
     moreGrid.appendChild(moreInput)
   }
 
-  // Per-task ringtone seed
-  const ringtoneLabel = el('span', { className: 'fmn-detail-label', 'data-tip': 'unique sound seed for this task', 'data-tip-pos': 'below' }, 'Ringtone')
-  const ringtoneRow = el('div', { style: 'display:flex;align-items:center;gap:6px;' })
-  const ringtoneInput = el('input', { type: 'text', value: task.soundSeed || '', placeholder: 'default', style: 'width:100px;font-size:13px;' }) as HTMLInputElement
-  ringtoneInput.onblur = () => {
-    const val = ringtoneInput.value.trim() || null
+  // Per-task ringtone tweak
+  const ringSeedInput = el('input', { type: 'text', value: task.soundSeed || '', placeholder: 'default', style: 'width:100px;font-size:13px;' }) as HTMLInputElement
+  ringSeedInput.onblur = () => {
+    const val = ringSeedInput.value.trim() || null
     if (val !== task.soundSeed) updateTask(task.id, { soundSeed: val })
   }
-  ringtoneInput.onkeydown = (e) => { if (e.key === 'Enter') ringtoneInput.blur() }
-  const ringtonePlayBtn = el('button', { className: 'btn-ghost btn-sm', style: 'font-size:12px;padding:2px 6px;' }, '\u25B6') as HTMLButtonElement
-  ringtonePlayBtn.dataset.tip = 'preview ringtone'
-  ringtonePlayBtn.onclick = () => {
-    const seed = ringtoneInput.value.trim()
-    if (seed) playTestSeed(seed)
-    else playTest()
-  }
-  ringtoneRow.appendChild(ringtoneInput)
-  ringtoneRow.appendChild(ringtonePlayBtn)
-  moreGrid.appendChild(ringtoneLabel)
-  moreGrid.appendChild(ringtoneRow)
+  ringSeedInput.onkeydown = (e) => { if (e.key === 'Enter') ringSeedInput.blur() }
+  moreGrid.appendChild(el('span', { className: 'fmn-detail-label' }, 'Ringtone'))
+  moreGrid.appendChild(ringSeedInput)
 
   // Priority dropdown
   const prioritySelect = el('select', { className: `fmn-badge fmn-badge-${task.priority}`, style: 'border:none;font-size:10px;' }) as HTMLSelectElement

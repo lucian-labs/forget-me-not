@@ -109,23 +109,9 @@ export function playAlert(taskId: string, task?: Task): void {
   if (!keepAliveStarted) startKeepAlive()
 
   // YamaBruh synth — with keep-alive, should work even when backgrounded
-  if (task?.soundSeed) {
-    // Per-task ringtone: spin up a one-off instance with the task's own seed
-    try {
-      const Ctor = (window as any).YamaBruhNotify
-      if (Ctor) {
-        const one = new Ctor({
-          seed: task.soundSeed,
-          preset: settings.soundPreset,
-          bpm: settings.soundBpm,
-          volume: settings.soundVolume,
-          mode: settings.soundMode,
-        })
-        one.play(taskId)
-      }
-    } catch { /* fall through to default */ }
-  } else if (notify) {
-    notify.play(taskId)
+  if (notify) {
+    const playId = task?.soundSeed ? `${task.soundSeed}:${taskId}` : taskId
+    notify.play(playId)
   }
 
   // System notification as backup + visual alert
@@ -155,20 +141,6 @@ export function playTest(): void {
   notify.play('test-' + Date.now())
 }
 
-export function playTestSeed(seed: string): void {
-  if (!keepAliveStarted) startKeepAlive()
-  const Ctor = (window as any).YamaBruhNotify
-  if (!Ctor) return
-  const settings = getSettings()
-  const one = new Ctor({
-    seed,
-    preset: settings.soundPreset,
-    bpm: settings.soundBpm,
-    volume: settings.soundVolume,
-    mode: settings.soundMode,
-  })
-  one.play('test-' + Date.now())
-}
 
 export function clearAlert(taskId: string): void {
   alerted.delete(taskId)

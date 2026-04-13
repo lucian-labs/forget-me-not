@@ -47,6 +47,8 @@ export interface Task {
 
   prompts: string[]
 
+  soundSeed: string | null
+
   actionLog: ActionLogEntry[]
 }
 

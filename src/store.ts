@@ -111,6 +111,7 @@ export function createTask(partial: Partial<Task> & { title: string }): Task {
     followUps: partial.followUps ?? [],
     parentTaskId: partial.parentTaskId ?? null,
     prompts: partial.prompts ?? [],
+    soundSeed: partial.soundSeed ?? null,
     actionLog: [],
   }
   const tasks = getTasks()

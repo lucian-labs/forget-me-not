@@ -222,8 +222,15 @@ async function init(): Promise<void> {
 
   // Capture install prompt for on-demand triggering
   let installPrompt: any = null
+  const isInstalledPwa = () =>
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: minimal-ui)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches ||
+    (navigator as any).standalone === true
+
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault()
+    if (isInstalledPwa()) return // already installed, no need to offer
     installPrompt = e
     // Show install button in footer
     const footer = document.querySelector('.fmn-footer')
@@ -240,6 +247,16 @@ async function init(): Promise<void> {
       footer.appendChild(document.createTextNode(' · '))
       footer.appendChild(btn)
     }
+  })
+
+  // Remove the install link the moment the app gets installed
+  window.addEventListener('appinstalled', () => {
+    installPrompt = null
+    document.querySelectorAll('.fmn-install').forEach((el) => {
+      const sep = el.previousSibling
+      if (sep && sep.nodeType === Node.TEXT_NODE && sep.textContent === ' · ') sep.remove()
+      el.remove()
+    })
   })
 
   // Keep screen on

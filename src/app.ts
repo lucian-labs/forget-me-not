@@ -71,7 +71,7 @@ function render(): void {
 
     const footer = document.createElement('footer')
     footer.className = 'fmn-footer'
-    footer.innerHTML = `v${__APP_VERSION__} <span class="fmn-sw-version"></span> · by <a href="https://lucianlabs.ca" target="_blank" rel="noopener">lucianlabs.ca</a> · <a href="https://github.com/lucian-labs/forget-me-not" target="_blank" rel="noopener">source code</a> · <a href="/vibe" style="opacity:0.5;">\u2726 vibe</a>`
+    footer.innerHTML = `v${__APP_VERSION__} <span class="fmn-sw-version"></span><span class="fmn-update-slot"></span> · by <a href="https://lucianlabs.ca" target="_blank" rel="noopener">lucianlabs.ca</a> · <a href="https://github.com/lucian-labs/forget-me-not" target="_blank" rel="noopener">source code</a> · <a href="/vibe" style="opacity:0.5;">\u2726 vibe</a>`
     app.appendChild(footer)
   }
 
@@ -254,7 +254,42 @@ async function init(): Promise<void> {
   }
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(() => {})
+    const showUpdateButton = () => {
+      const slot = document.querySelector('.fmn-update-slot')
+      if (!slot || slot.querySelector('.fmn-update')) return
+      const btn = document.createElement('a')
+      btn.className = 'fmn-update'
+      btn.textContent = '\u21bb update'
+      btn.title = 'A new version is available — click to refresh'
+      btn.style.cssText = 'color:var(--accent);cursor:pointer;margin-left:6px;text-decoration:none;'
+      btn.onclick = (e) => {
+        e.preventDefault()
+        location.reload()
+      }
+      slot.appendChild(btn)
+    }
+
+    navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then((reg) => {
+      // If a new SW is already waiting at registration time, show button immediately
+      if (reg.waiting && navigator.serviceWorker.controller) showUpdateButton()
+
+      // Detect a new SW being installed
+      reg.addEventListener('updatefound', () => {
+        const sw = reg.installing
+        if (!sw) return
+        sw.addEventListener('statechange', () => {
+          // Only flag as "update" if there's already an active controller
+          // (otherwise this is the first-ever install on this client)
+          if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+            showUpdateButton()
+          }
+        })
+      })
+
+      // Periodically poll for a new SW so the button can appear without a manual reload
+      setInterval(() => reg.update().catch(() => {}), 60_000)
+    }).catch(() => {})
+
     navigator.serviceWorker.addEventListener('message', (e) => {
       if (e.data?.type === 'sw-version') {
         document.querySelectorAll('.fmn-sw-version').forEach((el) => {

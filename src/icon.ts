@@ -64,8 +64,11 @@ export function applyIcon(): void {
       background_color: resolved.colors.bg,
       theme_color: resolved.colors.accent,
       icons: [
+        // PNG icons required by Chrome's installability criteria (must be raster)
+        { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+        { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+        // SVG fallback for browsers that prefer scalable icons
         { src: uri512, sizes: '512x512', type: 'image/svg+xml' },
-        { src: uri, sizes: '64x64', type: 'image/svg+xml' },
       ],
     }
     const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' })

@@ -322,6 +322,11 @@ async function init(): Promise<void> {
   const shopScript = document.createElement('script')
   shopScript.src = 'https://cdn.lucianlabs.ca/scripts/ll-shop.js'
   document.body.appendChild(shopScript)
+
+  const radioScript = document.createElement('script')
+  radioScript.src = 'https://cdn.lucianlabs.ca/scripts/ll-radio.js'
+  document.body.appendChild(radioScript)
+  document.body.appendChild(document.createElement('ll-radio'))
 }
 
 init()

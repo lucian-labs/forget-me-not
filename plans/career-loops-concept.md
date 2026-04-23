@@ -30,3 +30,32 @@ Habit apps (Streaks, Habitica, etc.) model **presence** — did you do it, yes/n
 ### The one-sentence version
 
 A loop is a pre-committed structure that converts a resistance-laden decision into a mechanical rep, tracked by volume not outcome, at a pre-tiered stakes level, with the escape condition already defined.
+
+---
+
+## Refinement — entity-centric, event-logged, evidence-bearing
+
+The "do 10 pushups" framing undersells what a loop actually is. A loop is not a counter on a single repeating action — it's a **sequence of events attached to an entity**, producing a growth log over time.
+
+### What the loop actually tracks
+
+- **The entity** — a concrete subject the loop applies to: a piece of artwork, a listing, a project, a product, a writing draft. The loop lives on the entity, not in the abstract.
+- **A series of events** — the ordered stages that entity passes through. Example: *chose a piece → posted it on social → added it to the store*. Each of those is an event inside one loop instance for one entity.
+- **Evidence per event** — mandatory, not optional. "I did this here's proof" is the shape of each log entry. Links, screenshots, URLs, timestamps. This is the load-bearing difference from tasks: in tasks evidence is optional, in loops it's the whole point.
+- **Growth over time** — aggregated across entities and events, the loop becomes a record of moved work. The dashboard isn't "did you do it today" — it's "what did each thing go through, and where did it end up."
+
+### Relation to the existing task model
+
+Loops likely **inherit follow-up task logic**. A follow-up on a task already encodes "after X, do Y" — which is structurally close to "after event A in the loop, event B becomes due." That machinery may be reusable, with the loop layering on: entity identity, required evidence, and ordered stages rather than a flat follow-up list.
+
+### What this implies for the dashboard
+
+The current playground models loops as rep-counters per loop definition. The refactor direction is:
+
+- Top-level: list of **loop templates** (the stage sequence) — e.g. "Artwork release."
+- Under each template: list of **entities** moving through it — e.g. *Redwood Study #3*, *Blue Field*, *etc.*
+- Per entity: **timeline of events**, each with its stage name, timestamp, and evidence blob.
+- "Advance" an entity = log the next event with required evidence, not toggle a boolean.
+
+To be reconciled in the next pass against the GC pipeline-template model (`Loop` + `LoopItem` + stage transitions) — that one is already entity-centric and event-logged, so the two framings probably collapse into a single model once aggregated.
+

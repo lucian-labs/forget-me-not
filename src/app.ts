@@ -12,6 +12,7 @@ import { updateSettings, isFirstRun } from './store'
 import { checkImportFromUrl } from './transfer'
 import { applyIcon } from './icon'
 import { renderVibe } from './taskyeet'
+import { renderLoops } from './loops'
 import { loadSeedIfEmpty } from './seed'
 
 let currentView: View = 'panel'
@@ -26,12 +27,14 @@ function viewToPath(view: View, taskId?: string | null): string {
     case 'create': return '/new'
     case 'detail': return `/task/${taskId}`
     case 'taskyeet': return '/vibe'
+    case 'loops': return '/loops'
   }
 }
 
 function pathToRoute(): { view: View; taskId: string | null } {
   const path = location.pathname
   if (path === '/vibe') return { view: 'taskyeet', taskId: null }
+  if (path === '/loops') return { view: 'loops', taskId: null }
   if (path === '/settings/share') return { view: 'share', taskId: null }
   if (path === '/settings') return { view: 'settings', taskId: null }
   if (path === '/new') return { view: 'create', taskId: null }
@@ -71,7 +74,15 @@ function render(): void {
 
     const footer = document.createElement('footer')
     footer.className = 'fmn-footer'
-    footer.innerHTML = `v${__APP_VERSION__} <span class="fmn-sw-version"></span><span class="fmn-update-slot"></span> · by <a href="https://lucianlabs.ca" target="_blank" rel="noopener">lucianlabs.ca</a> · <a href="https://github.com/lucian-labs/forget-me-not" target="_blank" rel="noopener">source code</a> · <a href="/vibe" style="opacity:0.5;">\u2726 vibe</a>`
+    footer.innerHTML = `v${__APP_VERSION__} <span class="fmn-sw-version"></span><span class="fmn-update-slot"></span> · by <a href="https://lucianlabs.ca" target="_blank" rel="noopener">lucianlabs.ca</a> · <a href="https://github.com/lucian-labs/forget-me-not" target="_blank" rel="noopener">source code</a> · <a href="/loops" class="fmn-loops-link">loops</a> · <a href="/vibe" style="opacity:0.5;">\u2726 vibe</a>`
+    // Intercept footer SPA links so they don't do a full page load
+    footer.addEventListener('click', (e) => {
+      const target = (e.target as HTMLElement).closest('a') as HTMLAnchorElement | null
+      if (!target) return
+      const href = target.getAttribute('href') || ''
+      if (href === '/loops') { e.preventDefault(); navigate('loops') }
+      else if (href === '/vibe') { e.preventDefault(); navigate('taskyeet') }
+    })
     app.appendChild(footer)
   }
 
@@ -93,6 +104,9 @@ function render(): void {
       break
     case 'taskyeet':
       renderVibe(content)
+      break
+    case 'loops':
+      renderLoops(content)
       break
   }
 }

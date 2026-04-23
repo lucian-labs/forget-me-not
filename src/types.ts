@@ -121,4 +121,4 @@ export interface SyncConfig {
   enabled: boolean
 }
 
-export type View = 'panel' | 'detail' | 'settings' | 'create' | 'share' | 'taskyeet'
+export type View = 'panel' | 'detail' | 'settings' | 'create' | 'share' | 'taskyeet' | 'loops'

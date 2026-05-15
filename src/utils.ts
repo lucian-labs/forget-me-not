@@ -107,7 +107,7 @@ export function renderStreakStrip(pips: StreakPip[], large = false): HTMLElement
     pip.style.background = pipColor(p)
     const when = new Date(p.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
     pip.dataset.tip = `${pipLabel(p)} · ${when}`
-    pip.dataset.tipPos = 'below'
+    // No tipPos — defaults to 'above' so the cursor doesn't cover the tooltip.
     if (i === pips.length - 1) pip.classList.add('fmn-streak-pip-latest')
     pipNodes.push(pip)
     strip.appendChild(pip)

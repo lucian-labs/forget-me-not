@@ -1,4 +1,4 @@
-import type { Task, ReminderInstance, Settings, FollowUp } from './types'
+import type { Task, ReminderInstance, Settings, FollowUp, ActionType } from './types'
 
 const TASKS_KEY = 'fmn-tasks'
 const SETTINGS_KEY = 'fmn-settings'
@@ -338,4 +338,32 @@ export function getUrgencyColor(ratio: number): string {
 export function getUrgencyClass(ratio: number): string {
   if (ratio >= 1.0) return 'fmn-overdue'
   return ''
+}
+
+// --- Streak / cadence history ---
+
+export interface CyclePip {
+  ratio: number
+  action: ActionType
+  at: string
+}
+
+/** Build a history of completed cycles for a recurring task. Each pip's ratio is
+ *  the elapsed time of that cycle divided by the task's expected cadence. */
+export function getCycleHistory(task: Task): CyclePip[] {
+  if (!task.baseCadenceSeconds) return []
+  const cadence = task.baseCadenceSeconds
+  const cycleActions = task.actionLog.filter(
+    (e) => e.action === 'reset' || e.action === 'lapsed' || e.action === 'complete',
+  )
+  if (cycleActions.length === 0) return []
+  const pips: CyclePip[] = []
+  let prev = new Date(task.createdAt).getTime()
+  for (const entry of cycleActions) {
+    const t = new Date(entry.at).getTime()
+    const interval = (t - prev) / 1000
+    pips.push({ ratio: interval / cadence, action: entry.action, at: entry.at })
+    prev = t
+  }
+  return pips
 }

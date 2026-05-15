@@ -241,6 +241,57 @@ button:active { opacity: 0.8; }
   transition: width 1s linear;
 }
 
+/* Streak strip */
+
+.fmn-streak {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 6px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.fmn-streak-pip {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--dim);
+  transition: transform 0.15s;
+}
+
+.fmn-streak-pip:hover {
+  transform: scale(1.6);
+}
+
+.fmn-streak-pip-latest {
+  box-shadow: 0 0 0 1.5px var(--bg), 0 0 0 2.5px currentColor;
+  color: var(--text);
+}
+
+.fmn-streak-more {
+  font-size: 9px;
+  color: var(--dim);
+  margin-right: 2px;
+  font-family: var(--font);
+}
+
+.fmn-streak-lg {
+  gap: 4px;
+  margin-top: 0;
+}
+
+.fmn-streak-lg .fmn-streak-pip {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.fmn-streak-lg .fmn-streak-more {
+  font-size: 11px;
+}
+
 /* Sort icon animations */
 
 @keyframes sortFlip {
@@ -471,6 +522,21 @@ button:active { opacity: 0.8; }
 
 .fmn-log-note { color: var(--text); flex: 1; }
 .fmn-log-time { color: var(--dim); font-size: 11px; white-space: nowrap; }
+
+.fmn-log-date {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--dim);
+  margin: 10px 0 2px;
+  padding-bottom: 2px;
+  border-bottom: 1px dashed var(--border);
+}
+
+.fmn-log-date:first-child {
+  margin-top: 0;
+}
 
 /* Inputs */
 

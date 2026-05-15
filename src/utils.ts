@@ -30,6 +30,81 @@ export function timeAgo(iso: string): string {
   return `${Math.round(diff / 86400)}d ago`
 }
 
+function startOfDay(d: Date): number {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+}
+
+/** Calendar-day label relative to today: "Today", "Yesterday", "May 10", "Apr 28, 2024". */
+export function dayLabel(iso: string): string {
+  const d = new Date(iso)
+  const today = startOfDay(new Date())
+  const day = startOfDay(d)
+  const diffDays = Math.round((today - day) / 86400000)
+  if (diffDays === 0) return 'Today'
+  if (diffDays === 1) return 'Yesterday'
+  const sameYear = d.getFullYear() === new Date().getFullYear()
+  const opts: Intl.DateTimeFormatOptions = sameYear
+    ? { month: 'short', day: 'numeric' }
+    : { month: 'short', day: 'numeric', year: 'numeric' }
+  return d.toLocaleDateString(undefined, opts)
+}
+
+/** Stable per-day key for grouping. */
+export function dayKey(iso: string): string {
+  const d = new Date(iso)
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+}
+
+export function timeOfDay(iso: string): string {
+  return new Date(iso).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+}
+
+interface StreakPip {
+  ratio: number
+  action: 'reset' | 'complete' | 'note' | 'lapsed'
+  at: string
+}
+
+/** Color a pip by how close the cycle was to expected cadence. */
+function pipColor(p: StreakPip): string {
+  if (p.action === 'lapsed') return 'var(--red)'
+  if (p.ratio < 0.5) return 'var(--cyan)'
+  if (p.ratio <= 1.0) return 'var(--green)'
+  if (p.ratio <= 1.5) return 'var(--orange)'
+  return 'var(--red)'
+}
+
+function pipLabel(p: StreakPip): string {
+  const pct = Math.round(p.ratio * 100)
+  if (p.action === 'lapsed') return `lapsed (${pct}%)`
+  if (p.ratio < 0.5) return `early (${pct}%)`
+  if (p.ratio <= 1.0) return `on time (${pct}%)`
+  if (p.ratio <= 1.5) return `late (${pct}%)`
+  return `very late (${pct}%)`
+}
+
+/** Render a horizontal strip of cycle-history pips. Pass `max` to cap visible pips
+ *  (newest kept). Returns null if there are no pips to show. */
+export function renderStreakStrip(pips: StreakPip[], max = 12, large = false): HTMLElement | null {
+  if (pips.length === 0) return null
+  const visible = pips.length > max ? pips.slice(pips.length - max) : pips
+  const strip = el('div', { className: `fmn-streak${large ? ' fmn-streak-lg' : ''}` })
+  if (pips.length > max) {
+    strip.appendChild(el('span', { className: 'fmn-streak-more' }, `+${pips.length - max}`))
+  }
+  for (let i = 0; i < visible.length; i++) {
+    const p = visible[i]
+    const pip = el('span', { className: 'fmn-streak-pip' })
+    pip.style.background = pipColor(p)
+    const when = new Date(p.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+    pip.dataset.tip = `${pipLabel(p)} · ${when}`
+    pip.dataset.tipPos = 'below'
+    if (i === visible.length - 1) pip.classList.add('fmn-streak-pip-latest')
+    strip.appendChild(pip)
+  }
+  return strip
+}
+
 export function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
   attrs?: Record<string, string>,

@@ -83,25 +83,81 @@ function pipLabel(p: StreakPip): string {
   return `very late (${pct}%)`
 }
 
-/** Render a horizontal strip of cycle-history pips. Pass `max` to cap visible pips
- *  (newest kept). Returns null if there are no pips to show. */
-export function renderStreakStrip(pips: StreakPip[], max = 12, large = false): HTMLElement | null {
+/** Render a horizontal strip of cycle-history pips.
+ *
+ *  Right-aligned and full-width. Renders every pip into the DOM, then measures
+ *  the available width via ResizeObserver and hides the oldest pips when they
+ *  don't fit — surfacing a "+N" badge at the left of the visible cluster.
+ *  Newest pip is always visible at the right edge.
+ *
+ *  Returns null if there are no pips to show. */
+export function renderStreakStrip(pips: StreakPip[], large = false): HTMLElement | null {
   if (pips.length === 0) return null
-  const visible = pips.length > max ? pips.slice(pips.length - max) : pips
+
   const strip = el('div', { className: `fmn-streak${large ? ' fmn-streak-lg' : ''}` })
-  if (pips.length > max) {
-    strip.appendChild(el('span', { className: 'fmn-streak-more' }, `+${pips.length - max}`))
-  }
-  for (let i = 0; i < visible.length; i++) {
-    const p = visible[i]
+
+  const moreBadge = el('span', { className: 'fmn-streak-more' })
+  moreBadge.style.display = 'none'
+  strip.appendChild(moreBadge)
+
+  const pipNodes: HTMLElement[] = []
+  for (let i = 0; i < pips.length; i++) {
+    const p = pips[i]
     const pip = el('span', { className: 'fmn-streak-pip' })
     pip.style.background = pipColor(p)
     const when = new Date(p.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
     pip.dataset.tip = `${pipLabel(p)} · ${when}`
     pip.dataset.tipPos = 'below'
-    if (i === visible.length - 1) pip.classList.add('fmn-streak-pip-latest')
+    if (i === pips.length - 1) pip.classList.add('fmn-streak-pip-latest')
+    pipNodes.push(pip)
     strip.appendChild(pip)
   }
+
+  const updateOverflow = (): void => {
+    // Reset state on each measure pass
+    for (const pip of pipNodes) pip.style.display = ''
+    moreBadge.style.display = 'none'
+    moreBadge.textContent = ''
+
+    const stripWidth = strip.clientWidth
+    if (stripWidth === 0) return
+
+    const cs = getComputedStyle(strip)
+    const gap = parseFloat(cs.gap) || (large ? 4 : 3)
+    const pipWidth = pipNodes[0]?.offsetWidth || (large ? 10 : 6)
+    const slot = pipWidth + gap
+
+    const totalWidth = pipNodes.length * slot - gap
+    if (totalWidth <= stripWidth) return // all fit
+
+    // Reserve room for the "+N" badge — measure once it has placeholder text so
+    // we can use its real width rather than a guess.
+    moreBadge.style.display = ''
+    moreBadge.textContent = `+${pipNodes.length}`
+    const badgeWidth = moreBadge.offsetWidth + gap
+
+    const available = stripWidth - badgeWidth
+    const visibleCount = Math.max(0, Math.floor((available + gap) / slot))
+    const hideCount = pipNodes.length - visibleCount
+
+    if (hideCount <= 0) {
+      moreBadge.style.display = 'none'
+      moreBadge.textContent = ''
+      return
+    }
+
+    for (let i = 0; i < hideCount; i++) pipNodes[i].style.display = 'none'
+    moreBadge.textContent = `+${hideCount}`
+  }
+
+  // Initial layout: defer one frame so the strip has been inserted and sized
+  requestAnimationFrame(updateOverflow)
+
+  if ('ResizeObserver' in window) {
+    const ro = new ResizeObserver(updateOverflow)
+    ro.observe(strip)
+  }
+
   return strip
 }
 

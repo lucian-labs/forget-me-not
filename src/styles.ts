@@ -250,6 +250,8 @@ button:active { opacity: 0.8; }
   margin-top: 6px;
   flex-wrap: nowrap;
   overflow: hidden;
+  width: 100%;
+  justify-content: flex-end;
 }
 
 .fmn-streak-pip {

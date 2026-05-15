@@ -377,7 +377,7 @@ function renderActionLog(container: HTMLElement, task: Task): void {
   section.appendChild(el('h3', {}, 'Action Log'))
 
   if (task.recurring) {
-    const strip = renderStreakStrip(getCycleHistory(task), 24, true)
+    const strip = renderStreakStrip(getCycleHistory(task), true)
     if (strip) {
       const stripWrap = el('div', { style: 'margin-bottom:10px;' })
       stripWrap.appendChild(strip)

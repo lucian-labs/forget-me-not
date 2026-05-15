@@ -2,8 +2,9 @@ import type { Task } from './types'
 import {
   getTasks, getSettings, updateSettings, getUrgencyRatio, getUrgencyColor, getUrgencyClass,
   getRemainingSeconds, resetTask, completeTask, snoozeTask, archiveTask, addActionNote,
+  getCycleHistory,
 } from './store'
-import { formatTime, formatCadence, el } from './utils'
+import { formatTime, formatCadence, el, renderStreakStrip } from './utils'
 import { navigate } from './app'
 import { animateOut } from './animate'
 import { appName } from './brand'
@@ -252,6 +253,12 @@ function renderTaskItem(task: Task): HTMLElement {
   fill.style.background = color
   progress.appendChild(fill)
   card.appendChild(progress)
+
+  // Streak strip — recurring tasks only, shows recent cycle history
+  if (isRecurring) {
+    const strip = renderStreakStrip(getCycleHistory(task))
+    if (strip) card.appendChild(strip)
+  }
 
 
   // Capture input (each task has its own independent lifecycle)

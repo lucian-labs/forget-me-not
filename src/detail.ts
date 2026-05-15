@@ -2,9 +2,9 @@ import type { Task, TaskStatus, TaskPriority } from './types'
 import {
   getTask, getTasks, updateTask, resetTask, completeTask, archiveTask,
   killInstance, restartInstance,
-  getUrgencyRatio, getUrgencyColor, addActionNote, getSettings,
+  getUrgencyRatio, getUrgencyColor, addActionNote, getSettings, getCycleHistory,
 } from './store'
-import { el, timeAgo, formatCadence, formatTime, CADENCE_OPTIONS, createCadencePicker } from './utils'
+import { el, timeAgo, formatCadence, formatTime, dayKey, dayLabel, timeOfDay, renderStreakStrip, CADENCE_OPTIONS, createCadencePicker } from './utils'
 import { navigate } from './app'
 import { appName } from './brand'
 
@@ -376,15 +376,30 @@ function renderActionLog(container: HTMLElement, task: Task): void {
   const section = el('div', { className: 'fmn-detail-section' })
   section.appendChild(el('h3', {}, 'Action Log'))
 
+  if (task.recurring) {
+    const strip = renderStreakStrip(getCycleHistory(task), 24, true)
+    if (strip) {
+      const stripWrap = el('div', { style: 'margin-bottom:10px;' })
+      stripWrap.appendChild(strip)
+      section.appendChild(stripWrap)
+    }
+  }
+
   if (task.actionLog.length === 0) {
     section.appendChild(el('div', { style: 'color:var(--dim);font-size:12px;' }, 'No actions yet.'))
   } else {
     const entries = [...task.actionLog].reverse()
+    let prevKey: string | null = null
     for (const entry of entries) {
+      const key = dayKey(entry.at)
+      if (key !== prevKey) {
+        section.appendChild(el('div', { className: 'fmn-log-date' }, dayLabel(entry.at)))
+        prevKey = key
+      }
       const row = el('div', { className: 'fmn-log-entry' })
       row.appendChild(el('span', { className: `fmn-log-badge fmn-log-badge-${entry.action}` }, entry.action))
       row.appendChild(el('span', { className: 'fmn-log-note' }, entry.note || '\u2014'))
-      row.appendChild(el('span', { className: 'fmn-log-time' }, timeAgo(entry.at)))
+      row.appendChild(el('span', { className: 'fmn-log-time' }, timeOfDay(entry.at)))
       section.appendChild(row)
     }
   }

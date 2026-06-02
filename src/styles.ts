@@ -246,7 +246,7 @@ button:active { opacity: 0.8; }
 .fmn-streak {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 0;
   margin-top: 6px;
   flex-wrap: nowrap;
   overflow: hidden;
@@ -260,27 +260,51 @@ button:active { opacity: 0.8; }
   height: 6px;
   border-radius: 2px;
   background: var(--dim);
-  transition: transform 0.15s;
+  opacity: 0.35;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+/* Brighten everything when the strip is hovered, brighten the
+   hovered pip to full and its neighbors to a midway proximity tier. */
+.fmn-streak:hover .fmn-streak-pip {
+  opacity: 0.55;
 }
 
 .fmn-streak-pip:hover {
+  opacity: 1;
   transform: scale(1.6);
 }
 
+.fmn-streak-pip:hover + .fmn-streak-pip,
+.fmn-streak-pip:has(+ .fmn-streak-pip:hover) {
+  opacity: 0.85;
+}
+
+/* Latest pip always reads as "you are here" — slightly brighter at rest
+   and keeps its bg-ring + currentColor halo. */
 .fmn-streak-pip-latest {
+  opacity: 0.7;
   box-shadow: 0 0 0 1.5px var(--bg), 0 0 0 2.5px currentColor;
   color: var(--text);
+}
+
+.fmn-streak:hover .fmn-streak-pip-latest {
+  opacity: 0.9;
 }
 
 .fmn-streak-more {
   font-size: 9px;
   color: var(--dim);
-  margin-right: 2px;
+  opacity: 0.6;
   font-family: var(--font);
+  transition: opacity 0.15s ease;
+}
+
+.fmn-streak:hover .fmn-streak-more {
+  opacity: 1;
 }
 
 .fmn-streak-lg {
-  gap: 4px;
   margin-top: 0;
 }
 

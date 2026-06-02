@@ -258,14 +258,21 @@ button:active { opacity: 0.8; }
   flex: 0 0 auto;
   width: 6px;
   height: 6px;
-  border-radius: 2px;
+  border-radius: 0;
   background: var(--dim);
   opacity: 0.35;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: opacity 0.15s ease, transform 0.15s ease, border-radius 0.15s ease;
 }
 
+/* Only the ends of the visible run keep a rounded corner so the
+   middle reads as one continuous bar. */
+.fmn-streak-pip-end-left  { border-top-left-radius: 2px;  border-bottom-left-radius: 2px; }
+.fmn-streak-pip-end-right { border-top-right-radius: 2px; border-bottom-right-radius: 2px; }
+
 /* Brighten everything when the strip is hovered, brighten the
-   hovered pip to full and its neighbors to a midway proximity tier. */
+   hovered pip to full and its neighbors to a midway proximity tier.
+   On hover the pip lifts off the bar — re-round it all the way for
+   a chip-like focus state. */
 .fmn-streak:hover .fmn-streak-pip {
   opacity: 0.55;
 }
@@ -273,6 +280,7 @@ button:active { opacity: 0.8; }
 .fmn-streak-pip:hover {
   opacity: 1;
   transform: scale(1.6);
+  border-radius: 2px;
 }
 
 .fmn-streak-pip:hover + .fmn-streak-pip,
@@ -311,8 +319,11 @@ button:active { opacity: 0.8; }
 .fmn-streak-lg .fmn-streak-pip {
   width: 10px;
   height: 10px;
-  border-radius: 2px;
 }
+
+.fmn-streak-lg .fmn-streak-pip-end-left  { border-top-left-radius: 3px;  border-bottom-left-radius: 3px; }
+.fmn-streak-lg .fmn-streak-pip-end-right { border-top-right-radius: 3px; border-bottom-right-radius: 3px; }
+.fmn-streak-lg .fmn-streak-pip:hover     { border-radius: 3px; }
 
 .fmn-streak-lg .fmn-streak-more {
   font-size: 11px;

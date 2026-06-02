@@ -113,6 +113,20 @@ export function renderStreakStrip(pips: StreakPip[], large = false): HTMLElement
     strip.appendChild(pip)
   }
 
+  const markEnds = (firstVisibleIdx: number): void => {
+    // Clear all end markers, then tag the leftmost-visible and rightmost pips
+    // so CSS can round only the outer corners. With gap: 0 the inner pips look
+    // like a single bar; the ends keep the radius for shape on the outside.
+    for (const pip of pipNodes) {
+      pip.classList.remove('fmn-streak-pip-end-left', 'fmn-streak-pip-end-right')
+    }
+    const lastIdx = pipNodes.length - 1
+    if (firstVisibleIdx <= lastIdx) {
+      pipNodes[firstVisibleIdx].classList.add('fmn-streak-pip-end-left')
+      pipNodes[lastIdx].classList.add('fmn-streak-pip-end-right')
+    }
+  }
+
   const updateOverflow = (): void => {
     // Reset state on each measure pass
     for (const pip of pipNodes) pip.style.display = ''
@@ -120,18 +134,23 @@ export function renderStreakStrip(pips: StreakPip[], large = false): HTMLElement
     moreBadge.textContent = ''
 
     const stripWidth = strip.clientWidth
-    if (stripWidth === 0) return
+    if (stripWidth === 0) { markEnds(0); return }
 
     const cs = getComputedStyle(strip)
-    const gap = parseFloat(cs.gap) || (large ? 4 : 3)
+    // Robust gap parse: 0px is valid and must not fall through to the default.
+    const parsedGap = parseFloat(cs.gap)
+    const gap = Number.isFinite(parsedGap) ? parsedGap : (large ? 4 : 3)
     const pipWidth = pipNodes[0]?.offsetWidth || (large ? 10 : 6)
     const slot = pipWidth + gap
 
-    const totalWidth = pipNodes.length * slot - gap
-    if (totalWidth <= stripWidth) return // all fit
+    const totalWidth = pipNodes.length * slot - (pipNodes.length > 0 ? gap : 0)
+    if (totalWidth <= stripWidth) {
+      markEnds(0)
+      return
+    }
 
-    // Reserve room for the "+N" badge — measure once it has placeholder text so
-    // we can use its real width rather than a guess.
+    // Reserve room for the "+N" badge — render placeholder text so we measure
+    // a realistic width rather than guess.
     moreBadge.style.display = ''
     moreBadge.textContent = `+${pipNodes.length}`
     const badgeWidth = moreBadge.offsetWidth + gap
@@ -143,11 +162,13 @@ export function renderStreakStrip(pips: StreakPip[], large = false): HTMLElement
     if (hideCount <= 0) {
       moreBadge.style.display = 'none'
       moreBadge.textContent = ''
+      markEnds(0)
       return
     }
 
     for (let i = 0; i < hideCount; i++) pipNodes[i].style.display = 'none'
     moreBadge.textContent = `+${hideCount}`
+    markEnds(hideCount)
   }
 
   // Initial layout: defer one frame so the strip has been inserted and sized

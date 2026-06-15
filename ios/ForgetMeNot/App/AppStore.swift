@@ -22,6 +22,17 @@ final class AppStore {
         tasks = (try? repository.all()) ?? []
     }
 
+    /// Reset a recurring task's cycle (swipe-right): start a fresh randomized instance,
+    /// log it, and spawn any follow-up. Urgency drops to zero and nudges re-arm.
+    func reset(id: String) {
+        guard let task = tasks.first(where: { $0.id == id }) else { return }
+        var rng = SystemRandomNumberGenerator()
+        let result = Lifecycle.reset(task, note: "", now: Date(), rng: &rng)
+        try? repository.upsert(result.task)
+        if let spawned = result.spawned { try? repository.upsert(spawned) }
+        load()
+    }
+
     /// Active tasks, most urgent first.
     var sortedActive: [TaskDTO] {
         tasks

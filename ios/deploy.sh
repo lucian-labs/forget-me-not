@@ -4,7 +4,7 @@ cd "$(dirname "$0")"
 # Team id for automatic signing (iCloud/Push profiles)
 set -a; source "$HOME/repos/lucian-utils/.env"; set +a
 TEAM="${APPLE_TEAM_ID:?APPLE_TEAM_ID missing from lucian-utils/.env}"
-DEVICE_NAME="${FMN_DEVICE:-iPhone 17}"
+DEVICE_NAME="${FMN_DEVICE:-Part 2}"   # "An iPhone! Part 2" (the WiFi-connected device)
 
 # App Store Connect API key — lets headless xcodebuild register App ID capabilities
 # (iCloud container, Push) and generate the provisioning profile without an Xcode login.

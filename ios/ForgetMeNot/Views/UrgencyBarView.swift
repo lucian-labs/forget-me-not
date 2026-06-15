@@ -1,32 +1,30 @@
 import SwiftUI
 
-/// Horizontal urgency bar: fills with the cycle ratio, colored by tier
-/// (green → orange → red), pulsing once overdue.
+/// Urgency as a square LED-style segment meter (waveloop motif). Fills left-to-right
+/// with the cycle ratio, colored by tier; pulses once overdue.
 struct UrgencyBarView: View {
     let ratio: Double
+    private let segments = 28
 
     private var tier: UrgencyTier { Urgency.tier(for: ratio) }
+    private var color: Color { WL.urgencyColor(tier) }
+    private var clamped: Double { min(max(ratio, 0), 1) }
 
-    private var color: Color {
-        switch tier {
-        case .calm: .green
-        case .soon: .orange
-        case .due, .overdue: .red
-        }
-    }
+    @State private var pulse = false
 
     var body: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                Capsule().fill(.quaternary)
-                Capsule()
-                    .fill(color)
-                    .frame(width: geo.size.width * min(max(ratio, 0), 1))
+        HStack(spacing: 2) {
+            ForEach(0..<segments, id: \.self) { i in
+                Rectangle()
+                    .fill(Double(i) / Double(segments) < clamped ? color : Color.white.opacity(0.07))
             }
         }
-        .frame(height: 6)
-        .opacity(tier == .overdue ? 0.65 : 1)
-        .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true),
-                   value: tier == .overdue)
+        .frame(height: 10)
+        .opacity(tier == .overdue && pulse ? 0.4 : 1)
+        .onAppear { if tier == .overdue { withAnimation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true)) { pulse = true } } }
+        .onChange(of: tier) { _, new in
+            pulse = false
+            if new == .overdue { withAnimation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true)) { pulse = true } }
+        }
     }
 }

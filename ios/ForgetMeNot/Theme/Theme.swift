@@ -11,7 +11,7 @@ struct Theme: Identifiable, Equatable {
 
     static let waveloop = Theme(
         name: "waveloop", label: "Waveloop",
-        bg: "#10101c", surface: "#151925", border: "#2a2f3d", text: "#eaecf2", dim: "#aaafbd",
+        bg: "#0e0e10", surface: "#18181b", border: "#2b2b30", text: "#eaecf2", dim: "#aaafbd",
         accent: "#2ec7b8", green: "#4dcc78", orange: "#ffa40a", red: "#eb404d", cyan: "#6be6e0"
     )
 

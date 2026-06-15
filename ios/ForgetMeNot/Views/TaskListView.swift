@@ -85,25 +85,28 @@ struct TaskListView: View {
         } else {
             List {
                 ForEach(store.sortedActive) { task in
-                    TaskCardView(task: task, nudge: coordinator.nudge(for: task.id))
-                        .contentShape(Rectangle())
-                        .onTapGesture { detailTask = task }
-                        .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                            Button {
-                                store.reset(id: task.id)
-                                coordinator.clear(task.id)
-                            } label: {
-                                Label("RESET", systemImage: "arrow.counterclockwise")
-                            }
-                            .tint(WL.accent)
+                    // Button (not onTapGesture) so tap and swipe don't fight each other.
+                    Button { detailTask = task } label: {
+                        TaskCardView(task: task, nudge: coordinator.nudge(for: task.id))
+                    }
+                    .buttonStyle(.plain)
+                    .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(WL.bg)
+                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                        Button {
+                            store.reset(id: task.id)
+                            coordinator.clear(task.id)
+                        } label: {
+                            Label("RESET", systemImage: "arrow.counterclockwise")
                         }
+                        .tint(WL.accent)
+                    }
                 }
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
+            .contentMargins(.top, 10, for: .scrollContent)
         }
     }
 }

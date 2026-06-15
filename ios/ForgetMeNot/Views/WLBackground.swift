@@ -6,11 +6,6 @@ struct WLBackground: View {
     var body: some View {
         ZStack {
             WL.bg.ignoresSafeArea()
-            LinearGradient(
-                colors: [WL.accent.opacity(0.10), .clear],
-                startPoint: .top, endPoint: .center
-            )
-            .ignoresSafeArea()
             GridPattern(spacing: 40)
                 .stroke(Color.white.opacity(0.035), lineWidth: 1)
                 .ignoresSafeArea()

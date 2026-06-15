@@ -9,7 +9,8 @@ final class NudgeCoordinator {
     private let service = Nudges.service()
     private(set) var nudges: [String: String] = [:]   // taskId -> latest nudge text
     private var fired: Set<String> = []
-    private let thresholds: [Double] = [0.8, 0.9, 1.0]
+    // First nudge at 70% so that after a reset (→ 0%) the prompt stays gone until 70%.
+    private let thresholds: [Double] = [0.7, 0.9, 1.0]
 
     func evaluate(_ tasks: [TaskDTO], now: Date) {
         for task in tasks {

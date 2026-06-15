@@ -164,8 +164,11 @@ DEVICE_NAME="${FMN_DEVICE:-iPhone 17}"
 
 xcodegen generate
 
-DEVICE_ID="$(xcrun devicectl list devices 2>/dev/null | awk -v n="$DEVICE_NAME" '$0 ~ n {print $(NF-1); exit}')"
-[ -n "$DEVICE_ID" ] || { echo "Device '$DEVICE_NAME' not found. Connect it, enable Developer Mode, trust this Mac."; exit 1; }
+# Match the device by name OR model substring, then extract its UUID robustly
+# (column spacing varies; the iPhone 17 lists with model "iPhone 17").
+DEVICE_ID="$(xcrun devicectl list devices 2>/dev/null | grep -i "$DEVICE_NAME" \
+  | grep -oE '[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}' | head -1)"
+[ -n "$DEVICE_ID" ] || { echo "Device matching '$DEVICE_NAME' not found. Connect it, enable Developer Mode, trust this Mac."; exit 1; }
 
 xcodebuild -project ForgetMeNot.xcodeproj -scheme ForgetMeNot -configuration Debug \
   -destination "id=$DEVICE_ID" -derivedDataPath build \

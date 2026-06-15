@@ -7,7 +7,7 @@ enum FMNModelContainer {
     @MainActor static func cloudKit() throws -> ModelContainer {
         let config = ModelConfiguration(
             "FMN",
-            cloudKitDatabase: .private("iCloud.com.forgetmenot.app")
+            cloudKitDatabase: .private("iCloud.com.lucianlabs.forgetmenot")
         )
         return try ModelContainer(for: TaskEntity.self, configurations: config)
     }
@@ -25,5 +25,13 @@ enum FMNModelContainer {
     @MainActor static func inMemory() throws -> ModelContainer {
         let config = ModelConfiguration(isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         return try ModelContainer(for: TaskEntity.self, configurations: config)
+    }
+
+    /// Local persistent store for now. CloudKit (`cloudKit()`) is wired and ready, but
+    /// stays off until the iCloud container is provisioned for the App ID — at which
+    /// point this becomes: prefer cloudKit() when an iCloud account is signed in.
+    @MainActor static func resolve() -> ModelContainer {
+        if let c = try? local() { return c }
+        return try! inMemory()
     }
 }

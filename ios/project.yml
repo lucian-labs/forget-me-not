@@ -1,6 +1,6 @@
 name: ForgetMeNot
 options:
-  bundleIdPrefix: com.forgetmenot
+  bundleIdPrefix: com.lucianlabs
   deploymentTarget:
     iOS: "18.0"
   createIntermediateGroups: true
@@ -17,7 +17,7 @@ targets:
     sources: [ForgetMeNot]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.forgetmenot.app
+        PRODUCT_BUNDLE_IDENTIFIER: com.lucianlabs.forgetmenot
         TARGETED_DEVICE_FAMILY: "1,2"
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: ForgetMeNot/Info.plist
@@ -27,7 +27,7 @@ targets:
       path: ForgetMeNot/Info.plist
       properties:
         UIBackgroundModes: [remote-notification, processing]
-        BGTaskSchedulerPermittedIdentifiers: [com.forgetmenot.app.refresh]
+        BGTaskSchedulerPermittedIdentifiers: [com.lucianlabs.forgetmenot.refresh]
         UILaunchScreen: {}
   ForgetMeNotTests:
     type: bundle.unit-test

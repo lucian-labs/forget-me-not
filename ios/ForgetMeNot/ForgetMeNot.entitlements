@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- CloudKit + Push entitlements are temporarily removed so the app provisions with a
+     basic development profile. They live in git history (commit 829e06b) and get
+     restored once the iCloud.com.lucianlabs.forgetmenot container is provisioned. -->
 <plist version="1.0">
 <dict>
-  <key>com.apple.developer.icloud-container-identifiers</key>
-  <array><string>iCloud.com.forgetmenot.app</string></array>
-  <key>com.apple.developer.icloud-services</key>
-  <array><string>CloudKit</string></array>
-  <key>aps-environment</key>
-  <string>development</string>
 </dict>
 </plist>

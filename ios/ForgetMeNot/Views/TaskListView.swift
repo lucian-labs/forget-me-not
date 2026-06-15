@@ -6,6 +6,7 @@ import SwiftUI
 /// chart for the global read.
 struct TaskListView: View {
     @Environment(AppStore.self) private var store
+    @Environment(CharacterStore.self) private var characters
     @State private var coordinator = NudgeCoordinator()
     @State private var detailTask: TaskDTO?
     @State private var showGlobal = false
@@ -29,7 +30,7 @@ struct TaskListView: View {
             coordinator.evaluate(store.sortedActive, now: Date())
         }
         .fullScreenCover(item: $detailTask) { task in
-            TaskDetailView(taskId: task.id).environment(store)
+            TaskDetailView(taskId: task.id).environment(store).environment(characters)
         }
         .sheet(isPresented: $showGlobal) {
             InsightView(title: "All loops") { await insights.overview(store.sortedActive) }
@@ -87,7 +88,8 @@ struct TaskListView: View {
                 ForEach(store.sortedActive) { task in
                     // Button (not onTapGesture) so tap and swipe don't fight each other.
                     Button { detailTask = task } label: {
-                        TaskCardView(task: task, nudge: coordinator.nudge(for: task.id))
+                        TaskCardView(task: task, nudge: coordinator.nudge(for: task.id),
+                                     character: characters.image(for: task.id))
                     }
                     .buttonStyle(.plain)
                     .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))

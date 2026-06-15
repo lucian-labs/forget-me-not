@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct ForgetMeNotApp: App {
     @State private var store: AppStore
+    @State private var characters = CharacterStore()
     @Environment(\.scenePhase) private var scenePhase
     private let scheduler = ReminderScheduler()
 
@@ -15,6 +16,7 @@ struct ForgetMeNotApp: App {
         WindowGroup {
             TaskListView()
                 .environment(store)
+                .environment(characters)
                 .task {
                     await scheduler.requestAuthorization()
                     await scheduler.sync(store.sortedActive)

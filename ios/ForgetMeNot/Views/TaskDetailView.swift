@@ -1,11 +1,14 @@
 import SwiftUI
+import UIKit
 
 /// Full task panel — reads live from the store by id so actions reflect immediately.
-/// Waveloop-styled. RESET / COMPLETE / LOG / DELETE + a per-task on-device insight.
+/// Waveloop-styled. RESET / COMPLETE / LOG / DELETE + a per-task on-device insight,
+/// plus the task's generated alien-animal mascot.
 struct TaskDetailView: View {
     let taskId: String
 
     @Environment(AppStore.self) private var store
+    @Environment(CharacterStore.self) private var characters
     @Environment(\.dismiss) private var dismiss
     @State private var note = ""
     @State private var insightTask: TaskDTO?
@@ -49,6 +52,8 @@ struct TaskDetailView: View {
             if !task.domain.isEmpty {
                 Text(task.domain.uppercased()).font(WL.mono(11)).tracking(2).foregroundStyle(WL.muted)
             }
+
+            characterBlock(task)
 
             // live meter
             TimelineView(.periodic(from: .now, by: 1)) { ctx in
@@ -131,6 +136,41 @@ struct TaskDetailView: View {
             .padding(.top, 8)
         }
         .padding(20)
+    }
+
+    @ViewBuilder
+    private func characterBlock(_ task: TaskDTO) -> some View {
+        VStack(spacing: 10) {
+            Group {
+                if let img = characters.image(for: task.id) {
+                    Image(uiImage: img).resizable().scaledToFit()
+                } else {
+                    ZStack {
+                        Rectangle().fill(WL.surface)
+                        Image(systemName: "sparkle").font(.system(size: 30)).foregroundStyle(WL.muted.opacity(0.4))
+                    }
+                }
+            }
+            .frame(height: 180).frame(maxWidth: .infinity).clipped()
+            .overlay(Rectangle().stroke(WL.border, lineWidth: 1))
+
+            if characters.available {
+                Button { Task { await characters.generate(for: task) } } label: {
+                    HStack(spacing: 8) {
+                        if characters.isGenerating(task.id) {
+                            ProgressView().controlSize(.small).tint(WL.bg)
+                        } else {
+                            Image(systemName: "sparkles").font(.system(size: 13, weight: .bold))
+                        }
+                        Text(characters.image(for: task.id) == nil ? "GENERATE ANIMAL" : "NEW ANIMAL")
+                            .font(WL.mono(12, .bold)).tracking(1)
+                    }
+                    .frame(maxWidth: .infinity).padding(.vertical, 12)
+                    .foregroundStyle(WL.bg).background(WL.accent)
+                }
+                .disabled(characters.isGenerating(task.id))
+            }
+        }
     }
 
     @ViewBuilder

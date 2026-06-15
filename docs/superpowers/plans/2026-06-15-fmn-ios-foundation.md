@@ -795,7 +795,7 @@ git commit -m "M1: TaskMapper entity<->DTO lossless round-trip"
 
 **Files:** Create `ios/ForgetMeNot/Domain/Urgency.swift`, `ios/ForgetMeNotTests/UrgencyTests.swift`
 
-Behavior ported from `src/store.ts` `getUrgencyRatio` / `getUrgencyColor`: recurring tasks measure elapsed since `instance.startedAt` over `instance.actualCadenceSeconds`; dated tasks measure `startedAt → dueDate`. Color tiers: `< 0.5` green, `< 0.8` orange, `< 1.0` red, `>= 1.0` overdue (pulsing).
+Behavior ported from `src/store.ts` `getUrgencyRatio` / `getUrgencyColor`: recurring tasks measure elapsed since `instance.startedAt` over `instance.actualCadenceSeconds`; dated tasks measure `startedAt → dueDate`. Tiers match the web's `getUrgencyColor` exactly: `< 0.75` green (calm), `< 0.95` orange (soon), `< 1.0` red (due), `>= 1.0` overdue (pulsing).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -828,10 +828,11 @@ final class UrgencyTests: XCTestCase {
 
     func test_tierBoundaries() {
         XCTAssertEqual(Urgency.tier(for: 0.0), .calm)
-        XCTAssertEqual(Urgency.tier(for: 0.49), .calm)
-        XCTAssertEqual(Urgency.tier(for: 0.5), .soon)
-        XCTAssertEqual(Urgency.tier(for: 0.79), .soon)
-        XCTAssertEqual(Urgency.tier(for: 0.8), .due)
+        XCTAssertEqual(Urgency.tier(for: 0.74), .calm)
+        XCTAssertEqual(Urgency.tier(for: 0.75), .soon)
+        XCTAssertEqual(Urgency.tier(for: 0.94), .soon)
+        XCTAssertEqual(Urgency.tier(for: 0.95), .due)
+        XCTAssertEqual(Urgency.tier(for: 0.99), .due)
         XCTAssertEqual(Urgency.tier(for: 1.0), .overdue)
     }
 }
@@ -872,9 +873,10 @@ enum Urgency {
     }
 
     static func tier(for ratio: Double) -> UrgencyTier {
+        // Web parity (getUrgencyColor): green <0.75, orange <0.95, red >=0.95; overdue >=1.0.
         switch ratio {
-        case ..<0.5: .calm
-        case ..<0.8: .soon
+        case ..<0.75: .calm
+        case ..<0.95: .soon
         case ..<1.0: .due
         default: .overdue
         }
@@ -1017,12 +1019,11 @@ final class LifecycleTests: XCTestCase {
         XCTAssertEqual(r.task.actionLog.last?.action, .complete)
     }
 
-    func test_snoozeShiftsInstanceStartForward() {
+    func test_snoozeSetsRatioToShortReprieve() {
         let now = Date(timeIntervalSince1970: 2_000_000)
-        let before = Urgency.ratio(recurring(now: now), now: now)   // 3.0
         let s = Lifecycle.snooze(recurring(now: now), now: now)
-        let after = Urgency.ratio(s, now: now)
-        XCTAssertLessThan(after, before)
+        // Web parity (store.ts:177): snooze leaves ~75% of the cycle elapsed → a short reprieve.
+        XCTAssertEqual(Urgency.ratio(s, now: now), 0.75, accuracy: 0.0001)
         XCTAssertEqual(s.instance?.snoozed, true)
     }
 
@@ -1048,8 +1049,10 @@ enum Lifecycle {
     struct ResetResult { var task: TaskDTO; var spawned: TaskDTO? }
 
     static func reset<R: RandomNumberGenerator>(_ t: TaskDTO, note: String, now: Date = Date(), rng: inout R) -> ResetResult {
+        // Web parity (store.ts:138): reset is a no-op without a base cadence.
+        guard let base = t.baseCadenceSeconds else { return ResetResult(task: t, spawned: nil) }
         var task = t
-        let cadence = Cadence.randomized(base: t.baseCadenceSeconds ?? 0, more: t.cadenceMore, less: t.cadenceLess, using: &rng)
+        let cadence = Cadence.randomized(base: base, more: t.cadenceMore, less: t.cadenceLess, using: &rng)
         task.instance = ReminderInstanceDTO(startedAt: now, actualCadenceSeconds: cadence, snoozed: false)
         task.actionLog.append(ActionLogEntryDTO(note: note, at: now, action: .reset))
         task.updatedAt = now
@@ -1070,8 +1073,9 @@ enum Lifecycle {
 
     static func snooze(_ t: TaskDTO, now: Date = Date()) -> TaskDTO {
         guard var inst = t.instance else { return t }
-        // Web: shift start so ~75% of the cycle "remains" → start = now - 0.25*cadence.
-        inst.startedAt = now.addingTimeInterval(-0.25 * inst.actualCadenceSeconds)
+        // Web parity (store.ts:177): startedAt = now - 0.75*cadence, so ~75% of the
+        // cycle has elapsed (ratio 0.75) → a short reprieve before it re-alerts.
+        inst.startedAt = now.addingTimeInterval(-0.75 * inst.actualCadenceSeconds)
         inst.snoozed = true
         var task = t
         task.instance = inst
@@ -1100,13 +1104,15 @@ enum Lifecycle {
             priority: .normal, createdAt: now, updatedAt: now, dueDate: due, startedAt: now,
             completedAt: nil, estimatedHours: nil, recurring: false, baseCadenceSeconds: nil,
             cadenceMore: nil, cadenceLess: nil, instance: nil, followUps: remaining,
-            parentTaskId: parent.id, prompts: parent.prompts, soundSeed: parent.soundSeed, actionLog: []
+            // Web parity (store.ts:228-241): a spawned follow-up does NOT inherit
+            // prompts or soundSeed — only title/domain/tags/followUps/parent.
+            parentTaskId: parent.id, prompts: [], soundSeed: nil, actionLog: []
         )
     }
 }
 ```
 
-> Cross-check the exact `snoozeTask` math against `src/store.ts:174-180` during implementation; the web uses `Date.now() - actualCadenceSeconds * 750` (ms). Match the web's resulting urgency drop and adjust the constant if needed (test asserts the *direction*; tighten to exact parity if the web value differs).
+> Verified against `src/store.ts:177`: the web uses `Date.now() - actualCadenceSeconds * 750` (ms) = `now - 0.75*cadence` (s), leaving ratio ≈ 0.75. The test asserts that exact value, not just direction.
 
 - [ ] **Step 4: Run to verify it passes**
 

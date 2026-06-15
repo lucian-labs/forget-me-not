@@ -1,9 +1,9 @@
 import SwiftUI
 
-/// The main panel — waveloop-styled: dark grid backdrop, monospaced uppercase header,
-/// a stack of square task panels. Swipe a task right to RESET its cycle. On-device
-/// nudges appear as it crosses 80/90/100%. Tap a card for its insight; tap the header
-/// chart for the global read.
+/// The main panel — waveloop-styled. Swipe right to RESET: the card shows a success
+/// message in place, the mascot flips to success mode, then it fades and the rows
+/// slide up as it resets to the bottom. Nudges escalate at 70/90/100%+; tap a card
+/// for detail; header buttons = new / insights / settings.
 struct TaskListView: View {
     @Environment(AppStore.self) private var store
     @Environment(CharacterStore.self) private var characters
@@ -12,6 +12,7 @@ struct TaskListView: View {
     @State private var showGlobal = false
     @State private var showCreate = false
     @State private var showSettings = false
+    @State private var celebrating: [String: String] = [:]
 
     private let insights = Insights.service()
     private let ticker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -51,21 +52,15 @@ struct TaskListView: View {
             Spacer()
             HStack(spacing: 18) {
                 Button { showCreate = true } label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 17, weight: .bold))
-                        .foregroundStyle(WL.accent)
+                    Image(systemName: "plus").font(.system(size: 17, weight: .bold)).foregroundStyle(WL.accent)
                 }
                 .accessibilityLabel("New task")
                 Button { showGlobal = true } label: {
-                    Image(systemName: "waveform.path.ecg")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(WL.accent)
+                    Image(systemName: "waveform.path.ecg").font(.system(size: 15, weight: .semibold)).foregroundStyle(WL.accent)
                 }
                 .accessibilityLabel("Overall insights")
                 Button { showSettings = true } label: {
-                    Image(systemName: "slider.horizontal.3")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(WL.accent)
+                    Image(systemName: "slider.horizontal.3").font(.system(size: 15, weight: .semibold)).foregroundStyle(WL.accent)
                 }
                 .accessibilityLabel("Settings")
             }
@@ -86,20 +81,18 @@ struct TaskListView: View {
         } else {
             List {
                 ForEach(store.sortedActive) { task in
-                    // Button (not onTapGesture) so tap and swipe don't fight each other.
                     Button { detailTask = task } label: {
-                        TaskCardView(task: task, nudge: coordinator.nudge(for: task.id),
-                                     character: characters.image(for: task.id))
+                        TaskCardView(task: task,
+                                     nudge: coordinator.nudge(for: task.id),
+                                     character: characters.image(for: task.id),
+                                     celebration: celebrating[task.id])
                     }
                     .buttonStyle(.plain)
                     .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                     .listRowSeparator(.hidden)
                     .listRowBackground(WL.bg)
                     .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                        Button {
-                            store.reset(id: task.id)
-                            coordinator.clear(task.id)
-                        } label: {
+                        Button { celebrate(task) } label: {
                             Label("RESET", systemImage: "arrow.counterclockwise")
                         }
                         .tint(WL.accent)
@@ -111,4 +104,28 @@ struct TaskListView: View {
             .contentMargins(.top, 10, for: .scrollContent)
         }
     }
+
+    /// Show a success beat in the card's place, then reset — so the row fades and the
+    /// others slide up smoothly.
+    private func celebrate(_ task: TaskDTO) {
+        coordinator.clear(task.id)
+        withAnimation(.easeOut(duration: 0.25)) {
+            celebrating[task.id] = Celebrations.message()
+        }
+        Task {
+            try? await Task.sleep(for: .seconds(1.3))
+            withAnimation(.easeInOut(duration: 0.45)) {
+                store.reset(id: task.id)
+                celebrating[task.id] = nil
+            }
+        }
+    }
+}
+
+enum Celebrations {
+    private static let lines = [
+        "NICE.", "DONE — SEE YOU NEXT CYCLE.", "RESET. GOOD.", "CLEAN.",
+        "LOCKED IN.", "FUTURE YOU SAYS THANKS.", "✓ ANOTHER REP.",
+    ]
+    static func message() -> String { lines.randomElement() ?? "NICE." }
 }

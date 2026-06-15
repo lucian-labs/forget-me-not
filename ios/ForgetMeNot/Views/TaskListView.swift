@@ -2,11 +2,15 @@ import SwiftUI
 
 /// The main panel — waveloop-styled: dark grid backdrop, monospaced uppercase header,
 /// a stack of square task panels. Swipe a task right to RESET its cycle. On-device
-/// nudges appear on a card as it crosses 80% / 90% / 100% of its cycle.
+/// nudges appear as it crosses 80/90/100%. Tap a card for its insight; tap the header
+/// chart for the global read.
 struct TaskListView: View {
     @Environment(AppStore.self) private var store
     @State private var coordinator = NudgeCoordinator()
+    @State private var insightTask: TaskDTO?
+    @State private var showGlobal = false
 
+    private let insights = Insights.service()
     private let ticker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
@@ -22,18 +26,27 @@ struct TaskListView: View {
         .onReceive(ticker) { _ in
             coordinator.evaluate(store.sortedActive, now: Date())
         }
+        .sheet(item: $insightTask) { task in
+            InsightView(title: task.title) { await insights.insight(for: task) }
+                .presentationDetents([.medium, .large])
+        }
+        .sheet(isPresented: $showGlobal) {
+            InsightView(title: "All loops") { await insights.overview(store.sortedActive) }
+                .presentationDetents([.medium, .large])
+        }
     }
 
     private var header: some View {
         HStack {
             Text("FORGET ME NOT")
-                .font(WL.mono(17, .bold))
-                .tracking(3)
-                .foregroundStyle(WL.text)
+                .font(WL.mono(17, .bold)).tracking(3).foregroundStyle(WL.text)
             Spacer()
-            Image(systemName: "circle.grid.2x2")
-                .font(.system(size: 14))
-                .foregroundStyle(WL.muted)
+            Button { showGlobal = true } label: {
+                Image(systemName: "waveform.path.ecg")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(WL.accent)
+            }
+            .accessibilityLabel("Overall insights")
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
@@ -52,6 +65,8 @@ struct TaskListView: View {
             List {
                 ForEach(store.sortedActive) { task in
                     TaskCardView(task: task, nudge: coordinator.nudge(for: task.id))
+                        .contentShape(Rectangle())
+                        .onTapGesture { insightTask = task }
                         .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)

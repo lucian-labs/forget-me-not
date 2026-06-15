@@ -9,11 +9,18 @@ final class AppStore {
     private let repository: TaskRepository
     var tasks: [TaskDTO] = []
 
+    /// Bump to reseed from the web set. Demo-phase: a higher version wipes existing
+    /// tasks and reseeds (revisit once there's real user data — then seed-if-empty only).
+    private let seedVersion = 2
+
     init(repository: TaskRepository) {
         self.repository = repository
         load()
-        if tasks.isEmpty {
+        let stored = UserDefaults.standard.integer(forKey: "fmn.seedVersion")
+        if tasks.isEmpty || stored < seedVersion {
+            for task in tasks { try? repository.delete(task.id) }
             for task in Seed.tasks() { try? repository.upsert(task) }
+            UserDefaults.standard.set(seedVersion, forKey: "fmn.seedVersion")
             load()
         }
     }

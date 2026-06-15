@@ -9,6 +9,8 @@ final class CharacterStore {
     private let service = Characters.service()
     private(set) var images: [String: UIImage] = [:]
     private(set) var generating: Set<String> = []
+    private var autoRunning = false
+    private var attempted: Set<String> = []   // in-memory: auto-attempt each once per launch
 
     var available: Bool { service.available }
 
@@ -33,6 +35,23 @@ final class CharacterStore {
             let img = UIImage(cgImage: cg)
             images[task.id] = img
             if let data = img.pngData() { try? data.write(to: url(task.id)) }
+        }
+    }
+
+    /// Auto-generate mascots — one at a time, in the background — for any tasks that
+    /// don't have one yet. Each id is attempted once per launch; cheap no-op when all
+    /// tasks already have a mascot.
+    func ensureMascots(for tasks: [TaskDTO]) {
+        guard service.available, !autoRunning else { return }
+        let missing = tasks.filter { images[$0.id] == nil && !generating.contains($0.id) && !attempted.contains($0.id) }
+        guard !missing.isEmpty else { return }
+        autoRunning = true
+        Task {
+            for task in missing where images[task.id] == nil {
+                attempted.insert(task.id)
+                await generate(for: task)
+            }
+            autoRunning = false
         }
     }
 

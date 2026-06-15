@@ -1,9 +1,11 @@
 import SwiftUI
 
-/// The main panel: active tasks, most urgent first, each with a live urgency bar.
-/// `TimelineView` ticks every second so the bars advance without manual timers.
+/// The main panel: active tasks, most urgent first, each with a live urgency bar
+/// and an on-device "nudge" button. `TimelineView` ticks every second so the bars
+/// advance without manual timers.
 struct TaskListView: View {
     @Environment(AppStore.self) private var store
+    @State private var nudgeTask: TaskDTO?
 
     var body: some View {
         NavigationStack {
@@ -20,6 +22,10 @@ struct TaskListView: View {
                     ContentUnavailableView("All clear", systemImage: "checkmark.circle")
                 }
             }
+            .sheet(item: $nudgeTask) { task in
+                NudgeSheet(task: task)
+                    .presentationDetents([.medium])
+            }
         }
     }
 
@@ -32,6 +38,14 @@ struct TaskListView: View {
                     Image(systemName: "repeat")
                         .font(.caption2).foregroundStyle(.secondary)
                 }
+                Button {
+                    nudgeTask = task
+                } label: {
+                    Image(systemName: "sparkles")
+                }
+                .buttonStyle(.borderless)
+                .tint(.accentColor)
+                .accessibilityLabel("Nudge me to do \(task.title)")
             }
             if !task.domain.isEmpty {
                 Text(task.domain).font(.caption).foregroundStyle(.secondary)

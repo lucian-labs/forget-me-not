@@ -17,6 +17,12 @@ final class CharacterStore {
     func image(for id: String) -> UIImage? { images[id] }
     func isGenerating(_ id: String) -> Bool { generating.contains(id) }
 
+    /// On-disk PNG for a task's mascot (for notification attachments), if it exists.
+    func imageURL(for id: String) -> URL? {
+        let u = url(id)
+        return FileManager.default.fileExists(atPath: u.path) ? u : nil
+    }
+
     /// Generate a fresh mascot for the task (a new random animal, mood from current urgency).
     func generate(for task: TaskDTO) async {
         guard service.available, !generating.contains(task.id) else { return }

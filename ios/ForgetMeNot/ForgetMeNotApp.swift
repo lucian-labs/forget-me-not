@@ -19,12 +19,12 @@ struct ForgetMeNotApp: App {
                 .environment(characters)
                 .task {
                     await scheduler.requestAuthorization()
-                    await scheduler.sync(store.sortedActive)
+                    await scheduler.sync(store.sortedActive, characterURL: { characters.imageURL(for: $0) })
                 }
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
-                Task { await scheduler.sync(store.sortedActive) }
+                Task { await scheduler.sync(store.sortedActive, characterURL: { characters.imageURL(for: $0) }) }
             }
         }
     }

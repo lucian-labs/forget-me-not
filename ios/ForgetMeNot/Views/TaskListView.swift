@@ -10,6 +10,7 @@ struct TaskListView: View {
     @State private var detailTask: TaskDTO?
     @State private var showGlobal = false
     @State private var showCreate = false
+    @State private var showSettings = false
 
     private let insights = Insights.service()
     private let ticker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -37,6 +38,9 @@ struct TaskListView: View {
         .sheet(isPresented: $showCreate) {
             CreateTaskView().environment(store)
         }
+        .sheet(isPresented: $showSettings) {
+            SettingsView().environment(store)
+        }
     }
 
     private var header: some View {
@@ -57,6 +61,12 @@ struct TaskListView: View {
                         .foregroundStyle(WL.accent)
                 }
                 .accessibilityLabel("Overall insights")
+                Button { showSettings = true } label: {
+                    Image(systemName: "slider.horizontal.3")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(WL.accent)
+                }
+                .accessibilityLabel("Settings")
             }
         }
         .padding(.horizontal, 16)

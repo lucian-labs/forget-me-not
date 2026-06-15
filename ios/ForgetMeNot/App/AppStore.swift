@@ -8,6 +8,7 @@ import SwiftUI
 final class AppStore {
     private let repository: TaskRepository
     var tasks: [TaskDTO] = []
+    var themeName: String = "waveloop"
 
     /// Bump to reseed from the web set. Demo-phase: a higher version wipes existing
     /// tasks and reseeds (revisit once there's real user data — then seed-if-empty only).
@@ -23,6 +24,14 @@ final class AppStore {
             UserDefaults.standard.set(seedVersion, forKey: "fmn.seedVersion")
             load()
         }
+        themeName = UserDefaults.standard.string(forKey: "fmn.theme") ?? "waveloop"
+        WL.apply(Theme.named(themeName))
+    }
+
+    func setTheme(_ name: String) {
+        themeName = name
+        UserDefaults.standard.set(name, forKey: "fmn.theme")
+        WL.apply(Theme.named(name))
     }
 
     func load() {

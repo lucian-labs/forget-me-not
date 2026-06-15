@@ -10,18 +10,18 @@ struct TaskCardView: View {
     let nudge: String?
     let character: UIImage?
     let celebration: String?
+    let messageFaded: Bool
 
     var body: some View {
         ZStack {
             if let celebration {
-                HStack(spacing: 10) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 22, weight: .bold)).foregroundStyle(WL.green)
+                HStack(spacing: 0) {
                     Text(celebration)
                         .font(WL.mono(15, .bold)).tracking(1).foregroundStyle(WL.green)
                         .fixedSize(horizontal: false, vertical: true)
                     Spacer(minLength: 0)
                 }
+                .opacity(messageFaded ? 0 : 1)
             }
             content
                 .opacity(celebration != nil ? 0 : 1)
@@ -29,8 +29,9 @@ struct TaskCardView: View {
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(WL.surface)
-        .overlay(Rectangle().stroke(celebration != nil ? WL.green : WL.border, lineWidth: 1))
+        .overlay(Rectangle().stroke(celebration != nil && !messageFaded ? WL.green : WL.border, lineWidth: 1))
         .animation(.easeInOut(duration: 0.3), value: celebration)
+        .animation(.easeInOut(duration: 0.3), value: messageFaded)
         .animation(.easeInOut(duration: 0.25), value: nudge)
     }
 

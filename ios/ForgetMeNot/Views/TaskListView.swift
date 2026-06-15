@@ -7,7 +7,7 @@ import SwiftUI
 struct TaskListView: View {
     @Environment(AppStore.self) private var store
     @State private var coordinator = NudgeCoordinator()
-    @State private var insightTask: TaskDTO?
+    @State private var detailTask: TaskDTO?
     @State private var showGlobal = false
 
     private let insights = Insights.service()
@@ -26,9 +26,8 @@ struct TaskListView: View {
         .onReceive(ticker) { _ in
             coordinator.evaluate(store.sortedActive, now: Date())
         }
-        .sheet(item: $insightTask) { task in
-            InsightView(title: task.title) { await insights.insight(for: task) }
-                .presentationDetents([.medium, .large])
+        .fullScreenCover(item: $detailTask) { task in
+            TaskDetailView(taskId: task.id).environment(store)
         }
         .sheet(isPresented: $showGlobal) {
             InsightView(title: "All loops") { await insights.overview(store.sortedActive) }
@@ -66,7 +65,7 @@ struct TaskListView: View {
                 ForEach(store.sortedActive) { task in
                     TaskCardView(task: task, nudge: coordinator.nudge(for: task.id))
                         .contentShape(Rectangle())
-                        .onTapGesture { insightTask = task }
+                        .onTapGesture { detailTask = task }
                         .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)

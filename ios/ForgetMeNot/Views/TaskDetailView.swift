@@ -1,0 +1,164 @@
+import SwiftUI
+
+/// Full task panel — reads live from the store by id so actions reflect immediately.
+/// Waveloop-styled. RESET / COMPLETE / LOG / DELETE + a per-task on-device insight.
+struct TaskDetailView: View {
+    let taskId: String
+
+    @Environment(AppStore.self) private var store
+    @Environment(\.dismiss) private var dismiss
+    @State private var note = ""
+    @State private var insightTask: TaskDTO?
+
+    private var task: TaskDTO? { store.task(taskId) }
+
+    var body: some View {
+        ZStack {
+            WL.bg.ignoresSafeArea()
+            if let task {
+                ScrollView { body(task) }
+            } else {
+                Color.clear.onAppear { dismiss() }
+            }
+        }
+        .preferredColorScheme(.dark)
+        .sheet(item: $insightTask) { t in
+            InsightView(title: t.title) { await Insights.service().insight(for: t) }
+                .presentationDetents([.medium, .large])
+        }
+    }
+
+    private func body(_ task: TaskDTO) -> some View {
+        VStack(alignment: .leading, spacing: 20) {
+            // header
+            HStack {
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.left").font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(WL.muted)
+                }
+                Spacer()
+                Button { insightTask = task } label: {
+                    Image(systemName: "waveform.path.ecg").font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(WL.accent)
+                }
+            }
+
+            Text(task.title.uppercased())
+                .font(WL.mono(22, .bold)).tracking(1).foregroundStyle(WL.text)
+                .fixedSize(horizontal: false, vertical: true)
+            if !task.domain.isEmpty {
+                Text(task.domain.uppercased()).font(WL.mono(11)).tracking(2).foregroundStyle(WL.muted)
+            }
+
+            // live meter
+            TimelineView(.periodic(from: .now, by: 1)) { ctx in
+                let ratio = Urgency.ratio(task, now: ctx.date)
+                VStack(alignment: .leading, spacing: 6) {
+                    UrgencyBarView(ratio: ratio)
+                    HStack {
+                        Text(task.recurring ? "EVERY \(Format.duration(task.baseCadenceSeconds ?? 0).uppercased())" : "ONE-TIME")
+                            .font(WL.mono(10)).tracking(1).foregroundStyle(WL.muted)
+                        Spacer()
+                        Text("\(Int(min(ratio, 9.99) * 100))%")
+                            .font(WL.mono(11, .bold)).foregroundStyle(WL.urgencyColor(Urgency.tier(for: ratio)))
+                    }
+                }
+            }
+
+            if !task.prompts.isEmpty {
+                section("PROMPTS") {
+                    ForEach(task.prompts, id: \.self) { p in
+                        Text("· \(p)").font(WL.mono(12)).foregroundStyle(WL.muted)
+                    }
+                }
+            }
+
+            // actions
+            HStack(spacing: 10) {
+                actionButton("RESET", icon: "arrow.counterclockwise", tint: WL.accent) {
+                    store.reset(id: task.id)
+                }
+                actionButton("DONE", icon: "checkmark", tint: WL.green) {
+                    store.complete(id: task.id)
+                    dismiss()
+                }
+            }
+
+            // quick log
+            section("LOG A NOTE") {
+                HStack(spacing: 8) {
+                    TextField("what did you do?", text: $note)
+                        .font(WL.mono(13)).foregroundStyle(WL.text)
+                        .padding(10).background(WL.surface).overlay(Rectangle().stroke(WL.border, lineWidth: 1))
+                    Button {
+                        let trimmed = note.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !trimmed.isEmpty else { return }
+                        store.addNote(id: task.id, note: trimmed); note = ""
+                    } label: {
+                        Image(systemName: "plus").font(.system(size: 14, weight: .bold)).foregroundStyle(WL.bg)
+                            .frame(width: 40, height: 40).background(WL.accent)
+                    }
+                }
+            }
+
+            if !task.actionLog.isEmpty {
+                section("HISTORY") {
+                    ForEach(Array(task.actionLog.suffix(12).reversed().enumerated()), id: \.offset) { _, entry in
+                        HStack(alignment: .top, spacing: 8) {
+                            Text(entry.action.rawValue.uppercased())
+                                .font(WL.mono(9, .bold)).tracking(1)
+                                .foregroundStyle(actionColor(entry.action))
+                                .frame(width: 64, alignment: .leading)
+                            VStack(alignment: .leading, spacing: 2) {
+                                if !entry.note.isEmpty {
+                                    Text(entry.note).font(WL.mono(12)).foregroundStyle(WL.text)
+                                }
+                                Text(entry.at.formatted(date: .abbreviated, time: .shortened))
+                                    .font(WL.mono(9)).foregroundStyle(WL.muted)
+                            }
+                        }
+                    }
+                }
+            }
+
+            Button(role: .destructive) {
+                store.delete(id: task.id); dismiss()
+            } label: {
+                Text("DELETE").font(WL.mono(11, .bold)).tracking(2)
+                    .frame(maxWidth: .infinity).padding(.vertical, 12)
+                    .foregroundStyle(WL.red).overlay(Rectangle().stroke(WL.red.opacity(0.5), lineWidth: 1))
+            }
+            .padding(.top, 8)
+        }
+        .padding(20)
+    }
+
+    @ViewBuilder
+    private func section<C: View>(_ title: String, @ViewBuilder _ content: () -> C) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title).font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
+            content()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func actionButton(_ title: String, icon: String, tint: Color, _ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: icon).font(.system(size: 13, weight: .bold))
+                Text(title).font(WL.mono(13, .bold)).tracking(1)
+            }
+            .frame(maxWidth: .infinity).padding(.vertical, 14)
+            .foregroundStyle(tint).overlay(Rectangle().stroke(tint, lineWidth: 1))
+        }
+    }
+
+    private func actionColor(_ a: ActionType) -> Color {
+        switch a {
+        case .reset: WL.accent
+        case .complete: WL.green
+        case .lapsed: WL.red
+        case .note: WL.muted
+        }
+    }
+}

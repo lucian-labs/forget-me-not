@@ -41,6 +41,7 @@
 		CE8A9FB77DFD84040F9AFA20 /* CadenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0097F1A7BBF79AC1048F9059 /* CadenceTests.swift */; };
 		D2438B5D9FC359973BF2EFAA /* FoundationModelsInsightService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35A2C3454F5129B1ED82C6FD /* FoundationModelsInsightService.swift */; };
 		F2B6DF7EB3525A07BF857C22 /* TaskMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20D5AD7B83C5433C9A8D306 /* TaskMapper.swift */; };
+		FBEA757AF5BC51E5F0E3CEC9 /* TaskDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFC95A22730610A096937910 /* TaskDetailView.swift */; };
 		FFC17AA0690AD753691C817E /* TaskRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6E3039AACAE58A1C598264 /* TaskRepository.swift */; };
 /* End PBXBuildFile section */
 
@@ -92,6 +93,7 @@
 		C217373FE55EC5A910C414AB /* InsightView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightView.swift; sourceTree = "<group>"; };
 		C6571BC608A3F26F348738AC /* web-export.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "web-export.json"; sourceTree = "<group>"; };
 		DC26CB17EC41CCDE313E4B6F /* ForgetMeNot.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ForgetMeNot.entitlements; sourceTree = "<group>"; };
+		DFC95A22730610A096937910 /* TaskDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskDetailView.swift; sourceTree = "<group>"; };
 		E4B551D8D93C476C70D17E18 /* ReminderScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderScheduler.swift; sourceTree = "<group>"; };
 		FF246E32EB842099D1B8DADA /* UrgencyBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrgencyBarView.swift; sourceTree = "<group>"; };
 		FF64A82423D5FA62C6457507 /* .gitkeep */ = {isa = PBXFileReference; path = .gitkeep; sourceTree = "<group>"; };
@@ -233,6 +235,7 @@
 			children = (
 				C217373FE55EC5A910C414AB /* InsightView.swift */,
 				B93B103FE5319889196B1BDF /* TaskCardView.swift */,
+				DFC95A22730610A096937910 /* TaskDetailView.swift */,
 				3727F96923D5A00D56A3F032 /* TaskListView.swift */,
 				FF246E32EB842099D1B8DADA /* UrgencyBarView.swift */,
 				2C8B25C31E2067CB6F4A9AED /* WLBackground.swift */,
@@ -347,6 +350,7 @@
 				598FC31D6C3EAF422431C23E /* Seed.swift in Sources */,
 				54D512FEC57955D2049713C4 /* TaskCardView.swift in Sources */,
 				233F216B7A0F517A69C4E92B /* TaskDTO.swift in Sources */,
+				FBEA757AF5BC51E5F0E3CEC9 /* TaskDetailView.swift in Sources */,
 				99FAFB17C009161826CD77D7 /* TaskListView.swift in Sources */,
 				F2B6DF7EB3525A07BF857C22 /* TaskMapper.swift in Sources */,
 				FFC17AA0690AD753691C817E /* TaskRepository.swift in Sources */,

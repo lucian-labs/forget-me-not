@@ -40,6 +40,29 @@ final class AppStore {
         load()
     }
 
+    /// Mark a task done (and spawn any follow-up). Removes it from the active list.
+    func complete(id: String, note: String = "") {
+        guard let task = tasks.first(where: { $0.id == id }) else { return }
+        let result = Lifecycle.complete(task, note: note, now: Date())
+        try? repository.upsert(result.task)
+        if let spawned = result.spawned { try? repository.upsert(spawned) }
+        load()
+    }
+
+    /// Append a note to the action log without changing the cycle.
+    func addNote(id: String, note: String) {
+        guard let task = tasks.first(where: { $0.id == id }) else { return }
+        try? repository.upsert(Lifecycle.note(task, note: note, now: Date()))
+        load()
+    }
+
+    func delete(id: String) {
+        try? repository.delete(id)
+        load()
+    }
+
+    func task(_ id: String) -> TaskDTO? { tasks.first { $0.id == id } }
+
     /// Active tasks, most urgent first.
     var sortedActive: [TaskDTO] {
         tasks

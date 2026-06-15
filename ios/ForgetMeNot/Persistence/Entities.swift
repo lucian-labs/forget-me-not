@@ -24,11 +24,26 @@ final class TaskEntity {
     var instanceStartedAt: Date?
     var instanceActualCadenceSeconds: Double?
     var instanceSnoozed: Bool = false
-    var followUps: [FollowUpDTO] = []
+    // Stored as JSON Data to avoid SwiftData's Codable-struct transformer on iOS 26+.
+    var followUpsData: Data = Data()
+    var actionLogData: Data = Data()
     var parentTaskId: String?
     var prompts: [String] = []
     var soundSeed: String?
-    var actionLog: [ActionLogEntryDTO] = []
+
+    // Computed accessors used by TaskMapper — encode/decode on the fly.
+    // @Transient excludes them from the SwiftData schema (they're backed by *Data above).
+    @Transient
+    var followUps: [FollowUpDTO] {
+        get { (try? JSONDecoder().decode([FollowUpDTO].self, from: followUpsData)) ?? [] }
+        set { followUpsData = (try? JSONEncoder().encode(newValue)) ?? Data() }
+    }
+
+    @Transient
+    var actionLog: [ActionLogEntryDTO] {
+        get { (try? JSONDecoder().decode([ActionLogEntryDTO].self, from: actionLogData)) ?? [] }
+        set { actionLogData = (try? JSONEncoder().encode(newValue)) ?? Data() }
+    }
 
     init(id: String, title: String) {
         self.id = id

@@ -61,6 +61,11 @@ final class AppStore {
         load()
     }
 
+    func create(_ task: TaskDTO) {
+        try? repository.upsert(task)
+        load()
+    }
+
     func task(_ id: String) -> TaskDTO? { tasks.first { $0.id == id } }
 
     /// Active tasks, most urgent first.

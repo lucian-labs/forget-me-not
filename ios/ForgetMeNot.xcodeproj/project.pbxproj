@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0CC93CB5B827B92E996D24D1 /* CreateTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73BDC64A35C3187BE0BDF6B3 /* CreateTaskView.swift */; };
 		14D3F1FD3275943DE58345B6 /* WLBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C8B25C31E2067CB6F4A9AED /* WLBackground.swift */; };
 		202A6E8EED15219B8A3FEA93 /* TaskMapperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E662B702E610D1F484C87B /* TaskMapperTests.swift */; };
 		22B65CFD92089134EC1CDA20 /* ReminderScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B551D8D93C476C70D17E18 /* ReminderScheduler.swift */; };
@@ -78,6 +79,7 @@
 		573B430D27E8801CE055B0B1 /* ExportEnvelopeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportEnvelopeTests.swift; sourceTree = "<group>"; };
 		5965153C091A7D123E190CEC /* ForgetMeNotApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgetMeNotApp.swift; sourceTree = "<group>"; };
 		64FEF131C462563F94B923BD /* ISO8601Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ISO8601Tests.swift; sourceTree = "<group>"; };
+		73BDC64A35C3187BE0BDF6B3 /* CreateTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTaskView.swift; sourceTree = "<group>"; };
 		7481CAE26E54820AC56B8DA7 /* Cadence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cadence.swift; sourceTree = "<group>"; };
 		7F9085E1F4B4816D02C800C7 /* RepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryTests.swift; sourceTree = "<group>"; };
 		8869A21F715B3F04FF1EE9B1 /* LifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleTests.swift; sourceTree = "<group>"; };
@@ -233,6 +235,7 @@
 		FBEECF5EBD39BCBF2ABE48C2 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				73BDC64A35C3187BE0BDF6B3 /* CreateTaskView.swift */,
 				C217373FE55EC5A910C414AB /* InsightView.swift */,
 				B93B103FE5319889196B1BDF /* TaskCardView.swift */,
 				DFC95A22730610A096937910 /* TaskDetailView.swift */,
@@ -334,6 +337,7 @@
 			files = (
 				C3AF43F432E4FE66571575C7 /* AppStore.swift in Sources */,
 				C798319CCC36D449AABECB95 /* Cadence.swift in Sources */,
+				0CC93CB5B827B92E996D24D1 /* CreateTaskView.swift in Sources */,
 				4608A72190816227611935BD /* Entities.swift in Sources */,
 				5D003B7A434FC8AC3A1BBFC8 /* ExportEnvelope.swift in Sources */,
 				6259F906D65BBE7D68F7090B /* FMNModelContainer.swift in Sources */,

@@ -9,6 +9,7 @@ struct TaskListView: View {
     @State private var coordinator = NudgeCoordinator()
     @State private var detailTask: TaskDTO?
     @State private var showGlobal = false
+    @State private var showCreate = false
 
     private let insights = Insights.service()
     private let ticker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -33,6 +34,9 @@ struct TaskListView: View {
             InsightView(title: "All loops") { await insights.overview(store.sortedActive) }
                 .presentationDetents([.medium, .large])
         }
+        .sheet(isPresented: $showCreate) {
+            CreateTaskView().environment(store)
+        }
     }
 
     private var header: some View {
@@ -40,12 +44,20 @@ struct TaskListView: View {
             Text("FORGET ME NOT")
                 .font(WL.mono(17, .bold)).tracking(3).foregroundStyle(WL.text)
             Spacer()
-            Button { showGlobal = true } label: {
-                Image(systemName: "waveform.path.ecg")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(WL.accent)
+            HStack(spacing: 18) {
+                Button { showCreate = true } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(WL.accent)
+                }
+                .accessibilityLabel("New task")
+                Button { showGlobal = true } label: {
+                    Image(systemName: "waveform.path.ecg")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(WL.accent)
+                }
+                .accessibilityLabel("Overall insights")
             }
-            .accessibilityLabel("Overall insights")
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)

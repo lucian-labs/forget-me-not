@@ -1,0 +1,32 @@
+{
+  "tasks": [
+    {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "title": "Flip the laundry",
+      "description": "Move wash to dryer",
+      "domain": "home",
+      "tags": ["chores"],
+      "status": "open",
+      "priority": "normal",
+      "createdAt": "2026-06-15T12:00:00.000Z",
+      "updatedAt": "2026-06-15T12:30:00.000Z",
+      "dueDate": null,
+      "startedAt": null,
+      "completedAt": null,
+      "estimatedHours": null,
+      "recurring": true,
+      "baseCadenceSeconds": 2700,
+      "cadenceMore": 300,
+      "cadenceLess": 300,
+      "instance": { "startedAt": "2026-06-15T12:00:00.000Z", "actualCadenceSeconds": 2850, "snoozed": false },
+      "followUps": [ { "title": "Fold the laundry", "cadenceSeconds": 1800, "domain": "home" } ],
+      "parentTaskId": null,
+      "prompts": ["Did you check the pockets?"],
+      "soundSeed": "laundry-7",
+      "actionLog": [ { "note": "started", "at": "2026-06-15T12:00:00.000Z", "action": "reset" } ]
+    }
+  ],
+  "settings": { "appName": "forget me not", "themePreset": "midnight", "soundEnabled": true },
+  "exportedAt": "2026-06-15T12:30:00.000Z",
+  "version": 1
+}

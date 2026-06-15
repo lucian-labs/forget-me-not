@@ -30,13 +30,11 @@ final class CharacterStore {
         return FileManager.default.fileExists(atPath: u.path) ? u : nil
     }
 
-    /// 0% (initial), 25/50/75%, then the nudge cadence: 90/100% and escalating overdue steps.
-    private static let thresholds: [Double] = {
-        var ts = [0.0, 0.25, 0.5, 0.75, 0.9]
-        var t = 1.0, gap = 0.1
-        for _ in 0..<14 { ts.append(t); t += gap; gap = max(0.02, gap - 0.015) }
-        return ts
-    }()
+    /// Throttled for now to avoid hammering the device: just the calm initial mascot
+    /// (0%) and the feral one at 100%, both cached. Richer evolution (25/50/75 + the
+    /// escalating overdue steps) returns once a lighter generator lands — see
+    /// docs/MASCOT_MODEL_HANDOFF.md.
+    private static let thresholds: [Double] = [0.0, 1.0]
 
     /// Drive evolution — call each tick. Enqueues a regeneration whenever a task crosses
     /// a new threshold for its current instance.

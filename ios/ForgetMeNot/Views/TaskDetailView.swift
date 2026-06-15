@@ -11,6 +11,7 @@ struct TaskDetailView: View {
     @Environment(CharacterStore.self) private var characters
     @Environment(\.dismiss) private var dismiss
     @State private var note = ""
+    @State private var descDraft = ""
     @State private var insightTask: TaskDTO?
 
     private var task: TaskDTO? { store.task(taskId) }
@@ -35,7 +36,7 @@ struct TaskDetailView: View {
         VStack(alignment: .leading, spacing: 20) {
             // header
             HStack {
-                Button { dismiss() } label: {
+                Button { store.setDescription(id: task.id, descDraft); dismiss() } label: {
                     Image(systemName: "chevron.left").font(.system(size: 16, weight: .bold))
                         .foregroundStyle(WL.muted)
                 }
@@ -68,6 +69,14 @@ struct TaskDetailView: View {
                             .font(WL.mono(11, .bold)).foregroundStyle(WL.urgencyColor(Urgency.tier(for: ratio)))
                     }
                 }
+            }
+
+            section("DETAILS") {
+                TextField("what is this? (flavors the mascot + nudges)", text: $descDraft, axis: .vertical)
+                    .font(WL.mono(13)).foregroundStyle(WL.text).tint(WL.accent)
+                    .lineLimit(1...4)
+                    .padding(10).background(WL.surface).overlay(Rectangle().stroke(WL.border, lineWidth: 1))
+                    .onSubmit { store.setDescription(id: task.id, descDraft) }
             }
 
             if !task.prompts.isEmpty {
@@ -136,6 +145,7 @@ struct TaskDetailView: View {
             .padding(.top, 8)
         }
         .padding(20)
+        .onAppear { descDraft = task.description }
     }
 
     @ViewBuilder

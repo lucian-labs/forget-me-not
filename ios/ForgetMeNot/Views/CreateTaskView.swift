@@ -8,6 +8,7 @@ struct CreateTaskView: View {
 
     @State private var title = ""
     @State private var domain = ""
+    @State private var details = ""
     @State private var recurring = true
     @State private var amount = 1
     @State private var unit: Unit = .hour
@@ -37,6 +38,7 @@ struct CreateTaskView: View {
 
                     field("TITLE") { textField("what to remember", $title) }
                     field("DOMAIN") { textField("home / work / health", $domain) }
+                    field("DETAILS") { textField("optional — what is this? (flavors the mascot)", $details) }
 
                     field("TYPE") {
                         HStack(spacing: 8) {
@@ -106,7 +108,8 @@ struct CreateTaskView: View {
         let now = Date()
         let cadence: Double? = recurring ? Double(amount) * unit.seconds : nil
         return TaskDTO(
-            id: UUID().uuidString, title: title.trimmingCharacters(in: .whitespaces), description: "",
+            id: UUID().uuidString, title: title.trimmingCharacters(in: .whitespaces),
+            description: details.trimmingCharacters(in: .whitespaces),
             domain: domain.trimmingCharacters(in: .whitespaces), tags: [], status: .open, priority: .normal,
             createdAt: now, updatedAt: now, dueDate: nil, startedAt: nil, completedAt: nil, estimatedHours: nil,
             recurring: recurring, baseCadenceSeconds: cadence, cadenceMore: nil, cadenceLess: nil,

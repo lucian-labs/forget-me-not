@@ -9,6 +9,7 @@ final class AppStore {
     private let repository: TaskRepository
     var tasks: [TaskDTO] = []
     var themeName: String = "waveloop"
+    var mascotStyle: String = ""
 
     /// Bump to reseed from the web set. Demo-phase: a higher version wipes existing
     /// tasks and reseeds (revisit once there's real user data — then seed-if-empty only).
@@ -26,12 +27,18 @@ final class AppStore {
         }
         themeName = UserDefaults.standard.string(forKey: "fmn.theme") ?? "waveloop"
         WL.apply(Theme.named(themeName))
+        mascotStyle = UserDefaults.standard.string(forKey: "fmn.mascotStyle") ?? ""
     }
 
     func setTheme(_ name: String) {
         themeName = name
         UserDefaults.standard.set(name, forKey: "fmn.theme")
         WL.apply(Theme.named(name))
+    }
+
+    func setMascotStyle(_ style: String) {
+        mascotStyle = style
+        UserDefaults.standard.set(style, forKey: "fmn.mascotStyle")
     }
 
     func load() {
@@ -71,6 +78,14 @@ final class AppStore {
     }
 
     func create(_ task: TaskDTO) {
+        try? repository.upsert(task)
+        load()
+    }
+
+    func setDescription(id: String, _ text: String) {
+        guard var task = tasks.first(where: { $0.id == id }) else { return }
+        task.description = text
+        task.updatedAt = Date()
         try? repository.upsert(task)
         load()
     }

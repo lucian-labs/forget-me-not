@@ -21,6 +21,17 @@ struct SettingsView: View {
                         }
                     }
 
+                    Text("MASCOT STYLE").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
+                    TextField("e.g. 90s claymation, neon sticker, crayon doodle", text: Binding(
+                        get: { store.mascotStyle },
+                        set: { store.setMascotStyle($0) }
+                    ))
+                    .font(WL.mono(13)).foregroundStyle(WL.text).tint(WL.accent)
+                    .autocorrectionDisabled()
+                    .padding(12).background(WL.surface).overlay(Rectangle().stroke(WL.border, lineWidth: 1))
+                    Text("Woven into every generated animal. Blank = default cartoon alien.")
+                        .font(WL.mono(9)).foregroundStyle(WL.muted)
+
                     Text("THEME").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
 
                     LazyVGrid(columns: columns, spacing: 12) {

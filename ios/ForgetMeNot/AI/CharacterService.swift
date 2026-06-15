@@ -33,9 +33,20 @@ enum Characters {
         }
     }
 
+    /// Custom style string from Settings (woven into every mascot prompt).
+    static var style: String {
+        (UserDefaults.standard.string(forKey: "fmn.mascotStyle") ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    static let defaultStyle = "cute funny cartoon alien"
+
     static func prompt(animal: String, task: TaskDTO) -> String {
         let mood = mood(for: Urgency.tier(for: Urgency.ratio(task)))
-        return "a cute funny cartoon alien \(animal), the mascot for \"\(task.title)\", \(mood), friendly character, plain solid background"
+        let look = style.isEmpty ? defaultStyle : style
+        var p = "a \(look) \(animal), the mascot for \"\(task.title)\""
+        let details = task.description.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !details.isEmpty { p += " (\(details))" }
+        p += ", \(mood), friendly character, plain solid background"
+        return p
     }
 
     static func service() -> any CharacterService {

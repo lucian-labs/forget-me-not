@@ -55,7 +55,7 @@ struct FoundationModelsInsightService: InsightService {
         let lapses = t.actionLog.filter { $0.action == .lapsed }.count
         let pct = Int(Urgency.ratio(t) * 100)
         return """
-        Loop: \(t.title). Area: \(t.domain.isEmpty ? "general" : t.domain).
+        Loop: \(t.title).\(t.description.isEmpty ? "" : " Detail: \(t.description).") Area: \(t.domain.isEmpty ? "general" : t.domain).
         Cadence: every \(Format.duration(t.baseCadenceSeconds ?? 0)).
         Completions: \(resets). Lapses: \(lapses). Currently \(pct)% through the cycle.
         Give the analysis.

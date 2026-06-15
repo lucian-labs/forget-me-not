@@ -28,6 +28,7 @@ struct FoundationModelsNudgeService: NudgeService {
 
     private func prompt(for task: TaskDTO, intensity: Int) -> String {
         var parts = ["Task: \(task.title)."]
+        if !task.description.isEmpty { parts.append("Detail: \(task.description).") }
         if !task.domain.isEmpty { parts.append("Area: \(task.domain).") }
         let tone: String
         switch intensity {

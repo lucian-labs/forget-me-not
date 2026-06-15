@@ -21,6 +21,8 @@
 		862EB068A74D75441B463C1F /* ISO8601.swift in Sources */ = {isa = PBXBuildFile; fileRef = 358F1078CCCA65C534EA4AB1 /* ISO8601.swift */; };
 		AD465367B127BD2AC8892180 /* ForgetMeNotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5965153C091A7D123E190CEC /* ForgetMeNotApp.swift */; };
 		B5284D029C054DA2D84F55A9 /* UrgencyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 406F49AB320CA4DBD3D93EBB /* UrgencyTests.swift */; };
+		C798319CCC36D449AABECB95 /* Cadence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7481CAE26E54820AC56B8DA7 /* Cadence.swift */; };
+		CE8A9FB77DFD84040F9AFA20 /* CadenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0097F1A7BBF79AC1048F9059 /* CadenceTests.swift */; };
 		F2B6DF7EB3525A07BF857C22 /* TaskMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20D5AD7B83C5433C9A8D306 /* TaskMapper.swift */; };
 /* End PBXBuildFile section */
 
@@ -35,6 +37,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0097F1A7BBF79AC1048F9059 /* CadenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceTests.swift; sourceTree = "<group>"; };
 		03E58746B0D9FD73CC2C3F7C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		10DCB8D81EF9B60D11C8AA65 /* FMNModelContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FMNModelContainer.swift; sourceTree = "<group>"; };
 		27CF3ADE60A16F2DA9D6DED3 /* Urgency.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Urgency.swift; sourceTree = "<group>"; };
@@ -47,6 +50,7 @@
 		573B430D27E8801CE055B0B1 /* ExportEnvelopeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportEnvelopeTests.swift; sourceTree = "<group>"; };
 		5965153C091A7D123E190CEC /* ForgetMeNotApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgetMeNotApp.swift; sourceTree = "<group>"; };
 		64FEF131C462563F94B923BD /* ISO8601Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ISO8601Tests.swift; sourceTree = "<group>"; };
+		7481CAE26E54820AC56B8DA7 /* Cadence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cadence.swift; sourceTree = "<group>"; };
 		8D0053E36AD58662ABEF0075 /* ExportEnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportEnvelope.swift; sourceTree = "<group>"; };
 		9BC6880A3D9D91E25BA2296D /* ForgetMeNot.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ForgetMeNot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F0154265D603D1014903D83 /* EntityRoundTripTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntityRoundTripTests.swift; sourceTree = "<group>"; };
@@ -70,6 +74,7 @@
 			isa = PBXGroup;
 			children = (
 				FF64A82423D5FA62C6457507 /* .gitkeep */,
+				0097F1A7BBF79AC1048F9059 /* CadenceTests.swift */,
 				9F0154265D603D1014903D83 /* EntityRoundTripTests.swift */,
 				573B430D27E8801CE055B0B1 /* ExportEnvelopeTests.swift */,
 				64FEF131C462563F94B923BD /* ISO8601Tests.swift */,
@@ -135,6 +140,7 @@
 		D025456D75FC71E6AFFBB8D3 /* Domain */ = {
 			isa = PBXGroup;
 			children = (
+				7481CAE26E54820AC56B8DA7 /* Cadence.swift */,
 				27CF3ADE60A16F2DA9D6DED3 /* Urgency.swift */,
 			);
 			path = Domain;
@@ -229,6 +235,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C798319CCC36D449AABECB95 /* Cadence.swift in Sources */,
 				4608A72190816227611935BD /* Entities.swift in Sources */,
 				5D003B7A434FC8AC3A1BBFC8 /* ExportEnvelope.swift in Sources */,
 				6259F906D65BBE7D68F7090B /* FMNModelContainer.swift in Sources */,
@@ -244,6 +251,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE8A9FB77DFD84040F9AFA20 /* CadenceTests.swift in Sources */,
 				6112E972121FE14FE828301E /* EntityRoundTripTests.swift in Sources */,
 				7ABEDAD572E9A99011118B57 /* ExportEnvelopeTests.swift in Sources */,
 				2D0A481BC752BA9C6EBD8A7A /* ISO8601Tests.swift in Sources */,

@@ -32,6 +32,17 @@ struct SettingsView: View {
                     Text("Woven into every generated animal. Blank = default cartoon alien.")
                         .font(WL.mono(9)).foregroundStyle(WL.muted)
 
+                    Text("PROMPT STYLE").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
+                    TextField("e.g. drill sergeant, gentle friend, pirate", text: Binding(
+                        get: { store.nudgeStyle },
+                        set: { store.setNudgeStyle($0) }
+                    ))
+                    .font(WL.mono(13)).foregroundStyle(WL.text).tint(WL.accent)
+                    .autocorrectionDisabled()
+                    .padding(12).wlPanel(fill: WL.surface, border: WL.border)
+                    Text("The voice your nudges are written in. Blank = calm coach.")
+                        .font(WL.mono(9)).foregroundStyle(WL.muted)
+
                     Text("THEME").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
 
                     LazyVGrid(columns: columns, spacing: 12) {

@@ -10,6 +10,7 @@ final class AppStore {
     var tasks: [TaskDTO] = []
     var themeName: String = "waveloop"
     var mascotStyle: String = ""
+    var nudgeStyle: String = ""
 
     /// Bump to reseed from the web set. Demo-phase: a higher version wipes existing
     /// tasks and reseeds (revisit once there's real user data — then seed-if-empty only).
@@ -28,6 +29,7 @@ final class AppStore {
         themeName = UserDefaults.standard.string(forKey: "fmn.theme") ?? "waveloop"
         WL.apply(Theme.named(themeName))
         mascotStyle = UserDefaults.standard.string(forKey: "fmn.mascotStyle") ?? ""
+        nudgeStyle = UserDefaults.standard.string(forKey: "fmn.nudgeStyle") ?? ""
     }
 
     func setTheme(_ name: String) {
@@ -39,6 +41,11 @@ final class AppStore {
     func setMascotStyle(_ style: String) {
         mascotStyle = style
         UserDefaults.standard.set(style, forKey: "fmn.mascotStyle")
+    }
+
+    func setNudgeStyle(_ style: String) {
+        nudgeStyle = style
+        UserDefaults.standard.set(style, forKey: "fmn.nudgeStyle")
     }
 
     func load() {

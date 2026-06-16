@@ -37,6 +37,9 @@ struct FoundationModelsNudgeService: NudgeService {
         case 3...5: tone = "Badly overdue. Tone: insistent, a little frantic. Max 9 words."
         default: tone = "Extremely overdue. Tone: FRANTIC, near ALL-CAPS, like an alarm. Max 7 words."
         }
-        return parts.joined(separator: " ") + " " + tone + " Give the nudge."
+        let voice = (UserDefaults.standard.string(forKey: "fmn.nudgeStyle") ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let persona = voice.isEmpty ? "" : " Write it as: \(voice)."
+        return parts.joined(separator: " ") + " " + tone + persona + " Give the nudge."
     }
 }

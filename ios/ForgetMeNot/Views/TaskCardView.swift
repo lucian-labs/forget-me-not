@@ -16,7 +16,7 @@ struct TaskCardView: View {
             characterSlot
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text(task.title.uppercased())
+                    Text(task.title.capitalized)
                         .font(WL.mono(16, .semibold)).tracking(1)
                         .foregroundStyle(WL.text).lineLimit(2)
                     Spacer(minLength: 6)

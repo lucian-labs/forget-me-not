@@ -131,7 +131,7 @@ struct LoopsView: View {
     private var urgencyData: [LoopUrgency] {
         store.sortedActive.prefix(12).map { t in
             let r = Urgency.ratio(t)
-            return LoopUrgency(id: t.id, title: t.title.uppercased(),
+            return LoopUrgency(id: t.id, title: t.title.capitalized,
                                pct: min(r, 2) * 100, color: WL.urgencyColor(Urgency.tier(for: r)))
         }
     }

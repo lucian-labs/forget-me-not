@@ -13,7 +13,7 @@ struct InsightView: View {
         ZStack {
             WL.bg.ignoresSafeArea()
             VStack(alignment: .leading, spacing: 18) {
-                Text(title.uppercased())
+                Text(title.capitalized)
                     .font(WL.mono(12, .bold)).tracking(2).foregroundStyle(WL.muted)
 
                 if let r = result {

@@ -47,7 +47,7 @@ struct TaskDetailView: View {
                 }
             }
 
-            Text(task.title.uppercased())
+            Text(task.title.capitalized)
                 .font(WL.mono(22, .bold)).tracking(1).foregroundStyle(WL.text)
                 .fixedSize(horizontal: false, vertical: true)
             if !task.domain.isEmpty {

@@ -1,9 +1,8 @@
 import SwiftUI
 
-/// The main panel — waveloop-styled. Swipe right to RESET: the card shows a success
-/// message in place, the mascot flips to success mode, then it fades and the rows
-/// slide up as it resets to the bottom. Nudges escalate at 70/90/100%+; tap a card
-/// for detail; header buttons = new / insights / settings.
+/// The main panel — waveloop-styled. Slide a card right to open its pocket and drop a
+/// snack (reset); tap a card for detail; header buttons = new / insights / settings.
+/// Nudges escalate at 70/90/100%+; mascots evolve with urgency.
 struct TaskListView: View {
     @Environment(AppStore.self) private var store
     @Environment(CharacterStore.self) private var characters
@@ -12,8 +11,6 @@ struct TaskListView: View {
     @State private var showGlobal = false
     @State private var showCreate = false
     @State private var showSettings = false
-    @State private var celebrating: [String: String] = [:]
-    @State private var messageFaded: Set<String> = []
 
     private let insights = Insights.service()
     private let ticker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -81,58 +78,29 @@ struct TaskListView: View {
             }
             .frame(maxWidth: .infinity)
         } else {
-            List {
-                ForEach(store.sortedActive) { task in
-                    Button { detailTask = task } label: {
-                        TaskCardView(task: task,
-                                     nudge: coordinator.nudge(for: task.id),
-                                     character: characters.image(for: task.id),
-                                     celebration: celebrating[task.id],
-                                     messageFaded: messageFaded.contains(task.id))
-                    }
-                    .buttonStyle(.plain)
-                    .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(WL.bg)
-                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                        Button { celebrate(task) } label: {
-                            Label("SNACK", systemImage: "fish.fill")
-                        }
-                        .tint(WL.green)
+            ScrollView {
+                LazyVStack(spacing: 12) {
+                    ForEach(store.sortedActive) { task in
+                        TaskCardView(
+                            task: task,
+                            nudge: coordinator.nudge(for: task.id),
+                            character: characters.image(for: task.id),
+                            onTap: { detailTask = task },
+                            onReset: { reset(task) }
+                        )
                     }
                 }
+                .padding(.horizontal, 16)
+                .padding(.top, 10)
+                .padding(.bottom, 24)
             }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
-            .contentMargins(.top, 10, for: .scrollContent)
         }
     }
 
-    /// Show a success beat in the card's place, then reset — so the row fades and the
-    /// others slide up smoothly.
-    private func celebrate(_ task: TaskDTO) {
+    private func reset(_ task: TaskDTO) {
         coordinator.clear(task.id)
-        // 1) front content fades out, revealing the message layer behind
-        withAnimation(.easeInOut(duration: 0.3)) { celebrating[task.id] = Celebrations.message() }
-        Task {
-            try? await Task.sleep(for: .seconds(0.9))
-            // 2) the revealed message fades out
-            withAnimation(.easeInOut(duration: 0.3)) { _ = messageFaded.insert(task.id) }
-            try? await Task.sleep(for: .seconds(0.35))
-            // 3) reset → the row reorders to the bottom and the others slide up
-            withAnimation(.easeInOut(duration: 0.45)) {
-                store.reset(id: task.id)
-                celebrating[task.id] = nil
-                messageFaded.remove(task.id)
-            }
+        withAnimation(.easeInOut(duration: 0.4)) {
+            store.reset(id: task.id)   // re-sorts to the bottom; rows slide up
         }
     }
-}
-
-enum Celebrations {
-    private static let lines = [
-        "NICE.", "DONE — SEE YOU NEXT CYCLE.", "RESET. GOOD.", "CLEAN.",
-        "LOCKED IN.", "FUTURE YOU SAYS THANKS.", "✓ ANOTHER REP.",
-    ]
-    static func message() -> String { lines.randomElement() ?? "NICE." }
 }

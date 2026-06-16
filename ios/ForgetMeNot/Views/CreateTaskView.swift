@@ -130,7 +130,7 @@ struct CreateTaskView: View {
     private func textField(_ placeholder: String, _ text: Binding<String>) -> some View {
         TextField(placeholder, text: text)
             .font(WL.mono(14)).foregroundStyle(WL.text).tint(WL.accent)
-            .padding(12).background(WL.surface).overlay(Rectangle().stroke(WL.border, lineWidth: 1))
+            .padding(12).wlPanel(fill: WL.surface, border: WL.border)
     }
 
     private func segment(_ label: String, on: Bool, _ action: @escaping () -> Void) -> some View {

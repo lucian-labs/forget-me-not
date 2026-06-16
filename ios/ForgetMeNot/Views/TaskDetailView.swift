@@ -75,7 +75,7 @@ struct TaskDetailView: View {
                 TextField("what is this? (flavors the mascot + nudges)", text: $descDraft, axis: .vertical)
                     .font(WL.mono(13)).foregroundStyle(WL.text).tint(WL.accent)
                     .lineLimit(1...4)
-                    .padding(10).background(WL.surface).overlay(Rectangle().stroke(WL.border, lineWidth: 1))
+                    .padding(10).wlPanel(fill: WL.surface, border: WL.border)
                     .onSubmit { store.setDescription(id: task.id, descDraft) }
             }
 
@@ -103,7 +103,7 @@ struct TaskDetailView: View {
                 HStack(spacing: 8) {
                     TextField("what did you do?", text: $note)
                         .font(WL.mono(13)).foregroundStyle(WL.text)
-                        .padding(10).background(WL.surface).overlay(Rectangle().stroke(WL.border, lineWidth: 1))
+                        .padding(10).wlPanel(fill: WL.surface, border: WL.border)
                     Button {
                         let trimmed = note.trimmingCharacters(in: .whitespacesAndNewlines)
                         guard !trimmed.isEmpty else { return }

@@ -96,9 +96,9 @@ struct TaskListView: View {
                     .listRowBackground(WL.bg)
                     .swipeActions(edge: .leading, allowsFullSwipe: true) {
                         Button { celebrate(task) } label: {
-                            Label("RESET", systemImage: "arrow.counterclockwise")
+                            Label("SNACK", systemImage: "fish.fill")
                         }
-                        .tint(WL.accent)
+                        .tint(WL.green)
                     }
                 }
             }

@@ -1,11 +1,12 @@
 import SwiftUI
 import UIKit
 
-/// Holds + evolves each task's mascot. The character changes at 25/50/75% of the cycle,
-/// then follows the nudge cadence (90/100%+ escalating) — same animal throughout a cycle,
-/// mood degrading from content to feral. A reset re-arms it back to calm. Image generation
-/// is serialized (one at a time) so Image Playground isn't overloaded. Cached to disk;
-/// the chosen animal per task is remembered so regenerations stay the same creature.
+/// Holds + evolves each task's mascot. Throttled: the character renders at most twice a
+/// cycle — calm (0%) and feral (100%) — and only when it crosses a *new* threshold for
+/// its current instance (tracked persistently, so it does NOT regenerate every launch).
+/// A reset re-arms it to calm. Generation is serialized; images are background-cut with
+/// Vision and cached to disk. The chosen animal per task is remembered so regenerations
+/// stay the same creature.
 @MainActor
 @Observable
 final class CharacterStore {
@@ -13,9 +14,10 @@ final class CharacterStore {
     private(set) var images: [String: UIImage] = [:]
     private(set) var generating: Set<String> = []
 
-    private var animals: [String: String] = [:]   // taskId -> animal (persisted)
-    private var fired: Set<String> = []            // "taskId|instanceStart|threshold"
-    private var queue: [TaskDTO] = []              // pending regens (latest mood per task)
+    private var animals: [String: String] = [:]            // taskId -> animal (persisted)
+    private struct RenderState { var inst: String; var threshold: Double }
+    private var rendered: [String: RenderState] = [:]       // taskId -> last rendered (persisted)
+    private var queue: [TaskDTO] = []
     private var running = false
 
     var available: Bool { service.available }
@@ -30,25 +32,23 @@ final class CharacterStore {
         return FileManager.default.fileExists(atPath: u.path) ? u : nil
     }
 
-    /// Throttled for now to avoid hammering the device: just the calm initial mascot
-    /// (0%) and the feral one at 100%, both cached. Richer evolution (25/50/75 + the
-    /// escalating overdue steps) returns once a lighter generator lands — see
-    /// docs/MASCOT_MODEL_HANDOFF.md.
+    /// Calm at 0%, feral at 100%. (Richer evolution returns with a lighter generator —
+    /// see docs/MASCOT_MODEL_HANDOFF.md.)
     private static let thresholds: [Double] = [0.0, 1.0]
 
-    /// Drive evolution — call each tick. Enqueues a regeneration whenever a task crosses
-    /// a new threshold for its current instance.
+    /// Drive evolution — call each tick. Regenerates only when a task crosses a higher
+    /// threshold than last rendered for its current instance (or after a reset).
     func evolve(for tasks: [TaskDTO], now: Date = Date()) {
         guard service.available else { return }
         for task in tasks {
             let ratio = task.recurring ? Urgency.ratio(task, now: now) : 0
-            let instKey = task.instance.map { String($0.startedAt.timeIntervalSince1970) } ?? "static"
-            for threshold in Self.thresholds where ratio >= threshold {
-                let key = "\(task.id)|\(instKey)|\(threshold)"
-                if fired.contains(key) { continue }
-                fired.insert(key)
-                enqueue(task)
-            }
+            let instKey = task.instance.map { String(Int($0.startedAt.timeIntervalSince1970)) } ?? "static"
+            guard let crossed = Self.thresholds.last(where: { ratio >= $0 }) else { continue }
+            if let r = rendered[task.id], r.inst == instKey, r.threshold >= crossed { continue }
+            if generating.contains(task.id) { continue }
+            rendered[task.id] = RenderState(inst: instKey, threshold: crossed)
+            saveRendered()
+            enqueue(task)
         }
         drain()
     }
@@ -60,11 +60,11 @@ final class CharacterStore {
         await regenerate(task, animal: animal)
     }
 
-    // MARK: evolution internals
+    // MARK: internals
 
     private func enqueue(_ task: TaskDTO) {
         if animals[task.id] == nil { setAnimal(Characters.randomAnimal(), for: task.id) }
-        queue.removeAll { $0.id == task.id }   // collapse to the latest mood per task
+        queue.removeAll { $0.id == task.id }
         queue.append(task)
     }
 
@@ -86,7 +86,7 @@ final class CharacterStore {
         defer { generating.remove(task.id) }
         let prompt = Characters.prompt(animal: animal, task: task)   // mood = current urgency
         if let cg = await service.generate(prompt: prompt) {
-            let img = UIImage(cgImage: cg)
+            let img = BackgroundRemover.cutout(cg)   // transparent cutout
             images[task.id] = img
             if let data = img.pngData() { try? data.write(to: url(task.id)) }
         }
@@ -108,9 +108,19 @@ final class CharacterStore {
         UserDefaults.standard.set(animals, forKey: "fmn.animals")
     }
 
+    private func saveRendered() {
+        UserDefaults.standard.set(rendered.mapValues { "\($0.inst)|\($0.threshold)" }, forKey: "fmn.rendered")
+    }
+
     private func preload() {
-        if let saved = UserDefaults.standard.dictionary(forKey: "fmn.animals") as? [String: String] {
-            animals = saved
+        if let a = UserDefaults.standard.dictionary(forKey: "fmn.animals") as? [String: String] { animals = a }
+        if let r = UserDefaults.standard.dictionary(forKey: "fmn.rendered") as? [String: String] {
+            for (k, v) in r {
+                let parts = v.split(separator: "|")
+                if parts.count == 2, let t = Double(parts[1]) {
+                    rendered[k] = RenderState(inst: String(parts[0]), threshold: t)
+                }
+            }
         }
         guard let files = try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) else { return }
         for f in files where f.pathExtension == "png" {

@@ -28,7 +28,7 @@ struct SettingsView: View {
                     ))
                     .font(WL.mono(13)).foregroundStyle(WL.text).tint(WL.accent)
                     .autocorrectionDisabled()
-                    .padding(12).background(WL.surface).overlay(Rectangle().stroke(WL.border, lineWidth: 1))
+                    .padding(12).wlPanel(fill: WL.surface, border: WL.border)
                     Text("Woven into every generated animal. Blank = default cartoon alien.")
                         .font(WL.mono(9)).foregroundStyle(WL.muted)
 
@@ -66,8 +66,8 @@ struct SettingsView: View {
             }
         }
         .padding(12)
-        .background(Color(hex: theme.surface))
-        .overlay(Rectangle().stroke(selected ? Color(hex: theme.accent) : Color(hex: theme.border),
-                                    lineWidth: selected ? 2 : 1))
+        .background(Color(hex: theme.surface), in: RoundedRectangle(cornerRadius: theme.radius, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: theme.radius, style: .continuous)
+            .stroke(selected ? Color(hex: theme.accent) : Color(hex: theme.border), lineWidth: selected ? 2 : 1))
     }
 }

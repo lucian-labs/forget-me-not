@@ -1,10 +1,10 @@
 import SwiftUI
 import UIKit
 
-/// A task panel: left = its generated alien-animal mascot (mood reflects neglect),
-/// right = title / domain / live LED meter / nudge. On swipe-reset (`celebration` set),
-/// the content fades to 0 opacity — keeping the same height so nothing jumps — and a
-/// success message is revealed behind it, before the row resets and slides away.
+/// A task panel: left = its mascot (transparent cutout, floats), right = title / domain /
+/// live LED meter / a speech bubble with the creature's nudge. Corner radius follows the
+/// theme. On swipe-reset the content fades to reveal a success message behind it (constant
+/// height), then the row resets and slides away.
 struct TaskCardView: View {
     let task: TaskDTO
     let nudge: String?
@@ -23,21 +23,20 @@ struct TaskCardView: View {
                 }
                 .opacity(messageFaded ? 0 : 1)
             }
-            content
-                .opacity(celebration != nil ? 0 : 1)
+            content.opacity(celebration != nil ? 0 : 1)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(WL.surface)
-        .overlay(Rectangle().stroke(celebration != nil && !messageFaded ? WL.green : WL.border, lineWidth: 1))
+        .wlPanel(fill: WL.surface, border: celebration != nil && !messageFaded ? WL.green : WL.border)
         .animation(.easeInOut(duration: 0.3), value: celebration)
         .animation(.easeInOut(duration: 0.3), value: messageFaded)
         .animation(.easeInOut(duration: 0.25), value: nudge)
     }
 
     private var content: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: 10) {
             characterSlot
+
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(task.title.uppercased())
@@ -67,13 +66,8 @@ struct TaskCardView: View {
                 }
 
                 if let nudge {
-                    HStack(alignment: .top, spacing: 6) {
-                        Text("▸").font(WL.mono(12, .bold)).foregroundStyle(WL.accent)
-                        Text(nudge).font(WL.mono(12)).foregroundStyle(WL.cyan)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .padding(.top, 2)
-                    .transition(.opacity)
+                    SpeechBubble(text: nudge)
+                        .transition(.opacity)
                 }
             }
         }
@@ -82,16 +76,12 @@ struct TaskCardView: View {
     private var characterSlot: some View {
         Group {
             if let character {
-                Image(uiImage: character).resizable().scaledToFill()
+                Image(uiImage: character).resizable().scaledToFit()
             } else {
-                ZStack {
-                    Rectangle().fill(WL.bg)
-                    Image(systemName: "sparkle").font(.system(size: 15)).foregroundStyle(WL.muted.opacity(0.4))
-                }
+                Image(systemName: "sparkle")
+                    .font(.system(size: 18)).foregroundStyle(WL.muted.opacity(0.4))
             }
         }
-        .frame(width: 54, height: 54)
-        .clipped()
-        .overlay(Rectangle().stroke(WL.border, lineWidth: 1))
+        .frame(width: 56, height: 56)
     }
 }

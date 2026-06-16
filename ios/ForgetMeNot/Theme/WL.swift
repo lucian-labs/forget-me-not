@@ -18,6 +18,7 @@ final class Palette {
     var gold: Color = .orange
     var green: Color = .green
     var red: Color = .red
+    var radius: CGFloat = 0
 
     init() { apply(.waveloop) }
 
@@ -33,6 +34,7 @@ final class Palette {
         gold = Color(hex: t.orange)
         green = Color(hex: t.green)
         red = Color(hex: t.red)
+        radius = t.radius
     }
 
     func mono(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
@@ -61,5 +63,20 @@ extension Color {
         let g = Double((v >> 8) & 0xff) / 255
         let b = Double(v & 0xff) / 255
         self = Color(red: r, green: g, blue: b)
+    }
+}
+
+@MainActor
+extension View {
+    /// Fill + 1pt border at the current theme's corner radius.
+    func wlPanel(fill: Color, border: Color, line: CGFloat = 1) -> some View {
+        let shape = RoundedRectangle(cornerRadius: WL.radius, style: .continuous)
+        return background(fill, in: shape).overlay(shape.stroke(border, lineWidth: line))
+    }
+    func wlStroke(_ color: Color, line: CGFloat = 1) -> some View {
+        overlay(RoundedRectangle(cornerRadius: WL.radius, style: .continuous).stroke(color, lineWidth: line))
+    }
+    func wlClip() -> some View {
+        clipShape(RoundedRectangle(cornerRadius: WL.radius, style: .continuous))
     }
 }

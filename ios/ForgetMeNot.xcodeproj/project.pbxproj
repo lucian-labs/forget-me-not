@@ -18,6 +18,7 @@
 		37980F97A71DF8B63369B934 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34FF76DC83C7AD47E2E579DE /* SettingsView.swift */; };
 		3B20FBDDEF34D9E42A33427A /* RepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F9085E1F4B4816D02C800C7 /* RepositoryTests.swift */; };
 		41404A0F661223192C9B1030 /* TaskDTOTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F7F3203B2AB93875DAE670C /* TaskDTOTests.swift */; };
+		4428A646EA3B0F2F75434386 /* LoopsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BE2B6314CAF07D71B0D82EC /* LoopsView.swift */; };
 		4608A72190816227611935BD /* Entities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 427D5FC64AC66D820D8D2262 /* Entities.swift */; };
 		4F85F015F8E40D78C3595F10 /* NudgeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B87B5C6385148F6DABE0F72B /* NudgeService.swift */; };
 		54D512FEC57955D2049713C4 /* TaskCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B93B103FE5319889196B1BDF /* TaskCardView.swift */; };
@@ -95,6 +96,7 @@
 		7481CAE26E54820AC56B8DA7 /* Cadence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cadence.swift; sourceTree = "<group>"; };
 		7F9085E1F4B4816D02C800C7 /* RepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryTests.swift; sourceTree = "<group>"; };
 		8869A21F715B3F04FF1EE9B1 /* LifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleTests.swift; sourceTree = "<group>"; };
+		8BE2B6314CAF07D71B0D82EC /* LoopsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopsView.swift; sourceTree = "<group>"; };
 		8D0053E36AD58662ABEF0075 /* ExportEnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportEnvelope.swift; sourceTree = "<group>"; };
 		9BC6880A3D9D91E25BA2296D /* ForgetMeNot.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ForgetMeNot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F0154265D603D1014903D83 /* EntityRoundTripTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntityRoundTripTests.swift; sourceTree = "<group>"; };
@@ -256,6 +258,7 @@
 			children = (
 				73BDC64A35C3187BE0BDF6B3 /* CreateTaskView.swift */,
 				C217373FE55EC5A910C414AB /* InsightView.swift */,
+				8BE2B6314CAF07D71B0D82EC /* LoopsView.swift */,
 				34FF76DC83C7AD47E2E579DE /* SettingsView.swift */,
 				00F5EAA086DEE2999A00A30F /* SpeechBubble.swift */,
 				B93B103FE5319889196B1BDF /* TaskCardView.swift */,
@@ -373,6 +376,7 @@
 				AC2A5095B67901BBE85EC6A0 /* InsightService.swift in Sources */,
 				7EC6303C70EA5DA399A9B4CB /* InsightView.swift in Sources */,
 				AF6685D38B2098AB6D70FD14 /* Lifecycle.swift in Sources */,
+				4428A646EA3B0F2F75434386 /* LoopsView.swift in Sources */,
 				5538079EA0D26FADD9E8B5D4 /* NudgeCoordinator.swift in Sources */,
 				4F85F015F8E40D78C3595F10 /* NudgeService.swift in Sources */,
 				22B65CFD92089134EC1CDA20 /* ReminderScheduler.swift in Sources */,

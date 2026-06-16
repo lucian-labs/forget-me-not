@@ -87,16 +87,19 @@ struct TaskDetailView: View {
                 }
             }
 
-            // actions
-            HStack(spacing: 10) {
-                actionButton("RESET", icon: "arrow.counterclockwise", tint: WL.accent) {
-                    store.reset(id: task.id)
-                }
-                actionButton("DONE", icon: "checkmark", tint: WL.green) {
-                    store.complete(id: task.id)
-                    dismiss()
-                }
+            // active switch (off = paused; the creature sleeps)
+            HStack {
+                Text("ACTIVE").font(WL.mono(12, .bold)).tracking(1).foregroundStyle(WL.text)
+                Spacer()
+                Toggle("", isOn: Binding(
+                    get: { task.status == .open },
+                    set: { store.setActive(id: task.id, $0) }
+                ))
+                .labelsHidden()
+                .tint(WL.accent)
             }
+            .padding(.horizontal, 12).padding(.vertical, 8)
+            .wlPanel(fill: WL.surface, border: WL.border)
 
             // quick log
             section("LOG A NOTE") {
@@ -151,14 +154,21 @@ struct TaskDetailView: View {
     @ViewBuilder
     private func characterBlock(_ task: TaskDTO) -> some View {
         VStack(spacing: 10) {
-            Group {
-                if let img = characters.image(for: task.id) {
-                    Image(uiImage: img).resizable().scaledToFit()
-                } else {
-                    ZStack {
-                        Rectangle().fill(WL.surface)
-                        Image(systemName: "sparkle").font(.system(size: 30)).foregroundStyle(WL.muted.opacity(0.4))
+            ZStack {
+                Group {
+                    if let img = characters.image(for: task.id) {
+                        Image(uiImage: img).resizable().scaledToFit()
+                    } else {
+                        ZStack {
+                            Rectangle().fill(WL.surface)
+                            Image(systemName: "sparkle").font(.system(size: 30)).foregroundStyle(WL.muted.opacity(0.4))
+                        }
                     }
+                }
+                .opacity(task.status == .blocked ? 0.5 : 1)
+                .grayscale(task.status == .blocked ? 0.9 : 0)
+                if task.status == .blocked {
+                    Image(systemName: "zzz").font(.system(size: 34, weight: .bold)).foregroundStyle(WL.muted)
                 }
             }
             .frame(height: 180).frame(maxWidth: .infinity).clipped()

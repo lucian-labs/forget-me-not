@@ -97,6 +97,30 @@ final class AppStore {
         load()
     }
 
+    /// Active = open + running. Inactive = paused (asleep): status blocked, instance killed
+    /// so urgency freezes and it stops nudging/notifying. Reactivating starts a fresh cycle.
+    func setActive(id: String, _ active: Bool) {
+        guard var t = tasks.first(where: { $0.id == id }) else { return }
+        if active {
+            t.status = .open
+            if t.recurring, let base = t.baseCadenceSeconds, t.instance == nil {
+                var rng = SystemRandomNumberGenerator()
+                t.instance = ReminderInstanceDTO(
+                    startedAt: Date(),
+                    actualCadenceSeconds: Cadence.randomized(base: base, more: t.cadenceMore, less: t.cadenceLess, using: &rng),
+                    snoozed: false)
+            }
+        } else {
+            t.status = .blocked
+            t.instance = nil
+        }
+        t.updatedAt = Date()
+        try? repository.upsert(t)
+        load()
+    }
+
+    func isActive(id: String) -> Bool { tasks.first { $0.id == id }?.status == .open }
+
     func task(_ id: String) -> TaskDTO? { tasks.first { $0.id == id } }
 
     /// Active tasks, most urgent first.

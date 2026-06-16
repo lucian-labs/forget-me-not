@@ -10,13 +10,20 @@ struct ImagePlaygroundCharacterService: CharacterService {
     var available: Bool { true }
 
     func generate(prompt: String) async -> CGImage? {
-        guard let creator = try? await ImageCreator() else { return nil }
+        let creator: ImageCreator
+        do {
+            creator = try await ImageCreator()
+        } catch {
+            print("[FMN] ImageCreator init FAILED: \(error)")
+            return nil
+        }
         do {
             for try await image in creator.images(for: [.text(prompt)], style: .animation, limit: 1) {
                 return image.cgImage
             }
+            print("[FMN] no image returned for: \(prompt.prefix(60))")
         } catch {
-            return nil
+            print("[FMN] generate FAILED [\(prompt.prefix(60))]: \(error)")
         }
         return nil
     }

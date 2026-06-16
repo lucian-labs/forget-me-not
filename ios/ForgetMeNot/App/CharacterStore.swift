@@ -83,6 +83,7 @@ final class CharacterStore {
         defer { generating.remove(p.task.id) }
         let animal = animals[p.task.id] ?? Characters.randomAnimal()
         let prompt = Characters.prompt(animal: animal, task: p.task)
+        print("[FMN] regenerate '\(p.task.title)' as \(animal) @\(p.threshold)")
         if let cg = await service.generate(prompt: prompt) {
             let img = BackgroundRemover.cutout(cg)
             images[p.task.id] = img
@@ -90,8 +91,11 @@ final class CharacterStore {
             rendered[p.task.id] = RenderState(inst: p.inst, threshold: p.threshold)
             saveRendered()
             attempts[p.akey] = 0
+            print("[FMN] OK '\(p.task.title)' size=\(img.size)")
         } else {
             attempts[p.akey, default: 0] += 1
+            setAnimal(Characters.randomAnimal(), for: p.task.id)   // vary the creature on failure
+            print("[FMN] FAIL '\(p.task.title)' attempt=\(attempts[p.akey] ?? 0)")
         }
     }
 

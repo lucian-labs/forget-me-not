@@ -19,7 +19,7 @@ struct UrgencyBarView: View {
                     .fill(Double(i) / Double(segments) < clamped ? color : Color.white.opacity(0.07))
             }
         }
-        .frame(height: 10)
+        .frame(height: 5)
         .opacity(tier == .overdue && pulse ? 0.4 : 1)
         .onAppear { if tier == .overdue { withAnimation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true)) { pulse = true } } }
         .onChange(of: tier) { _, new in

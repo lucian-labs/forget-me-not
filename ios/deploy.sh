@@ -34,5 +34,8 @@ xcodebuild -project ForgetMeNot.xcodeproj -scheme ForgetMeNot -configuration Deb
 
 APP="$(find build/Build/Products/Debug-iphoneos -maxdepth 1 -name '*.app' | head -1)"
 xcrun devicectl device install app --device "$DEVICE_ID" "$APP"
-xcrun devicectl device process launch --device "$DEVICE_ID" com.lucianlabs.forgetmenot
-echo "Installed + launched on $DEVICE_NAME ($DEVICE_ID)"
+echo "Installed on $DEVICE_NAME ($DEVICE_ID)"
+# Auto-launch is best-effort: it fails if the device is locked. Install is what matters.
+xcrun devicectl device process launch --device "$DEVICE_ID" com.lucianlabs.forgetmenot \
+  && echo "Launched." \
+  || echo "(auto-launch skipped — unlock the device and open the app)"

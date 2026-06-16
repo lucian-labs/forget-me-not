@@ -21,6 +21,7 @@ struct TaskDetailView: View {
             WL.bg.ignoresSafeArea()
             if let task {
                 ScrollView { body(task) }
+                    .simultaneousGesture(swipeToClose(task))
             } else {
                 Color.clear.onAppear { dismiss() }
             }
@@ -32,11 +33,31 @@ struct TaskDetailView: View {
         }
     }
 
+    /// Save the in-flight description draft, then dismiss.
+    private func closeSaving(_ task: TaskDTO) {
+        store.setDescription(id: task.id, descDraft)
+        dismiss()
+    }
+
+    /// Left-edge swipe-right to close (fullScreenCover has no built-in back gesture).
+    /// Simultaneous so the ScrollView keeps scrolling; gated to a deliberate, mostly-
+    /// horizontal drag that starts at the very left edge.
+    private func swipeToClose(_ task: TaskDTO) -> some Gesture {
+        DragGesture(minimumDistance: 20, coordinateSpace: .local)
+            .onEnded { value in
+                guard value.startLocation.x < 24,
+                      value.translation.width > 80,
+                      abs(value.translation.width) > abs(value.translation.height) * 1.5
+                else { return }
+                closeSaving(task)
+            }
+    }
+
     private func body(_ task: TaskDTO) -> some View {
         VStack(alignment: .leading, spacing: 20) {
             // header
             HStack {
-                Button { store.setDescription(id: task.id, descDraft); dismiss() } label: {
+                Button { closeSaving(task) } label: {
                     Image(systemName: "chevron.left").font(.system(size: 16, weight: .bold))
                         .foregroundStyle(WL.muted)
                 }

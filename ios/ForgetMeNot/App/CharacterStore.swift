@@ -1,12 +1,12 @@
 import SwiftUI
 import UIKit
 
-/// Holds + evolves each task's mascot. Throttled: the character renders at most twice a
-/// cycle — calm (0%) and feral (100%) — and only when it crosses a *new* threshold for
-/// its current instance (tracked persistently, so it does NOT regenerate every launch).
-/// A reset re-arms it to calm. Generation is serialized; images are background-cut with
-/// Vision and cached to disk. The chosen animal per task is remembered so regenerations
-/// stay the same creature.
+/// Holds + evolves each task's mascot. Throttled: renders at most twice a cycle — calm
+/// (0%) and feral (100%) — only when crossing a new threshold for the current instance.
+/// `rendered` is marked on SUCCESS only and self-heals if an entry exists without an
+/// image, so a one-off generation failure (e.g. a flaky Image Playground call) retries
+/// instead of leaving a permanently-blank mascot. Generation is serialized; images are
+/// background-cut with Vision and cached to disk; the animal per task is remembered.
 @MainActor
 @Observable
 final class CharacterStore {
@@ -14,10 +14,12 @@ final class CharacterStore {
     private(set) var images: [String: UIImage] = [:]
     private(set) var generating: Set<String> = []
 
-    private var animals: [String: String] = [:]            // taskId -> animal (persisted)
+    private var animals: [String: String] = [:]
     private struct RenderState { var inst: String; var threshold: Double }
-    private var rendered: [String: RenderState] = [:]       // taskId -> last rendered (persisted)
-    private var queue: [TaskDTO] = []
+    private var rendered: [String: RenderState] = [:]
+    private struct PendingGen { let task: TaskDTO; let inst: String; let threshold: Double; let akey: String }
+    private var queue: [PendingGen] = []
+    private var attempts: [String: Int] = [:]   // per inst+threshold, capped per session
     private var running = false
 
     var available: Bool { service.available }
@@ -32,23 +34,22 @@ final class CharacterStore {
         return FileManager.default.fileExists(atPath: u.path) ? u : nil
     }
 
-    /// Calm at 0%, feral at 100%. (Richer evolution returns with a lighter generator —
-    /// see docs/MASCOT_MODEL_HANDOFF.md.)
     private static let thresholds: [Double] = [0.0, 1.0]
 
-    /// Drive evolution — call each tick. Regenerates only when a task crosses a higher
-    /// threshold than last rendered for its current instance (or after a reset).
     func evolve(for tasks: [TaskDTO], now: Date = Date()) {
         guard service.available else { return }
         for task in tasks {
             let ratio = task.recurring ? Urgency.ratio(task, now: now) : 0
             let instKey = task.instance.map { String(Int($0.startedAt.timeIntervalSince1970)) } ?? "static"
             guard let crossed = Self.thresholds.last(where: { ratio >= $0 }) else { continue }
-            if let r = rendered[task.id], r.inst == instKey, r.threshold >= crossed { continue }
+            // Skip only if we've rendered this level for this instance AND the image exists.
+            if let r = rendered[task.id], r.inst == instKey, r.threshold >= crossed, images[task.id] != nil { continue }
             if generating.contains(task.id) { continue }
-            rendered[task.id] = RenderState(inst: instKey, threshold: crossed)
-            saveRendered()
-            enqueue(task)
+            if queue.contains(where: { $0.task.id == task.id }) { continue }
+            let akey = "\(task.id)|\(instKey)|\(crossed)"
+            if (attempts[akey] ?? 0) >= 3 { continue }   // gave up for this session
+            if animals[task.id] == nil { setAnimal(Characters.randomAnimal(), for: task.id) }
+            queue.append(PendingGen(task: task, inst: instKey, threshold: crossed, akey: akey))
         }
         drain()
     }
@@ -57,38 +58,40 @@ final class CharacterStore {
     func generate(for task: TaskDTO) async {
         let animal = Characters.randomAnimal()
         setAnimal(animal, for: task.id)
-        await regenerate(task, animal: animal)
+        let ratio = task.recurring ? Urgency.ratio(task) : 0
+        let instKey = task.instance.map { String(Int($0.startedAt.timeIntervalSince1970)) } ?? "static"
+        let crossed = Self.thresholds.last(where: { ratio >= $0 }) ?? 0
+        await regenerate(PendingGen(task: task, inst: instKey, threshold: crossed, akey: "\(task.id)|manual"))
     }
 
     // MARK: internals
-
-    private func enqueue(_ task: TaskDTO) {
-        if animals[task.id] == nil { setAnimal(Characters.randomAnimal(), for: task.id) }
-        queue.removeAll { $0.id == task.id }
-        queue.append(task)
-    }
 
     private func drain() {
         guard !running, !queue.isEmpty else { return }
         running = true
         Task {
             while !queue.isEmpty {
-                let task = queue.removeFirst()
-                await regenerate(task, animal: animals[task.id] ?? Characters.randomAnimal())
+                await regenerate(queue.removeFirst())
             }
             running = false
         }
     }
 
-    private func regenerate(_ task: TaskDTO, animal: String) async {
-        guard service.available, !generating.contains(task.id) else { return }
-        generating.insert(task.id)
-        defer { generating.remove(task.id) }
-        let prompt = Characters.prompt(animal: animal, task: task)   // mood = current urgency
+    private func regenerate(_ p: PendingGen) async {
+        guard service.available, !generating.contains(p.task.id) else { return }
+        generating.insert(p.task.id)
+        defer { generating.remove(p.task.id) }
+        let animal = animals[p.task.id] ?? Characters.randomAnimal()
+        let prompt = Characters.prompt(animal: animal, task: p.task)
         if let cg = await service.generate(prompt: prompt) {
-            let img = BackgroundRemover.cutout(cg)   // transparent cutout
-            images[task.id] = img
-            if let data = img.pngData() { try? data.write(to: url(task.id)) }
+            let img = BackgroundRemover.cutout(cg)
+            images[p.task.id] = img
+            if let data = img.pngData() { try? data.write(to: url(p.task.id)) }
+            rendered[p.task.id] = RenderState(inst: p.inst, threshold: p.threshold)
+            saveRendered()
+            attempts[p.akey] = 0
+        } else {
+            attempts[p.akey, default: 0] += 1
         }
     }
 

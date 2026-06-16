@@ -444,6 +444,7 @@
 				CODE_SIGN_ENTITLEMENTS = ForgetMeNot/ForgetMeNot.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ForgetMeNot/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -452,6 +453,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.lucianlabs.forgetmenot;
 				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -588,6 +590,7 @@
 				CODE_SIGN_ENTITLEMENTS = ForgetMeNot/ForgetMeNot.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ForgetMeNot/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -596,6 +599,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.lucianlabs.forgetmenot;
 				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

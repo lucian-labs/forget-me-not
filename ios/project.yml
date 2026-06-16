@@ -19,6 +19,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.lucianlabs.forgetmenot
         TARGETED_DEVICE_FAMILY: "1,2"
+        SUPPORTS_MACCATALYST: YES
+        DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER: NO
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: ForgetMeNot/Info.plist
         CODE_SIGN_ENTITLEMENTS: ForgetMeNot/ForgetMeNot.entitlements

@@ -80,10 +80,19 @@ struct TaskDetailView: View {
             }
 
             if !task.prompts.isEmpty {
-                section("PROMPTS") {
+                section("REMINDERS") {
                     ForEach(task.prompts, id: \.self) { p in
                         Text("· \(p)").font(WL.mono(12)).foregroundStyle(WL.muted)
                     }
+                }
+            }
+
+            // the exact text sent to the on-device models (reflects your details + styles)
+            section("SYSTEM PROMPTS") {
+                VStack(alignment: .leading, spacing: 12) {
+                    promptItem("MASCOT", Characters.prompt(animal: characters.animal(for: task.id) ?? "creature", task: task))
+                    promptItem("NUDGE · SYSTEM", Prompts.nudgeInstructions)
+                    promptItem("NUDGE", Prompts.nudge(for: task, intensity: 1))
                 }
             }
 
@@ -202,15 +211,16 @@ struct TaskDetailView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func actionButton(_ title: String, icon: String, tint: Color, _ action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: 6) {
-                Image(systemName: icon).font(.system(size: 13, weight: .bold))
-                Text(title).font(WL.mono(13, .bold)).tracking(1)
-            }
-            .frame(maxWidth: .infinity).padding(.vertical, 14)
-            .foregroundStyle(tint).overlay(Rectangle().stroke(tint, lineWidth: 1))
+    private func promptItem(_ label: String, _ text: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label).font(WL.mono(9, .bold)).tracking(1).foregroundStyle(WL.accent)
+            Text(text).font(WL.mono(11)).foregroundStyle(WL.muted)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+        .wlPanel(fill: WL.surface, border: WL.border)
     }
 
     private func actionColor(_ a: ActionType) -> Color {

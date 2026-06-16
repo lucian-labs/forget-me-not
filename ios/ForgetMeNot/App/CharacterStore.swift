@@ -28,6 +28,7 @@ final class CharacterStore {
 
     func image(for id: String) -> UIImage? { images[id] }
     func isGenerating(_ id: String) -> Bool { generating.contains(id) }
+    func animal(for id: String) -> String? { animals[id] }
 
     func imageURL(for id: String) -> URL? {
         let u = url(id)

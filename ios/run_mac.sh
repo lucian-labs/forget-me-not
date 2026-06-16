@@ -21,5 +21,6 @@ xcodebuild -project ForgetMeNot.xcodeproj -scheme ForgetMeNot -configuration Deb
 
 APP="$(find build/Build/Products/Debug-maccatalyst -maxdepth 1 -name '*.app' | head -1)"
 [ -n "$APP" ] || { echo "No .app produced"; exit 1; }
-open "$APP"
+killall ForgetMeNot 2>/dev/null || true   # quit any running instance so the rebuilt one launches
+open -n "$APP"
 echo "Opened $APP"

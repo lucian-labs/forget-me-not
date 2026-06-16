@@ -49,6 +49,13 @@ enum Characters {
         return p
     }
 
+    /// The system-level scaffold every mascot prompt is built from — the current style
+    /// is filled in, the per-task pieces are shown as tokens. Mirrors `prompt(animal:task:)`.
+    static func promptTemplate(style customStyle: String) -> String {
+        let look = customStyle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? defaultStyle : customStyle
+        return "a \(look) {animal}, the mascot for \"{task}\" ({details}), {mood — calmer or more feral by how overdue it is}, friendly character, plain solid background"
+    }
+
     static func service() -> any CharacterService {
         if #available(iOS 26.0, *) { return ImagePlaygroundCharacterService() }
         return UnavailableCharacterService()

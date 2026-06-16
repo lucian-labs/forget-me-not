@@ -87,15 +87,6 @@ struct TaskDetailView: View {
                 }
             }
 
-            // the exact text sent to the on-device models (reflects your details + styles)
-            section("SYSTEM PROMPTS") {
-                VStack(alignment: .leading, spacing: 12) {
-                    promptItem("MASCOT", Characters.prompt(animal: characters.animal(for: task.id) ?? "creature", task: task))
-                    promptItem("NUDGE · SYSTEM", Prompts.nudgeInstructions)
-                    promptItem("NUDGE", Prompts.nudge(for: task, intensity: 1))
-                }
-            }
-
             // active switch (off = paused; the creature sleeps)
             HStack {
                 Text("ACTIVE").font(WL.mono(12, .bold)).tracking(1).foregroundStyle(WL.text)
@@ -209,18 +200,6 @@ struct TaskDetailView: View {
             content()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private func promptItem(_ label: String, _ text: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(WL.mono(9, .bold)).tracking(1).foregroundStyle(WL.accent)
-            Text(text).font(WL.mono(11)).foregroundStyle(WL.muted)
-                .textSelection(.enabled)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(10)
-        .wlPanel(fill: WL.surface, border: WL.border)
     }
 
     private func actionColor(_ a: ActionType) -> Color {

@@ -31,6 +31,7 @@ struct SettingsView: View {
                     .padding(12).wlPanel(fill: WL.surface, border: WL.border)
                     Text("Woven into every generated animal. Blank = default cartoon alien.")
                         .font(WL.mono(9)).foregroundStyle(WL.muted)
+                    systemPrompt("SYSTEM PROMPT", Characters.promptTemplate(style: store.mascotStyle))
 
                     Text("PROMPT STYLE").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
                     TextField("e.g. drill sergeant, gentle friend, pirate", text: Binding(
@@ -42,6 +43,7 @@ struct SettingsView: View {
                     .padding(12).wlPanel(fill: WL.surface, border: WL.border)
                     Text("The voice your nudges are written in. Blank = calm coach.")
                         .font(WL.mono(9)).foregroundStyle(WL.muted)
+                    systemPrompt("SYSTEM PROMPT", Prompts.nudgeInstructions)
 
                     Text("THEME").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
 
@@ -56,6 +58,20 @@ struct SettingsView: View {
             }
         }
         .preferredColorScheme(.dark)
+    }
+
+    /// Read-only, selectable display of the exact text sent to the on-device models.
+    private func systemPrompt(_ label: String, _ text: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label).font(WL.mono(9, .bold)).tracking(1).foregroundStyle(WL.accent)
+            Text(text).font(WL.mono(11)).foregroundStyle(WL.muted)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+        .wlPanel(fill: WL.surface, border: WL.border)
     }
 
     private func swatch(_ theme: Theme, selected: Bool) -> some View {

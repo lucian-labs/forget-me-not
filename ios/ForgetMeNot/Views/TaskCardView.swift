@@ -38,7 +38,7 @@ struct TaskCardView: View {
     // MARK: front
 
     private var front: some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .center, spacing: 10) {
             characterSlot
             rightColumn
         }
@@ -61,6 +61,9 @@ struct TaskCardView: View {
             if !task.domain.isEmpty {
                 Text(task.domain.uppercased()).font(WL.mono(10)).tracking(2).foregroundStyle(WL.muted)
             }
+            if let nudge {
+                SpeechBubble(text: nudge).transition(.opacity)
+            }
             TimelineView(.periodic(from: .now, by: 1)) { context in
                 let ratio = Urgency.ratio(task, now: context.date)
                 HStack(spacing: 10) {
@@ -70,9 +73,6 @@ struct TaskCardView: View {
                         .foregroundStyle(WL.urgencyColor(Urgency.tier(for: ratio)))
                         .frame(width: 46, alignment: .trailing)
                 }
-            }
-            if let nudge {
-                SpeechBubble(text: nudge).transition(.opacity)
             }
         }
     }

@@ -20,12 +20,10 @@ struct TaskCardView: View {
                         .font(WL.mono(16, .semibold)).tracking(1)
                         .foregroundStyle(WL.text).lineLimit(2)
                     Spacer(minLength: 6)
-                    Text(task.recurring ? "RECURRING" : "ONE-TIME")
-                        .font(WL.mono(9, .bold)).tracking(1).foregroundStyle(WL.muted)
-                }
-                if !task.domain.isEmpty {
-                    Text(task.domain.uppercased())
-                        .font(WL.mono(10)).tracking(2).foregroundStyle(WL.muted)
+                    if !task.domain.isEmpty {
+                        Text(task.domain.uppercased())
+                            .font(WL.mono(9, .bold)).tracking(1).foregroundStyle(WL.muted)
+                    }
                 }
                 if let nudge, !asleep {
                     SpeechBubble(text: nudge).transition(.opacity)

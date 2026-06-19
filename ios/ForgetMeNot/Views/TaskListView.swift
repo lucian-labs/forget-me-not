@@ -115,6 +115,15 @@ struct TaskListView: View {
                             .tint(WL.green)
                         }
                     }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        // Reset no longer auto-launches follow-ups; this starts the chain on demand.
+                        if task.recurring && !task.followUps.isEmpty {
+                            Button { store.launchFollowUps(id: task.id) } label: {
+                                Label("STEPS", systemImage: "arrow.turn.down.right")
+                            }
+                            .tint(WL.cyan)
+                        }
+                    }
                 }
             }
             .listStyle(.plain)

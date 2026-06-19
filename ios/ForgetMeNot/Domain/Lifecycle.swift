@@ -11,8 +11,9 @@ enum Lifecycle {
         task.instance = ReminderInstanceDTO(startedAt: now, actualCadenceSeconds: cadence, snoozed: false)
         task.actionLog.append(ActionLogEntryDTO(note: note, at: now, action: .reset))
         task.updatedAt = now
-        let spawned = spawnFollowUp(from: task, now: now)
-        return ResetResult(task: task, spawned: spawned)
+        // Reset is purely a timer restart — it does NOT launch the follow-up chain. (The web
+        // spawned here; we intentionally diverge. Use launchFollowUps to start a chain.)
+        return ResetResult(task: task, spawned: nil)
     }
 
     struct CompleteResult { var task: TaskDTO; var spawned: TaskDTO? }

@@ -27,11 +27,17 @@ enum FMNModelContainer {
         return try ModelContainer(for: TaskEntity.self, configurations: config)
     }
 
+    /// Process-wide shared container so the app and the App Intents (Siri/Shortcuts) read
+    /// and write the SAME store. Multiple containers over one file lag each other.
+    @MainActor private static var shared: ModelContainer?
+
     /// Local persistent store for now. CloudKit (`cloudKit()`) is wired and ready, but
     /// stays off until the iCloud container is provisioned for the App ID — at which
     /// point this becomes: prefer cloudKit() when an iCloud account is signed in.
     @MainActor static func resolve() -> ModelContainer {
-        if let c = try? local() { return c }
-        return try! inMemory()
+        if let shared { return shared }
+        let c = (try? local()) ?? (try! inMemory())
+        shared = c
+        return c
     }
 }

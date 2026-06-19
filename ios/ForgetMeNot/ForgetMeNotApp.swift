@@ -34,8 +34,10 @@ struct ForgetMeNotApp: App {
     }
 
     /// Both the mascot images and the nudge quotes render from each task's current urgency
-    /// when the app opens, rather than ticking/queuing over the session.
+    /// when the app opens, rather than ticking/queuing over the session. Reloads first so
+    /// changes made by Siri / Shortcuts while backgrounded are picked up.
     @MainActor private func reconcileOnOpen() {
+        store.load()
         let active = store.sortedActive
         characters.evolve(for: active)
         coordinator.evaluate(active, now: Date())

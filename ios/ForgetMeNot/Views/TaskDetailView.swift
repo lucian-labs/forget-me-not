@@ -201,6 +201,16 @@ struct TaskDetailView: View {
                         Image(systemName: symbol).font(.system(size: 64)).foregroundStyle(WL.accent)
                     } else if let img = icons.image(for: task.id) {
                         Image(uiImage: img).resizable().scaledToFit()
+                    } else if icons.didFail(task.id) {
+                        ZStack {
+                            Rectangle().fill(WL.surface)
+                            VStack(spacing: 6) {
+                                Image(systemName: "exclamationmark.triangle").font(.system(size: 26)).foregroundStyle(WL.red.opacity(0.7))
+                                Text("couldn't generate").font(WL.mono(9)).foregroundStyle(WL.muted)
+                                Text("add a description, set an SF Symbol, or tap GENERATE")
+                                    .font(WL.mono(8)).foregroundStyle(WL.muted).multilineTextAlignment(.center).padding(.horizontal, 16)
+                            }
+                        }
                     } else {
                         ZStack {
                             Rectangle().fill(WL.surface)

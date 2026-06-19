@@ -59,8 +59,10 @@ enum Icons {
         // go bare — described by what the task IS, not a random subject.
         let noMood = "a \(look) icon for \(what), plain solid background"
         let minimal = "a \(look) icon for \(what)".trimmingCharacters(in: .whitespaces)
+        // Final attempt is task-agnostic — a weird title ("waterize") can't leave it blank.
+        let generic = "a \(look) icon, plain solid background"
         var seen = Set<String>(), ladder: [String] = []
-        for p in [full, noMood, minimal] where !p.isEmpty && seen.insert(p).inserted { ladder.append(p) }
+        for p in [full, noMood, minimal, generic] where !p.isEmpty && seen.insert(p).inserted { ladder.append(p) }
         return ladder.isEmpty ? ["a simple icon, plain solid background"] : ladder
     }
 

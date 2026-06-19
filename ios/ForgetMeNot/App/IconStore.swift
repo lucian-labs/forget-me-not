@@ -14,6 +14,7 @@ final class IconStore {
     private let service = Icons.service()
     private(set) var images: [String: UIImage] = [:]
     private(set) var generating: Set<String> = []
+    private(set) var failed: Set<String> = []   // tasks where every ladder prompt failed
 
     private var symbols: [String: String] = [:]   // task id → SF Symbol name (overrides the image)
     private struct RenderState { var inst: String; var threshold: Double }
@@ -28,6 +29,7 @@ final class IconStore {
 
     func image(for id: String) -> UIImage? { images[id] }
     func isGenerating(_ id: String) -> Bool { generating.contains(id) }
+    func didFail(_ id: String) -> Bool { failed.contains(id) }
 
     /// An SF Symbol name set for this task, if any. When set, it's shown instead of a
     /// generated image and no image is generated for the task.
@@ -96,6 +98,7 @@ final class IconStore {
     func generate(for task: TaskDTO) async {
         if symbols[task.id] != nil { setSymbol(nil, for: task.id) }
         generating.remove(task.id)
+        failed.remove(task.id)
         let ratio = task.recurring ? Urgency.ratio(task) : 0
         let instKey = task.instance.map { String(Int($0.startedAt.timeIntervalSince1970)) } ?? "static"
         let crossed = Self.thresholds.last(where: { ratio >= $0 }) ?? 0
@@ -118,11 +121,13 @@ final class IconStore {
                 rendered[p.task.id] = RenderState(inst: p.inst, threshold: p.threshold)
                 saveRendered()
                 attempts[p.akey] = 0
+                failed.remove(p.task.id)
                 log.info("ok \(p.task.title, privacy: .public)")
                 return
             }
         }
         attempts[p.akey, default: 0] += 1
+        failed.insert(p.task.id)   // even the task-agnostic fallback failed → surface it
         log.error("fail \(p.task.title, privacy: .public) attempt=\(self.attempts[p.akey] ?? 0, privacy: .public)")
     }
 

@@ -38,7 +38,7 @@ struct CreateTaskView: View {
 
                     field("TITLE") { textField("what to remember", $title) }
                     field("DOMAIN") { textField("home / work / health", $domain) }
-                    field("DETAILS") { textField("optional — what is this? (flavors the mascot)", $details) }
+                    field("DETAILS") { textField("optional — what is this? (flavors the icon)", $details) }
 
                     field("TYPE") {
                         HStack(spacing: 8) {

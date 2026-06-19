@@ -6,7 +6,7 @@ import SwiftUI
 /// shelved for a UIKit pass.)
 struct TaskListView: View {
     @Environment(AppStore.self) private var store
-    @Environment(CharacterStore.self) private var characters
+    @Environment(IconStore.self) private var icons
     @Environment(NudgeCoordinator.self) private var coordinator
     @State private var detailTask: TaskDTO?
     @State private var showLoops = false
@@ -14,7 +14,7 @@ struct TaskListView: View {
     @State private var showSettings = false
     @State private var now = Date()
 
-    /// Drives live re-sorting + nudge re-evaluation. Mascots still reconcile only on open.
+    /// Drives live re-sorting + nudge re-evaluation. Icons still reconcile only on open.
     private let ticker = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
 
     var body: some View {
@@ -34,7 +34,7 @@ struct TaskListView: View {
             coordinator.evaluate(store.sortedActive, now: Date())
         }
         .fullScreenCover(item: $detailTask) { task in
-            TaskDetailView(taskId: task.id).environment(store).environment(characters)
+            TaskDetailView(taskId: task.id).environment(store).environment(icons)
         }
         .fullScreenCover(isPresented: $showLoops) {
             LoopsView().environment(store)
@@ -43,7 +43,7 @@ struct TaskListView: View {
             CreateTaskView().environment(store)
         }
         .sheet(isPresented: $showSettings) {
-            SettingsView().environment(store).environment(characters)
+            SettingsView().environment(store).environment(icons)
         }
     }
 
@@ -87,7 +87,8 @@ struct TaskListView: View {
                     Button { detailTask = task } label: {
                         TaskCardView(task: task,
                                      nudge: coordinator.nudge(for: task.id),
-                                     character: characters.image(for: task.id))
+                                     icon: icons.image(for: task.id),
+                                     symbol: icons.symbol(for: task.id))
                     }
                     .buttonStyle(.plain)
                     .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))

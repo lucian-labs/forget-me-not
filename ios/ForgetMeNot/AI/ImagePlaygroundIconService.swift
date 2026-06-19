@@ -4,7 +4,7 @@ import ImagePlayground
 
 /// On-device image generation via Apple's Image Playground (`ImageCreator`).
 @available(iOS 26.0, *)
-struct ImagePlaygroundCharacterService: CharacterService {
+struct ImagePlaygroundIconService: IconService {
     // ImageCreator has no sync availability flag; creation throws if unsupported, which
     // generate() handles. On iOS 26 + Apple Intelligence (e.g. iPhone 17) it's available.
     var available: Bool { true }

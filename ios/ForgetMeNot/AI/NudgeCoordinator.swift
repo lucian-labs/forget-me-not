@@ -3,7 +3,7 @@ import Foundation
 /// Renders each active task's nudge ("quote") from its CURRENT urgency when the app opens
 /// — not on a timer. The tier a task sits in picks the nudge: 70% and 90% (gentle), then
 /// from 100% upward the tone climbs and gets more frantic. Below 70% there's no quote.
-/// Reconciling on open keeps the quote in lockstep with the mascot, which renders the
+/// Reconciling on open keeps the quote in lockstep with the icon, which renders the
 /// same way; resetting a task drops to a new instance at ~0%, clearing the quote.
 @MainActor
 @Observable

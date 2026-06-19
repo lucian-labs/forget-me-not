@@ -3,7 +3,7 @@ import UserNotifications
 
 /// Schedules local notifications at each recurring task's 100% / 200% / … marks. The
 /// "due" (100%) notification carries a freshly generated on-device nudge (cached per
-/// cycle so we don't regenerate every foreground), and the task's mascot is attached
+/// cycle so we don't regenerate every foreground), and the task's icon is attached
 /// as the notification image. Local notifications need only runtime authorization.
 @MainActor
 final class ReminderScheduler {
@@ -20,7 +20,7 @@ final class ReminderScheduler {
         for task in tasks where task.recurring {
             guard let inst = task.instance, inst.actualCadenceSeconds > 0 else { continue }
             let dueBody = await dynamicBody(for: task, inst: inst)
-            let mascot = characterURL(task.id)
+            let icon = characterURL(task.id)
 
             for n in 1...5 {
                 let fire = inst.startedAt.addingTimeInterval(inst.actualCadenceSeconds * Double(n))
@@ -32,7 +32,7 @@ final class ReminderScheduler {
                 content.body = n == 1 ? dueBody : "\(task.title) — still waiting (\(n)× over)."
                 content.sound = .default
                 content.userInfo = ["taskId": task.id]
-                if let mascot, let att = attachment(mascot, key: "\(task.id)-\(n)") {
+                if let icon, let att = attachment(icon, key: "\(task.id)-\(n)") {
                     content.attachments = [att]
                 }
 
@@ -53,7 +53,7 @@ final class ReminderScheduler {
         return text
     }
 
-    /// Stage a temp copy of the mascot PNG (UNNotificationAttachment consumes the file).
+    /// Stage a temp copy of the icon PNG (UNNotificationAttachment consumes the file).
     private func attachment(_ src: URL, key: String) -> UNNotificationAttachment? {
         let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("notif-\(key).png")
         try? FileManager.default.removeItem(at: tmp)

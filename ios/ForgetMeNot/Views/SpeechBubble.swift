@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// A rounded speech bubble with a small tail on the left (pointing at the mascot).
+/// A rounded speech bubble with a small tail on the left (pointing at the icon).
 struct BubbleShape: Shape {
     static let defaultTail: CGFloat = 7
     var radius: CGFloat
@@ -35,7 +35,7 @@ struct SpeechBubble: View {
             .background(WL.cyan, in: BubbleShape(radius: max(8, WL.radius)))
             .fixedSize(horizontal: false, vertical: true)
             // Pull left by the tail width so the bubble BODY left-aligns with the title/bar
-            // and the tail pokes into the gap toward the mascot.
+            // and the tail pokes into the gap toward the icon.
             .offset(x: -BubbleShape.defaultTail)
     }
 }

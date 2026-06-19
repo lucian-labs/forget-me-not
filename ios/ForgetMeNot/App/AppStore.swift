@@ -9,7 +9,7 @@ final class AppStore {
     private let repository: TaskRepository
     var tasks: [TaskDTO] = []
     var themeName: String = "waveloop"
-    var mascotStyle: String = ""
+    var iconStyle: String = ""
     var nudgeStyle: String = ""
 
     /// Bump to reseed from the web set. Demo-phase: a higher version wipes existing
@@ -28,7 +28,7 @@ final class AppStore {
         }
         themeName = UserDefaults.standard.string(forKey: "fmn.theme") ?? "waveloop"
         WL.apply(Theme.named(themeName))
-        mascotStyle = UserDefaults.standard.string(forKey: "fmn.mascotStyle") ?? ""
+        iconStyle = UserDefaults.standard.string(forKey: "fmn.iconStyle") ?? ""
         nudgeStyle = UserDefaults.standard.string(forKey: "fmn.nudgeStyle") ?? ""
     }
 
@@ -38,9 +38,9 @@ final class AppStore {
         WL.apply(Theme.named(name))
     }
 
-    func setMascotStyle(_ style: String) {
-        mascotStyle = style
-        UserDefaults.standard.set(style, forKey: "fmn.mascotStyle")
+    func setIconStyle(_ style: String) {
+        iconStyle = style
+        UserDefaults.standard.set(style, forKey: "fmn.iconStyle")
     }
 
     func setNudgeStyle(_ style: String) {

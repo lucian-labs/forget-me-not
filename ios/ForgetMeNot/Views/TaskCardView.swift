@@ -1,19 +1,20 @@
 import SwiftUI
 import UIKit
 
-/// A task panel: mascot (vertically centered, transparent cutout) on the left; on the
+/// A task panel: icon (vertically centered, transparent cutout) on the left; on the
 /// right the title with the task type, the domain, the nudge speech bubble (middle), and
-/// the live LED urgency meter. When the task is paused (inactive) the mascot sleeps.
+/// the live LED urgency meter. When the task is paused (inactive) the icon sleeps.
 struct TaskCardView: View {
     let task: TaskDTO
     let nudge: String?
-    let character: UIImage?
+    let icon: UIImage?
+    let symbol: String?
 
     private var asleep: Bool { task.status == .blocked }
 
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
-            characterSlot
+            iconSlot
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(task.title.capitalized)
@@ -47,11 +48,13 @@ struct TaskCardView: View {
         .animation(.easeInOut(duration: 0.25), value: nudge)
     }
 
-    private var characterSlot: some View {
+    private var iconSlot: some View {
         ZStack {
             Group {
-                if let character {
-                    Image(uiImage: character).resizable().scaledToFit()
+                if let symbol {
+                    Image(systemName: symbol).font(.system(size: 26)).foregroundStyle(WL.accent)
+                } else if let icon {
+                    Image(uiImage: icon).resizable().scaledToFit()
                 } else {
                     Image(systemName: "sparkle").font(.system(size: 18)).foregroundStyle(WL.muted.opacity(0.4))
                 }

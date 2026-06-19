@@ -2,10 +2,10 @@ import SwiftUI
 
 /// Every prompt + injected value the on-device models use, laid bare and editable. Edits
 /// save immediately and apply to the next generation; blanking a field restores its
-/// default. "Regenerate mascots" wipes the cached images so prompt changes show at once.
+/// default. "Regenerate icons" wipes the cached images so prompt changes show at once.
 struct PromptLabView: View {
     @Environment(AppStore.self) private var store
-    @Environment(CharacterStore.self) private var characters
+    @Environment(IconStore.self) private var icons
     @Environment(\.dismiss) private var dismiss
     @State private var drafts: [String: String] = [:]
 
@@ -45,11 +45,11 @@ struct PromptLabView: View {
             ForEach(PromptField.allCases.filter { $0.group == group }) { field in
                 fieldEditor(field)
             }
-            if group == .mascot && characters.available {
-                Button { characters.regenerateAll(for: store.sortedActive) } label: {
+            if group == .icon && icons.available {
+                Button { icons.regenerateAll(for: store.sortedActive) } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "arrow.triangle.2.circlepath").font(.system(size: 12, weight: .bold))
-                        Text("REGENERATE MASCOTS NOW").font(WL.mono(11, .bold)).tracking(1)
+                        Text("REGENERATE ICONS NOW").font(WL.mono(11, .bold)).tracking(1)
                     }
                     .frame(maxWidth: .infinity).padding(.vertical, 12)
                     .foregroundStyle(WL.bg).background(WL.accent)
@@ -74,7 +74,7 @@ struct PromptLabView: View {
                 TextEditor(text: binding)
                     .font(WL.mono(11)).foregroundStyle(WL.text).tint(WL.accent)
                     .scrollContentBackground(.hidden).autocorrectionDisabled()
-                    .frame(minHeight: field == .mascotSubjects ? 132 : 80)
+                    .frame(minHeight: field == .iconSubjects ? 132 : 80)
                     .padding(8).wlPanel(fill: WL.surface, border: WL.border)
             } else {
                 TextField("", text: binding, axis: .vertical)

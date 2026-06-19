@@ -3,12 +3,12 @@ import UIKit
 
 /// Full task panel — reads live from the store by id so actions reflect immediately.
 /// Waveloop-styled. RESET / COMPLETE / LOG / DELETE + a per-task on-device insight,
-/// plus the task's generated alien-animal mascot.
+/// plus the task's generated alien-animal icon.
 struct TaskDetailView: View {
     let taskId: String
 
     @Environment(AppStore.self) private var store
-    @Environment(CharacterStore.self) private var characters
+    @Environment(IconStore.self) private var icons
     @Environment(\.dismiss) private var dismiss
     @State private var note = ""
     @State private var descDraft = ""
@@ -89,7 +89,7 @@ struct TaskDetailView: View {
                 Text(task.domain.uppercased()).font(WL.mono(11)).tracking(2).foregroundStyle(WL.muted)
             }
 
-            characterBlock(task)
+            iconBlock(task)
 
             // live meter
             TimelineView(.periodic(from: .now, by: 1)) { ctx in
@@ -107,7 +107,7 @@ struct TaskDetailView: View {
             }
 
             section("DETAILS") {
-                TextField("what is this? (flavors the mascot + nudges)", text: $descDraft, axis: .vertical)
+                TextField("what is this? (flavors the icon + nudges)", text: $descDraft, axis: .vertical)
                     .font(WL.mono(13)).foregroundStyle(WL.text).tint(WL.accent)
                     .lineLimit(1...4)
                     .padding(10).wlPanel(fill: WL.surface, border: WL.border)
@@ -182,12 +182,24 @@ struct TaskDetailView: View {
         .onAppear { descDraft = task.description }
     }
 
+    private static let symbolSuggestions = [
+        "drop.fill", "leaf.fill", "dumbbell.fill", "fork.knife", "bed.double.fill",
+        "pills.fill", "book.fill", "envelope.fill", "phone.fill", "cart.fill",
+        "trash.fill", "house.fill", "heart.fill", "star.fill", "bolt.fill",
+        "moon.fill", "sun.max.fill", "figure.walk", "pawprint.fill", "cup.and.saucer.fill",
+    ]
+
+    /// The task's icon: an SF Symbol if one's set, otherwise a generated image. Set a symbol
+    /// name (or pick one), clear the field to fall back to an image, or generate one.
     @ViewBuilder
-    private func characterBlock(_ task: TaskDTO) -> some View {
+    private func iconBlock(_ task: TaskDTO) -> some View {
+        let symbol = icons.symbol(for: task.id)
         VStack(spacing: 10) {
             ZStack {
                 Group {
-                    if let img = characters.image(for: task.id) {
+                    if let symbol {
+                        Image(systemName: symbol).font(.system(size: 64)).foregroundStyle(WL.accent)
+                    } else if let img = icons.image(for: task.id) {
                         Image(uiImage: img).resizable().scaledToFit()
                     } else {
                         ZStack {
@@ -205,21 +217,41 @@ struct TaskDetailView: View {
             .frame(height: 180).frame(maxWidth: .infinity).clipped()
             .overlay(Rectangle().stroke(WL.border, lineWidth: 1))
 
-            if characters.available {
-                Button { Task { await characters.generate(for: task) } } label: {
+            // SF Symbol — type any system symbol name, or tap a suggestion.
+            TextField("sf symbol name — e.g. drop.fill, leaf, dumbbell", text: Binding(
+                get: { icons.symbol(for: task.id) ?? "" },
+                set: { icons.setSymbol($0.isEmpty ? nil : $0, for: task.id) }
+            ))
+            .font(WL.mono(12)).foregroundStyle(WL.text).tint(WL.accent)
+            .autocorrectionDisabled().textInputAutocapitalization(.never)
+            .padding(10).wlPanel(fill: WL.surface, border: WL.border)
+
+            FlowLayout(spacing: 6) {
+                ForEach(Self.symbolSuggestions, id: \.self) { s in
+                    Button { icons.setSymbol(s, for: task.id) } label: {
+                        Image(systemName: s).font(.system(size: 14))
+                            .foregroundStyle(symbol == s ? WL.bg : WL.accent)
+                            .frame(width: 34, height: 34)
+                            .background(symbol == s ? WL.accent : WL.surface)
+                            .overlay(Rectangle().stroke(WL.border, lineWidth: 1))
+                    }
+                }
+            }
+
+            if icons.available {
+                Button { Task { await icons.generate(for: task) } } label: {
                     HStack(spacing: 8) {
-                        if characters.isGenerating(task.id) {
+                        if icons.isGenerating(task.id) {
                             ProgressView().controlSize(.small).tint(WL.bg)
                         } else {
                             Image(systemName: "sparkles").font(.system(size: 13, weight: .bold))
                         }
-                        Text(characters.image(for: task.id) == nil ? "GENERATE" : "NEW MASCOT")
-                            .font(WL.mono(12, .bold)).tracking(1)
+                        Text("GENERATE IMAGE").font(WL.mono(12, .bold)).tracking(1)
                     }
                     .frame(maxWidth: .infinity).padding(.vertical, 12)
                     .foregroundStyle(WL.bg).background(WL.accent)
                 }
-                .disabled(characters.isGenerating(task.id))
+                .disabled(icons.isGenerating(task.id))
             }
         }
     }

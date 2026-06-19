@@ -4,10 +4,10 @@ import Foundation
 /// maps to a UserDefaults key with a built-in default: generation reads `.value`, the Prompt
 /// Lab edits it. Blank override → the default is used.
 enum PromptField: String, CaseIterable, Identifiable {
-    // Mascot (image)
-    case mascotTemplate = "fmn.mascotPrompt"
-    case mascotDefaultStyle = "fmn.mascotDefaultStyle"
-    case mascotSubjects = "fmn.mascotSubjects"
+    // Icon (image)
+    case iconTemplate = "fmn.iconPrompt"
+    case iconDefaultStyle = "fmn.iconDefaultStyle"
+    case iconSubjects = "fmn.iconSubjects"
     case moodCalm = "fmn.moodCalm"
     case moodSoon = "fmn.moodSoon"
     case moodDue = "fmn.moodDue"
@@ -25,10 +25,10 @@ enum PromptField: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    enum Group: String, CaseIterable { case mascot = "MASCOT IMAGE", nudge = "NUDGE", insight = "INSIGHT" }
+    enum Group: String, CaseIterable { case icon = "ICON IMAGE", nudge = "NUDGE", insight = "INSIGHT" }
     var group: Group {
         switch self {
-        case .mascotTemplate, .mascotDefaultStyle, .mascotSubjects, .moodCalm, .moodSoon, .moodDue, .moodOverdue: .mascot
+        case .iconTemplate, .iconDefaultStyle, .iconSubjects, .moodCalm, .moodSoon, .moodDue, .moodOverdue: .icon
         case .nudgeInstructions, .nudgeTemplate, .toneCalm, .toneOverdue, .toneBad, .toneFrantic: .nudge
         case .insightTaskInstructions, .insightOverviewInstructions: .insight
         }
@@ -36,9 +36,9 @@ enum PromptField: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .mascotTemplate: "Image prompt"
-        case .mascotDefaultStyle: "Default style (used when Mascot Style is blank)"
-        case .mascotSubjects: "Subjects — one per line, picked at random for {animal}"
+        case .iconTemplate: "Image prompt"
+        case .iconDefaultStyle: "Default style (used when Icon Style is blank)"
+        case .iconSubjects: "Subjects — one per line, picked at random for {animal}"
         case .moodCalm: "Mood · on track"
         case .moodSoon: "Mood · due soon"
         case .moodDue: "Mood · overdue"
@@ -57,7 +57,7 @@ enum PromptField: String, CaseIterable, Identifiable {
     /// Tokens that get substituted with live data at generation time, if any.
     var tokens: String? {
         switch self {
-        case .mascotTemplate: "{style} {animal} {task} {details} {mood}"
+        case .iconTemplate: "{style} {animal} {task} {details} {mood}"
         case .nudgeTemplate: "{task} {detail} {area} {tone} {voice}"
         default: nil
         }
@@ -65,7 +65,7 @@ enum PromptField: String, CaseIterable, Identifiable {
 
     var multiline: Bool {
         switch self {
-        case .mascotTemplate, .mascotSubjects, .nudgeInstructions, .nudgeTemplate,
+        case .iconTemplate, .iconSubjects, .nudgeInstructions, .nudgeTemplate,
              .insightTaskInstructions, .insightOverviewInstructions: true
         default: false
         }
@@ -73,10 +73,10 @@ enum PromptField: String, CaseIterable, Identifiable {
 
     var def: String {
         switch self {
-        case .mascotTemplate:
-            "a {style} {animal}, the mascot for \"{task}\" ({details}), {mood}, friendly character, plain solid background"
-        case .mascotDefaultStyle: "cute funny cartoon alien"
-        case .mascotSubjects:
+        case .iconTemplate:
+            "a {style} {animal}, the icon for \"{task}\" ({details}), {mood}, friendly icon, plain solid background"
+        case .iconDefaultStyle: "cute funny cartoon alien"
+        case .iconSubjects:
             ["axolotl", "tardigrade", "octopus", "newt", "sloth", "platypus", "narwhal",
              "chameleon", "pangolin", "capybara", "jellyfish", "blobfish", "sea slug", "frog", "moth"]
                 .joined(separator: "\n")

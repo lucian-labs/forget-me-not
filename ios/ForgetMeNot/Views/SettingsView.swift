@@ -4,7 +4,7 @@ import SwiftUI
 /// previews the palette; tapping applies it instantly app-wide.
 struct SettingsView: View {
     @Environment(AppStore.self) private var store
-    @Environment(CharacterStore.self) private var characters
+    @Environment(IconStore.self) private var icons
     @Environment(\.dismiss) private var dismiss
     @State private var showPromptLab = false
 
@@ -23,15 +23,15 @@ struct SettingsView: View {
                         }
                     }
 
-                    Text("MASCOT STYLE").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
+                    Text("ICON STYLE").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
                     TextField("e.g. 90s claymation, neon sticker, crayon doodle", text: Binding(
-                        get: { store.mascotStyle },
-                        set: { store.setMascotStyle($0) }
+                        get: { store.iconStyle },
+                        set: { store.setIconStyle($0) }
                     ))
                     .font(WL.mono(13)).foregroundStyle(WL.text).tint(WL.accent)
                     .autocorrectionDisabled()
                     .padding(12).wlPanel(fill: WL.surface, border: WL.border)
-                    Text("Woven into every mascot. Blank = the default style below.")
+                    Text("Woven into every icon. Blank = the default style below.")
                         .font(WL.mono(9)).foregroundStyle(WL.muted)
 
                     Text("PROMPT STYLE").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
@@ -74,7 +74,7 @@ struct SettingsView: View {
         }
         .preferredColorScheme(.dark)
         .sheet(isPresented: $showPromptLab) {
-            PromptLabView().environment(store).environment(characters)
+            PromptLabView().environment(store).environment(icons)
         }
     }
 

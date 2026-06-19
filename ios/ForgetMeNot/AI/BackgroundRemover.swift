@@ -4,7 +4,7 @@ import CoreImage
 import UIKit
 
 /// Image Playground can't emit alpha, so we cut the subject out with Vision's
-/// foreground-instance mask — giving a transparent-background mascot that floats on
+/// foreground-instance mask — giving a transparent-background icon that floats on
 /// the card. Falls back to the original image if no subject is found.
 enum BackgroundRemover {
     static func cutout(_ cgImage: CGImage) -> UIImage {

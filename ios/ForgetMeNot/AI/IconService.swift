@@ -1,23 +1,23 @@
 import Foundation
 import CoreGraphics
 
-/// Generates a task's mascot — a cartoon alien animal whose mood reflects how overdue
+/// Generates a task's icon — a cartoon alien animal whose mood reflects how overdue
 /// the task is. Swappable: today it's on-device Image Playground; later a model trained
 /// on Elijah's own drawings can drop in behind this protocol.
-protocol CharacterService: Sendable {
+protocol IconService: Sendable {
     var available: Bool { get }
     func generate(prompt: String) async -> CGImage?
 }
 
-struct UnavailableCharacterService: CharacterService {
+struct UnavailableIconService: IconService {
     var available: Bool { false }
     func generate(prompt: String) async -> CGImage? { nil }
 }
 
-enum Characters {
+enum Icons {
     /// The pool the {animal} token draws from — fully editable in the Prompt Lab.
     static var subjects: [String] {
-        PromptField.mascotSubjects.value
+        PromptField.iconSubjects.value
             .split(whereSeparator: { $0 == "\n" || $0 == "," })
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
@@ -35,17 +35,17 @@ enum Characters {
         }
     }
 
-    /// Per-install style from Settings (woven into every mascot prompt via {style}).
+    /// Per-install style from Settings (woven into every icon prompt via {style}).
     static var style: String {
-        (UserDefaults.standard.string(forKey: "fmn.mascotStyle") ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        (UserDefaults.standard.string(forKey: "fmn.iconStyle") ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
     }
-    static var defaultStyle: String { PromptField.mascotDefaultStyle.value }
+    static var defaultStyle: String { PromptField.iconDefaultStyle.value }
 
     static func prompt(animal: String, task: TaskDTO) -> String {
         let mood = mood(for: Urgency.tier(for: Urgency.ratio(task)))
         let look = style.isEmpty ? defaultStyle : style
         let details = task.description.trimmingCharacters(in: .whitespacesAndNewlines)
-        return PromptField.mascotTemplate.value
+        return PromptField.iconTemplate.value
             .replacingOccurrences(of: "{style}", with: look)
             .replacingOccurrences(of: "{animal}", with: animal)
             .replacingOccurrences(of: "{task}", with: task.title)
@@ -56,8 +56,8 @@ enum Characters {
             .trimmingCharacters(in: .whitespaces)
     }
 
-    static func service() -> any CharacterService {
-        if #available(iOS 26.0, *) { return ImagePlaygroundCharacterService() }
-        return UnavailableCharacterService()
+    static func service() -> any IconService {
+        if #available(iOS 26.0, *) { return ImagePlaygroundIconService() }
+        return UnavailableIconService()
     }
 }

@@ -131,6 +131,24 @@ final class AppStore {
         tasks.filter { $0.parentTaskId == id }
     }
 
+    func addReminder(id: String, _ text: String) {
+        guard var t = tasks.first(where: { $0.id == id }) else { return }
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        t.prompts.append(trimmed)
+        t.updatedAt = Date()
+        try? repository.upsert(t)
+        load()
+    }
+
+    func removeReminder(id: String, at index: Int) {
+        guard var t = tasks.first(where: { $0.id == id }), t.prompts.indices.contains(index) else { return }
+        t.prompts.remove(at: index)
+        t.updatedAt = Date()
+        try? repository.upsert(t)
+        load()
+    }
+
     func setDescription(id: String, _ text: String) {
         guard var task = tasks.first(where: { $0.id == id }) else { return }
         task.description = text
@@ -165,10 +183,13 @@ final class AppStore {
 
     func task(_ id: String) -> TaskDTO? { tasks.first { $0.id == id } }
 
-    /// Active tasks, most urgent first.
-    var sortedActive: [TaskDTO] {
+    /// Active tasks, most urgent first at `now`. Urgency rises with time, so the order
+    /// changes as the clock advances — the list passes a ticking `now` to re-sort live.
+    func activeSorted(now: Date) -> [TaskDTO] {
         tasks
             .filter { $0.status != .done && $0.status != .archived && $0.status != .cancelled }
-            .sorted { Urgency.ratio($0) > Urgency.ratio($1) }
+            .sorted { Urgency.ratio($0, now: now) > Urgency.ratio($1, now: now) }
     }
+
+    var sortedActive: [TaskDTO] { activeSorted(now: Date()) }
 }

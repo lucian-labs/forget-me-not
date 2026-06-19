@@ -15,6 +15,7 @@ struct TaskDetailView: View {
     @State private var insightTask: TaskDTO?
     @State private var fuTitle = ""
     @State private var fuCadence: Double = 3600
+    @State private var reminderDraft = ""
     /// In-detail navigation: tapping a follow-up pushes its id; back pops (or dismisses
     /// at the root). The shown task is the top of the stack.
     @State private var navStack: [String] = []
@@ -113,13 +114,7 @@ struct TaskDetailView: View {
                     .onSubmit { store.setDescription(id: task.id, descDraft) }
             }
 
-            if !task.prompts.isEmpty {
-                section("REMINDERS") {
-                    ForEach(task.prompts, id: \.self) { p in
-                        Text("· \(p)").font(WL.mono(12)).foregroundStyle(WL.muted)
-                    }
-                }
-            }
+            remindersSection(task)
 
             followUpsSection(task)
 
@@ -245,6 +240,44 @@ struct TaskDetailView: View {
     ]
     private func cadenceLabel(_ v: Double) -> String {
         Self.cadenceOptions.first { $0.value == v }?.label ?? Format.duration(v)
+    }
+
+    /// Editable tag list of reminder phrases (the rotating nudge prompts).
+    @ViewBuilder
+    private func remindersSection(_ task: TaskDTO) -> some View {
+        section("REMINDERS") {
+            VStack(alignment: .leading, spacing: 10) {
+                if !task.prompts.isEmpty {
+                    FlowLayout(spacing: 6) {
+                        ForEach(Array(task.prompts.enumerated()), id: \.offset) { idx, p in
+                            HStack(spacing: 6) {
+                                Text(p).font(WL.mono(11)).foregroundStyle(WL.text)
+                                Button { store.removeReminder(id: task.id, at: idx) } label: {
+                                    Image(systemName: "xmark").font(.system(size: 9, weight: .bold)).foregroundStyle(WL.muted)
+                                }
+                            }
+                            .padding(.horizontal, 9).padding(.vertical, 6)
+                            .wlPanel(fill: WL.surface, border: WL.border)
+                        }
+                    }
+                }
+                HStack(spacing: 8) {
+                    TextField("add a reminder", text: $reminderDraft)
+                        .font(WL.mono(13)).foregroundStyle(WL.text).tint(WL.accent)
+                        .padding(10).wlPanel(fill: WL.surface, border: WL.border)
+                        .onSubmit { addReminder(task) }
+                    Button { addReminder(task) } label: {
+                        Image(systemName: "plus").font(.system(size: 14, weight: .bold)).foregroundStyle(WL.bg)
+                            .frame(width: 40, height: 40).background(WL.accent)
+                    }
+                }
+            }
+        }
+    }
+
+    private func addReminder(_ task: TaskDTO) {
+        store.addReminder(id: task.id, reminderDraft)
+        reminderDraft = ""
     }
 
     /// Follow-ups are just other tasks pointed at this one. Each row opens that task's

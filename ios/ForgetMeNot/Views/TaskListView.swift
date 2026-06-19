@@ -12,6 +12,10 @@ struct TaskListView: View {
     @State private var showLoops = false
     @State private var showCreate = false
     @State private var showSettings = false
+    @State private var now = Date()
+
+    /// Drives live re-sorting + nudge re-evaluation. Mascots still reconcile only on open.
+    private let ticker = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
 
     var body: some View {
         ZStack {
@@ -23,6 +27,12 @@ struct TaskListView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .onReceive(ticker) { _ in
+            // bump `now` (read in `content`) so the list re-sorts as urgency rises, and
+            // re-evaluate nudges so a task crossing a threshold mid-session gets a prompt.
+            withAnimation(.easeInOut(duration: 0.45)) { now = Date() }
+            coordinator.evaluate(store.sortedActive, now: Date())
+        }
         .fullScreenCover(item: $detailTask) { task in
             TaskDetailView(taskId: task.id).environment(store).environment(characters)
         }
@@ -62,7 +72,8 @@ struct TaskListView: View {
     }
 
     @ViewBuilder private var content: some View {
-        if store.sortedActive.isEmpty {
+        let active = store.activeSorted(now: now)
+        if active.isEmpty {
             VStack {
                 Spacer()
                 Text("ALL CLEAR")
@@ -72,7 +83,7 @@ struct TaskListView: View {
             .frame(maxWidth: .infinity)
         } else {
             List {
-                ForEach(store.sortedActive) { task in
+                ForEach(active) { task in
                     Button { detailTask = task } label: {
                         TaskCardView(task: task,
                                      nudge: coordinator.nudge(for: task.id),

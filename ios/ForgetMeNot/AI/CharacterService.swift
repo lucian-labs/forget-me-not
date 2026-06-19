@@ -39,21 +39,31 @@ enum Characters {
     }
     static let defaultStyle = "cute funny cartoon alien"
 
+    /// The editable scaffold every mascot prompt is built from. Edit it in Settings to play
+    /// with the art style; tokens are filled per task at generation time:
+    /// {style} (Mascot Style), {animal}, {task}, {details}, {mood} (calmer/feral by overdue).
+    static let defaultPromptTemplate =
+        "a {style} {animal}, the mascot for \"{task}\" ({details}), {mood}, friendly character, plain solid background"
+
+    /// The current template — the Settings override if set, otherwise the default.
+    static var promptTemplate: String {
+        let o = UserDefaults.standard.string(forKey: "fmn.mascotPrompt")?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return (o?.isEmpty == false) ? o! : defaultPromptTemplate
+    }
+
     static func prompt(animal: String, task: TaskDTO) -> String {
         let mood = mood(for: Urgency.tier(for: Urgency.ratio(task)))
         let look = style.isEmpty ? defaultStyle : style
-        var p = "a \(look) \(animal), the mascot for \"\(task.title)\""
         let details = task.description.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !details.isEmpty { p += " (\(details))" }
-        p += ", \(mood), friendly character, plain solid background"
-        return p
-    }
-
-    /// The system-level scaffold every mascot prompt is built from — the current style
-    /// is filled in, the per-task pieces are shown as tokens. Mirrors `prompt(animal:task:)`.
-    static func promptTemplate(style customStyle: String) -> String {
-        let look = customStyle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? defaultStyle : customStyle
-        return "a \(look) {animal}, the mascot for \"{task}\" ({details}), {mood — calmer or more feral by how overdue it is}, friendly character, plain solid background"
+        return promptTemplate
+            .replacingOccurrences(of: "{style}", with: look)
+            .replacingOccurrences(of: "{animal}", with: animal)
+            .replacingOccurrences(of: "{task}", with: task.title)
+            .replacingOccurrences(of: "{details}", with: details)
+            .replacingOccurrences(of: "{mood}", with: mood)
+            .replacingOccurrences(of: " ()", with: "")   // details was empty
+            .replacingOccurrences(of: "  ", with: " ")
+            .trimmingCharacters(in: .whitespaces)
     }
 
     static func service() -> any CharacterService {

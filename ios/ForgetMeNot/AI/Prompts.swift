@@ -3,12 +3,18 @@ import Foundation
 /// The exact text sent to the on-device models — shared so the UI can show it verbatim
 /// (Settings styles + task description flow in here).
 enum Prompts {
-    /// System instructions for nudge generation.
-    static let nudgeInstructions = """
+    /// Default system instructions for nudge generation.
+    static let defaultNudgeInstructions = """
     You coach someone to start a task they keep avoiding. The block is the decision, not \
     the doing. Reply with ONE short sentence naming the smallest concrete first physical \
     action. No preamble, no emoji, no quotes. Match the requested urgency exactly.
     """
+
+    /// The current nudge instructions — the Settings override if set, otherwise the default.
+    static var nudgeInstructions: String {
+        let o = UserDefaults.standard.string(forKey: "fmn.nudgeInstructions")?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return (o?.isEmpty == false) ? o! : defaultNudgeInstructions
+    }
 
     /// The per-call nudge prompt (incorporates description, urgency intensity, and the
     /// "Prompt style" voice from Settings).

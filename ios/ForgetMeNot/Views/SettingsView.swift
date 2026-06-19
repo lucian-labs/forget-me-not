@@ -31,7 +31,9 @@ struct SettingsView: View {
                     .padding(12).wlPanel(fill: WL.surface, border: WL.border)
                     Text("Woven into every generated animal. Blank = default cartoon alien.")
                         .font(WL.mono(9)).foregroundStyle(WL.muted)
-                    systemPrompt("SYSTEM PROMPT", Characters.promptTemplate(style: store.mascotStyle))
+                    promptEditor(text: Binding(get: { store.mascotPrompt }, set: { store.setMascotPrompt($0) }),
+                                 reset: { store.resetMascotPrompt() },
+                                 hint: "tokens: {animal} {task} {details} {mood} {style}")
 
                     Text("PROMPT STYLE").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
                     TextField("e.g. drill sergeant, gentle friend, pirate", text: Binding(
@@ -43,7 +45,8 @@ struct SettingsView: View {
                     .padding(12).wlPanel(fill: WL.surface, border: WL.border)
                     Text("The voice your nudges are written in. Blank = calm coach.")
                         .font(WL.mono(9)).foregroundStyle(WL.muted)
-                    systemPrompt("SYSTEM PROMPT", Prompts.nudgeInstructions)
+                    promptEditor(text: Binding(get: { store.nudgeInstructions }, set: { store.setNudgeInstructions($0) }),
+                                 reset: { store.resetNudgeInstructions() }, hint: nil)
 
                     Text("THEME").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
 
@@ -60,18 +63,27 @@ struct SettingsView: View {
         .preferredColorScheme(.dark)
     }
 
-    /// Read-only, selectable display of the exact text sent to the on-device models.
-    private func systemPrompt(_ label: String, _ text: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(WL.mono(9, .bold)).tracking(1).foregroundStyle(WL.accent)
-            Text(text).font(WL.mono(11)).foregroundStyle(WL.muted)
-                .textSelection(.enabled)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, alignment: .leading)
+    /// Editable system prompt sent to the on-device models. Bound to the store so edits
+    /// take effect on the next generation; RESET restores the default.
+    private func promptEditor(text: Binding<String>, reset: @escaping () -> Void, hint: String?) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("SYSTEM PROMPT").font(WL.mono(9, .bold)).tracking(1).foregroundStyle(WL.accent)
+                Spacer()
+                Button(action: reset) {
+                    Text("RESET").font(WL.mono(9, .bold)).tracking(1).foregroundStyle(WL.muted)
+                }
+            }
+            TextEditor(text: text)
+                .font(WL.mono(11)).foregroundStyle(WL.text).tint(WL.accent)
+                .scrollContentBackground(.hidden)
+                .autocorrectionDisabled()
+                .frame(minHeight: 96)
+                .padding(8).wlPanel(fill: WL.surface, border: WL.border)
+            if let hint {
+                Text(hint).font(WL.mono(9)).foregroundStyle(WL.muted)
+            }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(10)
-        .wlPanel(fill: WL.surface, border: WL.border)
     }
 
     private func swatch(_ theme: Theme, selected: Bool) -> some View {

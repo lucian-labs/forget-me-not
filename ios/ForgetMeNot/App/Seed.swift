@@ -1,10 +1,10 @@
 import Foundation
 
-/// The web app's seed set (`src/seed.ts`), translated 1:1 — 11 recurring micro-habits —
-/// plus sub-tasks (follow-ups). A sub-task is just another task linked to its parent via
-/// `parentTaskId`; it shows in the main list AND under the parent's FOLLOW-UPS section.
-/// Mirrors web `createTask`: each recurring task gets a fresh instance started now with
-/// `actualCadenceSeconds == base` (the seeds define no cadence variance).
+/// The web app's seed set (`src/seed.ts`), translated 1:1 — 11 recurring micro-habits.
+/// Some carry a follow-up CHAIN (`followUps`): non-repeating steps that spawn one at a time
+/// as the repeating task is reset/completed (web `spawnFollowUp` parity), each link
+/// carrying the rest. Mirrors web `createTask`: each recurring task gets a fresh instance
+/// started now with `actualCadenceSeconds == base` (the seeds define no cadence variance).
 enum Seed {
     private struct Sub {
         let title: String
@@ -36,28 +36,16 @@ enum Seed {
     ]
 
     static func tasks(now: Date = Date()) -> [TaskDTO] {
-        var out: [TaskDTO] = []
-        for s in seeds {
-            let parentId = UUID().uuidString
-            out.append(make(id: parentId, title: s.title, domain: s.domain, cadence: s.cadence,
-                            prompts: s.prompts, parent: nil, now: now))
-            for sub in s.subs {
-                out.append(make(id: UUID().uuidString, title: sub.title, domain: s.domain, cadence: sub.cadence,
-                                prompts: [], parent: parentId, now: now))
-            }
+        seeds.map { s in
+            TaskDTO(
+                id: UUID().uuidString, title: s.title, description: "", domain: s.domain, tags: [],
+                status: .open, priority: .normal, createdAt: now, updatedAt: now,
+                dueDate: nil, startedAt: nil, completedAt: nil, estimatedHours: nil,
+                recurring: true, baseCadenceSeconds: s.cadence, cadenceMore: nil, cadenceLess: nil,
+                instance: ReminderInstanceDTO(startedAt: now, actualCadenceSeconds: s.cadence, snoozed: false),
+                followUps: s.subs.map { FollowUpDTO(title: $0.title, cadenceSeconds: $0.cadence, domain: nil) },
+                parentTaskId: nil, prompts: s.prompts, soundSeed: nil, actionLog: []
+            )
         }
-        return out
-    }
-
-    private static func make(id: String, title: String, domain: String, cadence: Double,
-                             prompts: [String], parent: String?, now: Date) -> TaskDTO {
-        TaskDTO(
-            id: id, title: title, description: "", domain: domain, tags: [],
-            status: .open, priority: .normal, createdAt: now, updatedAt: now,
-            dueDate: nil, startedAt: nil, completedAt: nil, estimatedHours: nil,
-            recurring: true, baseCadenceSeconds: cadence, cadenceMore: nil, cadenceLess: nil,
-            instance: ReminderInstanceDTO(startedAt: now, actualCadenceSeconds: cadence, snoozed: false),
-            followUps: [], parentTaskId: parent, prompts: prompts, soundSeed: nil, actionLog: []
-        )
     }
 }

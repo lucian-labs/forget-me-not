@@ -312,38 +312,30 @@ struct TaskDetailView: View {
         reminderDraft = ""
     }
 
-    /// Follow-ups are just other tasks pointed at this one. Each row opens that task's
-    /// detail to edit; the add row finds an existing task by title or creates a new one.
+    /// The follow-up CHAIN: ordered non-repeating steps that spawn one at a time as this
+    /// (repeating) task is reset/completed. Shows the chain definition (add/remove) plus the
+    /// step currently in progress (a real one-time task — tap to open).
     @ViewBuilder
     private func followUpsSection(_ task: TaskDTO) -> some View {
         section("FOLLOW-UPS") {
             VStack(alignment: .leading, spacing: 10) {
-                ForEach(store.children(of: task.id)) { child in
+                ForEach(Array(task.followUps.enumerated()), id: \.offset) { idx, fu in
                     HStack(spacing: 8) {
-                        Button { open(child.id) } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: "arrow.turn.down.right").font(.system(size: 11, weight: .bold)).foregroundStyle(WL.muted)
-                                Text(child.title.capitalized).font(WL.mono(12)).foregroundStyle(WL.accent).lineLimit(1)
-                                Spacer(minLength: 6)
-                                Text(child.status.rawValue.uppercased()).font(WL.mono(9, .bold))
-                                    .foregroundStyle(child.status == .done ? WL.green : WL.muted)
-                                Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold)).foregroundStyle(WL.muted)
-                            }
-                            .padding(.horizontal, 10).padding(.vertical, 9)
-                            .frame(maxWidth: .infinity)
-                            .wlPanel(fill: WL.surface, border: WL.border)
-                        }
-                        .buttonStyle(.plain)
-                        Button { store.unlinkFollowUp(id: child.id) } label: {
+                        Text("\(idx + 1)").font(WL.mono(9, .bold)).foregroundStyle(WL.bg)
+                            .frame(width: 18, height: 18).background(WL.accent)
+                        Text(fu.title).font(WL.mono(12)).foregroundStyle(WL.text).lineLimit(1)
+                        Text("· \(cadenceLabel(fu.cadenceSeconds))").font(WL.mono(10)).foregroundStyle(WL.muted)
+                        Spacer(minLength: 6)
+                        Button { store.removeFollowUp(id: task.id, at: idx) } label: {
                             Image(systemName: "xmark").font(.system(size: 10, weight: .bold)).foregroundStyle(WL.muted)
-                                .frame(width: 30, height: 30).overlay(Rectangle().stroke(WL.border, lineWidth: 1))
                         }
-                        .buttonStyle(.plain)
                     }
+                    .padding(.horizontal, 10).padding(.vertical, 8)
+                    .wlPanel(fill: WL.surface, border: WL.border)
                 }
 
                 HStack(spacing: 8) {
-                    TextField("find or create a task…", text: $fuTitle)
+                    TextField("add a step", text: $fuTitle)
                         .font(WL.mono(13)).foregroundStyle(WL.text).tint(WL.accent)
                         .autocorrectionDisabled()
                         .padding(10).wlPanel(fill: WL.surface, border: WL.border)
@@ -357,7 +349,7 @@ struct TaskDetailView: View {
                             .overlay(Rectangle().stroke(WL.border, lineWidth: 1))
                     }
                     Button {
-                        store.linkFollowUp(parentId: task.id, title: fuTitle, cadenceSeconds: fuCadence)
+                        store.addFollowUp(id: task.id, title: fuTitle, cadenceSeconds: fuCadence)
                         fuTitle = ""
                     } label: {
                         Image(systemName: "plus").font(.system(size: 14, weight: .bold)).foregroundStyle(WL.bg)
@@ -365,7 +357,25 @@ struct TaskDetailView: View {
                     }
                 }
 
-                Text("a follow-up is just another task — tap to open & edit it; the cadence applies when creating a new one")
+                let active = store.children(of: task.id).filter { $0.status != .done && $0.status != .archived }
+                if !active.isEmpty {
+                    Text("IN PROGRESS").font(WL.mono(9, .bold)).tracking(1).foregroundStyle(WL.muted).padding(.top, 4)
+                    ForEach(active) { child in
+                        Button { open(child.id) } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "arrow.turn.down.right").font(.system(size: 11, weight: .bold)).foregroundStyle(WL.muted)
+                                Text(child.title.capitalized).font(WL.mono(12)).foregroundStyle(WL.accent).lineLimit(1)
+                                Spacer(minLength: 6)
+                                Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold)).foregroundStyle(WL.muted)
+                            }
+                            .padding(.horizontal, 10).padding(.vertical, 9).frame(maxWidth: .infinity)
+                            .wlPanel(fill: WL.surface, border: WL.border)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                Text("non-repeating steps that spawn one at a time as you reset this loop; finish a step to unlock the next")
                     .font(WL.mono(9)).foregroundStyle(WL.muted)
             }
         }

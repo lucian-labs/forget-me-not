@@ -16,7 +16,7 @@ final class AppStore {
 
     /// Bump to reseed from the web set. Demo-phase: a higher version wipes existing
     /// tasks and reseeds (revisit once there's real user data — then seed-if-empty only).
-    private let seedVersion = 3
+    private let seedVersion = 4
 
     init(repository: TaskRepository) {
         self.repository = repository
@@ -103,44 +103,28 @@ final class AppStore {
         load()
     }
 
-    /// Link a follow-up — a follow-up is just another task. Finds an existing task by title
-    /// (case-insensitive) or creates a new recurring one, then points it at `parentId`.
-    /// Returns the linked task's id.
-    @discardableResult
-    func linkFollowUp(parentId: String, title: String, cadenceSeconds: Double) -> String? {
+    /// Append a step to a task's follow-up CHAIN. The chain is a list of non-repeating steps;
+    /// on each reset/complete the first spawns as a one-time task (carrying the rest), and
+    /// finishing that spawns the next — so the chain unfolds one link at a time.
+    func addFollowUp(id: String, title: String, cadenceSeconds: Double) {
+        guard var t = tasks.first(where: { $0.id == id }) else { return }
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, let parent = tasks.first(where: { $0.id == parentId }) else { return nil }
-        let now = Date()
-        if var existing = tasks.first(where: { $0.id != parentId && $0.title.caseInsensitiveCompare(trimmed) == .orderedSame }) {
-            existing.parentTaskId = parentId
-            existing.updatedAt = now
-            try? repository.upsert(existing)
-            load()
-            return existing.id
-        }
-        let new = TaskDTO(
-            id: UUID().uuidString, title: trimmed, description: "", domain: parent.domain,
-            tags: parent.tags, status: .open, priority: .normal, createdAt: now, updatedAt: now,
-            dueDate: nil, startedAt: now, completedAt: nil, estimatedHours: nil, recurring: true,
-            baseCadenceSeconds: cadenceSeconds, cadenceMore: nil, cadenceLess: nil,
-            instance: ReminderInstanceDTO(startedAt: now, actualCadenceSeconds: cadenceSeconds, snoozed: false),
-            followUps: [], parentTaskId: parentId, prompts: [], soundSeed: nil, actionLog: [])
-        try? repository.upsert(new)
-        load()
-        return new.id
-    }
-
-    /// Unlink a follow-up: clears the child's parent. Does NOT delete it — it's just
-    /// another task and still lives in the main list.
-    func unlinkFollowUp(id childId: String) {
-        guard var child = tasks.first(where: { $0.id == childId }) else { return }
-        child.parentTaskId = nil
-        child.updatedAt = Date()
-        try? repository.upsert(child)
+        guard !trimmed.isEmpty else { return }
+        t.followUps.append(FollowUpDTO(title: trimmed, cadenceSeconds: cadenceSeconds, domain: nil))
+        t.updatedAt = Date()
+        try? repository.upsert(t)
         load()
     }
 
-    /// This task's follow-ups — tasks pointed at it via parentTaskId.
+    func removeFollowUp(id: String, at index: Int) {
+        guard var t = tasks.first(where: { $0.id == id }), t.followUps.indices.contains(index) else { return }
+        t.followUps.remove(at: index)
+        t.updatedAt = Date()
+        try? repository.upsert(t)
+        load()
+    }
+
+    /// Steps already spawned from this task's chain (real one-time tasks pointed at it).
     func children(of id: String) -> [TaskDTO] {
         tasks.filter { $0.parentTaskId == id }
     }

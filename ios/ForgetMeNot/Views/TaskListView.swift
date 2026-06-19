@@ -101,10 +101,19 @@ struct TaskListView: View {
                     .listRowSeparator(.hidden)
                     .listRowBackground(WL.bg)
                     .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                        Button { reset(task) } label: {
-                            Label("SNACK", systemImage: "fish.fill")
+                        if task.recurring {
+                            Button { reset(task) } label: {
+                                Label("SNACK", systemImage: "fish.fill")
+                            }
+                            .tint(WL.green)
+                        } else {
+                            // Non-repeating chain links are completed, not reset — finishing
+                            // one spawns the next link in the chain.
+                            Button { complete(task) } label: {
+                                Label("DONE", systemImage: "checkmark.circle.fill")
+                            }
+                            .tint(WL.green)
                         }
-                        .tint(WL.green)
                     }
                 }
             }
@@ -118,6 +127,13 @@ struct TaskListView: View {
         coordinator.clear(task.id)
         withAnimation(.easeInOut(duration: 0.4)) {
             store.reset(id: task.id)
+        }
+    }
+
+    private func complete(_ task: TaskDTO) {
+        coordinator.clear(task.id)
+        withAnimation(.easeInOut(duration: 0.4)) {
+            store.complete(id: task.id)   // marks done + spawns the next chain link
         }
     }
 }

@@ -12,6 +12,7 @@ struct TaskListView: View {
     @State private var showLoops = false
     @State private var showCreate = false
     @State private var showSettings = false
+    @State private var showAllTasks = false
     @State private var now = Date()
     @State private var orderKey: [String] = []
 
@@ -45,6 +46,9 @@ struct TaskListView: View {
         .fullScreenCover(isPresented: $showLoops) {
             LoopsView().environment(store)
         }
+        .fullScreenCover(isPresented: $showAllTasks) {
+            AllTasksView().environment(store).environment(icons)
+        }
         .sheet(isPresented: $showCreate) {
             CreateTaskView().environment(store)
         }
@@ -63,6 +67,10 @@ struct TaskListView: View {
                     Image(systemName: "plus").font(.system(size: 17, weight: .bold)).foregroundStyle(WL.accent)
                 }
                 .accessibilityLabel("New task")
+                Button { showAllTasks = true } label: {
+                    Image(systemName: "list.bullet").font(.system(size: 15, weight: .semibold)).foregroundStyle(WL.accent)
+                }
+                .accessibilityLabel("All tasks")
                 Button { showLoops = true } label: {
                     Image(systemName: "chart.bar.xaxis").font(.system(size: 15, weight: .semibold)).foregroundStyle(WL.accent)
                 }

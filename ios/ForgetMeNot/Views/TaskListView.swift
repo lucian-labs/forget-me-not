@@ -27,7 +27,6 @@ struct TaskListView: View {
         .preferredColorScheme(.dark)
         .onReceive(ticker) { _ in
             coordinator.evaluate(store.sortedActive, now: Date())
-            characters.evolve(for: store.sortedActive)
         }
         .fullScreenCover(item: $detailTask) { task in
             TaskDetailView(taskId: task.id).environment(store).environment(characters)

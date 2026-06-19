@@ -1,12 +1,12 @@
 import SwiftUI
 import UIKit
 
-/// Holds + evolves each task's mascot. Throttled: renders at most twice a cycle — calm
-/// (0%) and feral (100%) — only when crossing a new threshold for the current instance.
-/// `rendered` is marked on SUCCESS only and self-heals if an entry exists without an
-/// image, so a one-off generation failure (e.g. a flaky Image Playground call) retries
-/// instead of leaving a permanently-blank mascot. Generation is serialized; images are
-/// background-cut with Vision and cached to disk; the animal per task is remembered.
+/// Holds + evolves each task's mascot. Reconciles on app open (not on a timer): each
+/// mascot renders at most twice a cycle — calm (0%) and feral (100%) — when its on-disk
+/// render no longer matches the tier the task is in right now. `rendered` is marked on
+/// SUCCESS only and self-heals if an entry exists without an image, so a one-off failure
+/// (e.g. a flaky Image Playground call) retries instead of leaving a blank mascot.
+/// One pass at a time; images are background-cut with Vision and cached to disk.
 @MainActor
 @Observable
 final class CharacterStore {
@@ -18,7 +18,6 @@ final class CharacterStore {
     private struct RenderState { var inst: String; var threshold: Double }
     private var rendered: [String: RenderState] = [:]
     private struct PendingGen { let task: TaskDTO; let inst: String; let threshold: Double; let akey: String }
-    private var queue: [PendingGen] = []
     private var attempts: [String: Int] = [:]   // per inst+threshold, capped per session
     private var running = false
 
@@ -37,8 +36,13 @@ final class CharacterStore {
 
     private static let thresholds: [Double] = [0.0, 1.0]
 
+    /// Reconcile every mascot to the task's CURRENT urgency in a single pass — called when
+    /// the app opens, not on a timer. Only tasks whose on-disk render no longer matches the
+    /// tier they're in now are (re)generated. The `running` guard means a second open while
+    /// a pass is in flight is a no-op rather than a pile-up.
     func evolve(for tasks: [TaskDTO], now: Date = Date()) {
-        guard service.available else { return }
+        guard service.available, !running else { return }
+        var pending: [PendingGen] = []
         for task in tasks {
             let ratio = task.recurring ? Urgency.ratio(task, now: now) : 0
             let instKey = task.instance.map { String(Int($0.startedAt.timeIntervalSince1970)) } ?? "static"
@@ -46,13 +50,17 @@ final class CharacterStore {
             // Skip only if we've rendered this level for this instance AND the image exists.
             if let r = rendered[task.id], r.inst == instKey, r.threshold >= crossed, images[task.id] != nil { continue }
             if generating.contains(task.id) { continue }
-            if queue.contains(where: { $0.task.id == task.id }) { continue }
             let akey = "\(task.id)|\(instKey)|\(crossed)"
             if (attempts[akey] ?? 0) >= 3 { continue }   // gave up for this session
             if animals[task.id] == nil { setAnimal(Characters.randomAnimal(), for: task.id) }
-            queue.append(PendingGen(task: task, inst: instKey, threshold: crossed, akey: akey))
+            pending.append(PendingGen(task: task, inst: instKey, threshold: crossed, akey: akey))
         }
-        drain()
+        guard !pending.isEmpty else { return }
+        running = true
+        Task {
+            for p in pending { await regenerate(p) }
+            running = false
+        }
     }
 
     /// Manual reroll from the detail view: a NEW animal at the current mood.
@@ -66,17 +74,6 @@ final class CharacterStore {
     }
 
     // MARK: internals
-
-    private func drain() {
-        guard !running, !queue.isEmpty else { return }
-        running = true
-        Task {
-            while !queue.isEmpty {
-                await regenerate(queue.removeFirst())
-            }
-            running = false
-        }
-    }
 
     private func regenerate(_ p: PendingGen) async {
         guard service.available, !generating.contains(p.task.id) else { return }

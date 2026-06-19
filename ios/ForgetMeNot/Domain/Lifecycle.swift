@@ -55,7 +55,7 @@ enum Lifecycle {
         let remaining = Array(parent.followUps.dropFirst())
         let due = now.addingTimeInterval(first.cadenceSeconds)
         return TaskDTO(
-            id: UUID().uuidString, title: first.title, description: "",
+            id: UUID().uuidString, title: first.title, description: first.details ?? "",
             domain: first.domain ?? parent.domain, tags: parent.tags, status: .open,
             priority: .normal, createdAt: now, updatedAt: now, dueDate: due, startedAt: now,
             completedAt: nil, estimatedHours: nil, recurring: false, baseCadenceSeconds: nil,

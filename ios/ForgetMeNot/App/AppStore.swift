@@ -135,6 +135,20 @@ final class AppStore {
         load()
     }
 
+    /// Configure a chain step (title / cadence / details). Details flow into the step's
+    /// description when it spawns, which drives its icon.
+    func updateFollowUp(id: String, at index: Int, title: String, cadenceSeconds: Double, details: String) {
+        guard var t = tasks.first(where: { $0.id == id }), t.followUps.indices.contains(index) else { return }
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let d = details.trimmingCharacters(in: .whitespacesAndNewlines)
+        t.followUps[index] = FollowUpDTO(title: trimmed, cadenceSeconds: cadenceSeconds,
+                                         domain: t.followUps[index].domain, details: d.isEmpty ? nil : d)
+        t.updatedAt = Date()
+        try? repository.upsert(t)
+        load()
+    }
+
     /// Steps already spawned from this task's chain (real one-time tasks pointed at it).
     func children(of id: String) -> [TaskDTO] {
         tasks.filter { $0.parentTaskId == id }

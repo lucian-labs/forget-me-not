@@ -14,6 +14,7 @@ struct FollowUpDTO: Codable, Equatable, Sendable {
     var title: String
     var cadenceSeconds: Double
     var domain: String?
+    var details: String? = nil   // flows into the spawned step's description (drives its icon)
 }
 
 struct ActionLogEntryDTO: Codable, Equatable, Sendable {

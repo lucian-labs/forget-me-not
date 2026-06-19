@@ -16,9 +16,13 @@ struct TaskDetailView: View {
     @State private var fuTitle = ""
     @State private var fuCadence: Double = 3600
     @State private var reminderDraft = ""
+    @State private var editFU: EditFU?
     /// In-detail navigation: tapping a follow-up pushes its id; back pops (or dismisses
     /// at the root). The shown task is the top of the stack.
     @State private var navStack: [String] = []
+
+    /// Identifies the chain step being configured (for the editor sheet).
+    private struct EditFU: Identifiable { let id = UUID(); let index: Int; let fu: FollowUpDTO }
 
     private var currentId: String { navStack.last ?? taskId }
     private var task: TaskDTO? { store.task(currentId) }
@@ -37,6 +41,9 @@ struct TaskDetailView: View {
         .sheet(item: $insightTask) { t in
             InsightView(title: t.title) { await Insights.service().insight(for: t) }
                 .presentationDetents([.medium, .large])
+        }
+        .sheet(item: $editFU) { e in
+            FollowUpEditSheet(taskId: currentId, index: e.index, fu: e.fu).environment(store)
         }
         .onChange(of: navStack) { _, _ in descDraft = store.task(currentId)?.description ?? "" }
     }
@@ -265,15 +272,6 @@ struct TaskDetailView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private static let cadenceOptions: [(label: String, value: Double)] = [
-        ("15 min", 900), ("30 min", 1800), ("1 hour", 3600), ("1.5 hours", 5400),
-        ("2 hours", 7200), ("4 hours", 14400), ("8 hours", 28800),
-        ("1 day", 86400), ("2 days", 172800), ("1 week", 604800),
-    ]
-    private func cadenceLabel(_ v: Double) -> String {
-        Self.cadenceOptions.first { $0.value == v }?.label ?? Format.duration(v)
-    }
-
     /// Editable tag list of reminder phrases (the rotating nudge prompts).
     @ViewBuilder
     private func remindersSection(_ task: TaskDTO) -> some View {
@@ -321,17 +319,26 @@ struct TaskDetailView: View {
             VStack(alignment: .leading, spacing: 10) {
                 ForEach(Array(task.followUps.enumerated()), id: \.offset) { idx, fu in
                     HStack(spacing: 8) {
-                        Text("\(idx + 1)").font(WL.mono(9, .bold)).foregroundStyle(WL.bg)
-                            .frame(width: 18, height: 18).background(WL.accent)
-                        Text(fu.title).font(WL.mono(12)).foregroundStyle(WL.text).lineLimit(1)
-                        Text("· \(cadenceLabel(fu.cadenceSeconds))").font(WL.mono(10)).foregroundStyle(WL.muted)
-                        Spacer(minLength: 6)
+                        Button { editFU = EditFU(index: idx, fu: fu) } label: {
+                            HStack(spacing: 8) {
+                                Text("\(idx + 1)").font(WL.mono(9, .bold)).foregroundStyle(WL.bg)
+                                    .frame(width: 18, height: 18).background(WL.accent)
+                                Text(fu.title).font(WL.mono(12)).foregroundStyle(WL.text).lineLimit(1)
+                                Text("· \(CadenceOptions.label(fu.cadenceSeconds))").font(WL.mono(10)).foregroundStyle(WL.muted)
+                                Spacer(minLength: 6)
+                                Image(systemName: "slider.horizontal.3").font(.system(size: 10, weight: .bold)).foregroundStyle(WL.muted)
+                            }
+                            .padding(.horizontal, 10).padding(.vertical, 8)
+                            .frame(maxWidth: .infinity)
+                            .wlPanel(fill: WL.surface, border: WL.border)
+                        }
+                        .buttonStyle(.plain)
                         Button { store.removeFollowUp(id: task.id, at: idx) } label: {
                             Image(systemName: "xmark").font(.system(size: 10, weight: .bold)).foregroundStyle(WL.muted)
+                                .frame(width: 30, height: 30).overlay(Rectangle().stroke(WL.border, lineWidth: 1))
                         }
+                        .buttonStyle(.plain)
                     }
-                    .padding(.horizontal, 10).padding(.vertical, 8)
-                    .wlPanel(fill: WL.surface, border: WL.border)
                 }
 
                 HStack(spacing: 8) {
@@ -340,11 +347,11 @@ struct TaskDetailView: View {
                         .autocorrectionDisabled()
                         .padding(10).wlPanel(fill: WL.surface, border: WL.border)
                     Menu {
-                        ForEach(Self.cadenceOptions, id: \.value) { opt in
+                        ForEach(CadenceOptions.all, id: \.value) { opt in
                             Button(opt.label) { fuCadence = opt.value }
                         }
                     } label: {
-                        Text(cadenceLabel(fuCadence)).font(WL.mono(11, .bold)).foregroundStyle(WL.accent)
+                        Text(CadenceOptions.label(fuCadence)).font(WL.mono(11, .bold)).foregroundStyle(WL.accent)
                             .frame(minWidth: 60).padding(.vertical, 11).padding(.horizontal, 8)
                             .overlay(Rectangle().stroke(WL.border, lineWidth: 1))
                     }

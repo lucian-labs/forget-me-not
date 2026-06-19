@@ -28,6 +28,7 @@ targets:
     info:
       path: ForgetMeNot/Info.plist
       properties:
+        CFBundleDisplayName: Forget Me Not
         UIBackgroundModes: [remote-notification, processing]
         BGTaskSchedulerPermittedIdentifiers: [com.lucianlabs.forgetmenot.refresh]
         UILaunchScreen: {}

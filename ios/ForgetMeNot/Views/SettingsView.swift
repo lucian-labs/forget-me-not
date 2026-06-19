@@ -60,6 +60,16 @@ struct SettingsView: View {
                     Text("Edit every prompt + injected value the on-device models use.")
                         .font(WL.mono(9)).foregroundStyle(WL.muted)
 
+                    Text("MCP SERVER").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("http://localhost:8473")
+                            .font(WL.mono(13, .bold)).foregroundStyle(WL.accent).textSelection(.enabled)
+                        Text("While the app is open it serves your tasks as MCP tools (list, add, reset, complete, log, set icon, pause, delete). Add the URL to an MCP client to drive it.")
+                            .font(WL.mono(9)).foregroundStyle(WL.muted)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12).wlPanel(fill: WL.surface, border: WL.border)
+
                     Text("THEME").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
 
                     LazyVGrid(columns: columns, spacing: 12) {

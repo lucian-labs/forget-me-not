@@ -5,5 +5,11 @@
      restored once the iCloud.com.lucianlabs.forgetmenot container is provisioned. -->
 <plist version="1.0">
 <dict>
+	<!-- Local MCP server socket. Sandbox entitlements (not App-ID capabilities), so they
+	     don't require provisioning-profile registration. -->
+	<key>com.apple.security.network.server</key>
+	<true/>
+	<key>com.apple.security.network.client</key>
+	<true/>
 </dict>
 </plist>

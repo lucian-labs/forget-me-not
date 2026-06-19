@@ -5,6 +5,7 @@ struct ForgetMeNotApp: App {
     @State private var store: AppStore
     @State private var icons = IconStore()
     @State private var coordinator = NudgeCoordinator()
+    @State private var mcp: MCPServer?
     @Environment(\.scenePhase) private var scenePhase
     private let scheduler = ReminderScheduler()
 
@@ -20,6 +21,7 @@ struct ForgetMeNotApp: App {
                 .environment(icons)
                 .environment(coordinator)
                 .task {
+                    startMCP()          // expose tools to MCP clients on a local port
                     reconcileOnOpen()   // render icons + quotes from current state
                     await scheduler.requestAuthorization()
                     await scheduler.sync(store.sortedActive, characterURL: { icons.imageURL(for: $0) })
@@ -41,5 +43,12 @@ struct ForgetMeNotApp: App {
         let active = store.sortedActive
         icons.evolve(for: active)
         coordinator.evaluate(active, now: Date())
+    }
+
+    @MainActor private func startMCP() {
+        guard mcp == nil else { return }
+        let server = MCPServer(store: store, icons: icons)
+        server.start()
+        mcp = server
     }
 }

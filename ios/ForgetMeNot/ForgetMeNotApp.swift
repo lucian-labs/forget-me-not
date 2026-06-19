@@ -1,7 +1,19 @@
 import SwiftUI
+import UIKit
+
+/// Registers for remote notifications so CloudKit's silent pushes arrive promptly — that's
+/// what makes cross-device sync near-realtime rather than next-launch.
+final class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        application.registerForRemoteNotifications()
+        return true
+    }
+}
 
 @main
 struct ForgetMeNotApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var store: AppStore
     @State private var icons = IconStore()
     @State private var coordinator = NudgeCoordinator()

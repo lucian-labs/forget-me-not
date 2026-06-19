@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreData   // .NSPersistentStoreRemoteChange (CloudKit import notifications)
 
 /// App-wide observable state. Holds the in-memory list of tasks (web-identical DTOs)
 /// and persists through the repository. Seeds a few sample tasks on first launch so
@@ -11,6 +12,7 @@ final class AppStore {
     var themeName: String = "waveloop"
     var iconStyle: String = ""
     var nudgeStyle: String = ""
+    @ObservationIgnored private var remoteChangeToken: (any NSObjectProtocol)?
 
     /// Bump to reseed from the web set. Demo-phase: a higher version wipes existing
     /// tasks and reseeds (revisit once there's real user data — then seed-if-empty only).
@@ -30,6 +32,18 @@ final class AppStore {
         WL.apply(Theme.named(themeName))
         iconStyle = UserDefaults.standard.string(forKey: "fmn.iconStyle") ?? ""
         nudgeStyle = UserDefaults.standard.string(forKey: "fmn.nudgeStyle") ?? ""
+        observeCloudChanges()
+    }
+
+    /// Reload the in-memory snapshot whenever CloudKit imports remote changes, so a reset
+    /// or new task made on another device shows up live (the repository is a manual
+    /// snapshot, not a live @Query, so it needs this nudge).
+    private func observeCloudChanges() {
+        remoteChangeToken = NotificationCenter.default.addObserver(
+            forName: .NSPersistentStoreRemoteChange, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.load() }
+        }
     }
 
     func setTheme(_ name: String) {

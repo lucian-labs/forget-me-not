@@ -34,9 +34,23 @@ enum FMNModelContainer {
     /// Local persistent store for now. CloudKit (`cloudKit()`) is wired and ready, but
     /// stays off until the iCloud container is provisioned for the App ID — at which
     /// point this becomes: prefer cloudKit() when an iCloud account is signed in.
+    /// Flip to true ONCE the iCloud container `iCloud.com.lucianlabs.forgetmenot` is created
+    /// + associated to the App ID and the CloudKit/Push entitlements are restored. Until then
+    /// the cloudKit() container would crash at init (missing container entitlement), so we
+    /// stay on the local store. Everything else (mirroring config, remote-change observer,
+    /// push registration) is already wired and waiting on this flag.
+    static let cloudKitReady = false
+
     @MainActor static func resolve() -> ModelContainer {
         if let shared { return shared }
-        let c = (try? local()) ?? (try! inMemory())
+        let c: ModelContainer
+        // Prefer the CloudKit-mirrored store when enabled + an iCloud account is signed in;
+        // fall back to a local store otherwise.
+        if cloudKitReady, FileManager.default.ubiquityIdentityToken != nil, let ck = try? cloudKit() {
+            c = ck
+        } else {
+            c = (try? local()) ?? (try! inMemory())
+        }
         shared = c
         return c
     }

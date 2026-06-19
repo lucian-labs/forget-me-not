@@ -5,8 +5,16 @@
      restored once the iCloud.com.lucianlabs.forgetmenot container is provisioned. -->
 <plist version="1.0">
 <dict>
-	<!-- Local MCP server socket. Sandbox entitlements (not App-ID capabilities), so they
-	     don't require provisioning-profile registration. -->
+	<!-- CloudKit sync is wired in code (FMNModelContainer.cloudKitReady) but the iCloud
+	     container `iCloud.com.lucianlabs.forgetmenot` must first be CREATED + associated to
+	     the App ID — an Xcode "Signing & Capabilities → iCloud/CloudKit" action (the public
+	     App Store Connect API has no container endpoint). Once it exists, restore these:
+	         com.apple.developer.icloud-container-identifiers = [iCloud.com.lucianlabs.forgetmenot]
+	         com.apple.developer.icloud-services = [CloudKit]
+	         com.apple.developer.aps-environment = development
+	     and flip FMNModelContainer.cloudKitReady to true. (iCloud + Push are already enabled
+	     on the App ID; only the container is missing.) -->
+	<!-- Local MCP server socket. Sandbox entitlements (not App-ID capabilities). -->
 	<key>com.apple.security.network.server</key>
 	<true/>
 	<key>com.apple.security.network.client</key>

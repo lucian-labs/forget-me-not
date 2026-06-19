@@ -17,11 +17,7 @@ struct GeneratedInsight {
 struct FoundationModelsInsightService: InsightService {
     func insight(for task: TaskDTO) async -> InsightResult {
         await generate(
-            instructions: """
-            You analyze a single recurring habit ("loop"). Be specific and kind, never \
-            preachy. Summary is one sentence. Observations are 2-3 terse fragments. \
-            Suggestion is one concrete next step.
-            """,
+            instructions: PromptField.insightTaskInstructions.value,
             prompt: taskPrompt(task),
             fallback: Insight.fallback(for: task)
         )
@@ -29,11 +25,7 @@ struct FoundationModelsInsightService: InsightService {
 
     func overview(_ tasks: [TaskDTO]) async -> InsightResult {
         await generate(
-            instructions: """
-            You analyze a set of recurring habits ("loops") as a whole — balance across \
-            areas, what's slipping, momentum. Summary is one sentence. Observations are \
-            2-3 terse fragments. Suggestion is one concrete next step.
-            """,
+            instructions: PromptField.insightOverviewInstructions.value,
             prompt: overviewPrompt(tasks),
             fallback: Insight.fallback(overview: tasks)
         )

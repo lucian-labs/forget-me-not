@@ -11,8 +11,6 @@ final class AppStore {
     var themeName: String = "waveloop"
     var mascotStyle: String = ""
     var nudgeStyle: String = ""
-    var mascotPrompt: String = ""        // editable image-prompt template (tokens filled per task)
-    var nudgeInstructions: String = ""   // editable nudge system prompt
 
     /// Bump to reseed from the web set. Demo-phase: a higher version wipes existing
     /// tasks and reseeds (revisit once there's real user data — then seed-if-empty only).
@@ -32,8 +30,6 @@ final class AppStore {
         WL.apply(Theme.named(themeName))
         mascotStyle = UserDefaults.standard.string(forKey: "fmn.mascotStyle") ?? ""
         nudgeStyle = UserDefaults.standard.string(forKey: "fmn.nudgeStyle") ?? ""
-        mascotPrompt = UserDefaults.standard.string(forKey: "fmn.mascotPrompt") ?? Characters.defaultPromptTemplate
-        nudgeInstructions = UserDefaults.standard.string(forKey: "fmn.nudgeInstructions") ?? Prompts.defaultNudgeInstructions
     }
 
     func setTheme(_ name: String) {
@@ -51,11 +47,6 @@ final class AppStore {
         nudgeStyle = style
         UserDefaults.standard.set(style, forKey: "fmn.nudgeStyle")
     }
-
-    func setMascotPrompt(_ s: String) { mascotPrompt = s; UserDefaults.standard.set(s, forKey: "fmn.mascotPrompt") }
-    func resetMascotPrompt() { setMascotPrompt(Characters.defaultPromptTemplate) }
-    func setNudgeInstructions(_ s: String) { nudgeInstructions = s; UserDefaults.standard.set(s, forKey: "fmn.nudgeInstructions") }
-    func resetNudgeInstructions() { setNudgeInstructions(Prompts.defaultNudgeInstructions) }
 
     func load() {
         tasks = (try? repository.all()) ?? []

@@ -63,6 +63,23 @@ final class CharacterStore {
         }
     }
 
+    /// Wipe every cached mascot and re-render from the CURRENT prompt config — used after
+    /// editing prompts in the lab so changes show immediately. Re-picks subjects so
+    /// edits to the subject list / template take effect too.
+    func regenerateAll(for tasks: [TaskDTO]) {
+        running = false
+        images.removeAll()
+        rendered.removeAll()
+        attempts.removeAll()
+        animals.removeAll()
+        UserDefaults.standard.removeObject(forKey: "fmn.animals")
+        UserDefaults.standard.removeObject(forKey: "fmn.rendered")
+        if let files = try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) {
+            for f in files where f.pathExtension == "png" { try? FileManager.default.removeItem(at: f) }
+        }
+        evolve(for: tasks)
+    }
+
     /// Manual reroll from the detail view: a NEW animal at the current mood.
     func generate(for task: TaskDTO) async {
         let animal = Characters.randomAnimal()

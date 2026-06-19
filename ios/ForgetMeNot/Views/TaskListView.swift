@@ -33,7 +33,7 @@ struct TaskListView: View {
             CreateTaskView().environment(store)
         }
         .sheet(isPresented: $showSettings) {
-            SettingsView().environment(store)
+            SettingsView().environment(store).environment(characters)
         }
     }
 

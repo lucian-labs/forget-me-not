@@ -4,7 +4,9 @@ import SwiftUI
 /// previews the palette; tapping applies it instantly app-wide.
 struct SettingsView: View {
     @Environment(AppStore.self) private var store
+    @Environment(CharacterStore.self) private var characters
     @Environment(\.dismiss) private var dismiss
+    @State private var showPromptLab = false
 
     private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
@@ -29,11 +31,8 @@ struct SettingsView: View {
                     .font(WL.mono(13)).foregroundStyle(WL.text).tint(WL.accent)
                     .autocorrectionDisabled()
                     .padding(12).wlPanel(fill: WL.surface, border: WL.border)
-                    Text("Woven into every generated animal. Blank = default cartoon alien.")
+                    Text("Woven into every mascot. Blank = the default style below.")
                         .font(WL.mono(9)).foregroundStyle(WL.muted)
-                    promptEditor(text: Binding(get: { store.mascotPrompt }, set: { store.setMascotPrompt($0) }),
-                                 reset: { store.resetMascotPrompt() },
-                                 hint: "tokens: {animal} {task} {details} {mood} {style}")
 
                     Text("PROMPT STYLE").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
                     TextField("e.g. drill sergeant, gentle friend, pirate", text: Binding(
@@ -45,8 +44,21 @@ struct SettingsView: View {
                     .padding(12).wlPanel(fill: WL.surface, border: WL.border)
                     Text("The voice your nudges are written in. Blank = calm coach.")
                         .font(WL.mono(9)).foregroundStyle(WL.muted)
-                    promptEditor(text: Binding(get: { store.nudgeInstructions }, set: { store.setNudgeInstructions($0) }),
-                                 reset: { store.resetNudgeInstructions() }, hint: nil)
+
+                    Button { showPromptLab = true } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "wand.and.stars").font(.system(size: 13, weight: .bold))
+                            Text("PROMPT LAB").font(WL.mono(12, .bold)).tracking(1)
+                            Spacer()
+                            Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold))
+                        }
+                        .foregroundStyle(WL.accent)
+                        .padding(.horizontal, 12).padding(.vertical, 14)
+                        .frame(maxWidth: .infinity)
+                        .wlPanel(fill: WL.surface, border: WL.border)
+                    }
+                    Text("Edit every prompt + injected value the on-device models use.")
+                        .font(WL.mono(9)).foregroundStyle(WL.muted)
 
                     Text("THEME").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
 
@@ -61,28 +73,8 @@ struct SettingsView: View {
             }
         }
         .preferredColorScheme(.dark)
-    }
-
-    /// Editable system prompt sent to the on-device models. Bound to the store so edits
-    /// take effect on the next generation; RESET restores the default.
-    private func promptEditor(text: Binding<String>, reset: @escaping () -> Void, hint: String?) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text("SYSTEM PROMPT").font(WL.mono(9, .bold)).tracking(1).foregroundStyle(WL.accent)
-                Spacer()
-                Button(action: reset) {
-                    Text("RESET").font(WL.mono(9, .bold)).tracking(1).foregroundStyle(WL.muted)
-                }
-            }
-            TextEditor(text: text)
-                .font(WL.mono(11)).foregroundStyle(WL.text).tint(WL.accent)
-                .scrollContentBackground(.hidden)
-                .autocorrectionDisabled()
-                .frame(minHeight: 96)
-                .padding(8).wlPanel(fill: WL.surface, border: WL.border)
-            if let hint {
-                Text(hint).font(WL.mono(9)).foregroundStyle(WL.muted)
-            }
+        .sheet(isPresented: $showPromptLab) {
+            PromptLabView().environment(store).environment(characters)
         }
     }
 

@@ -15,47 +15,37 @@ struct UnavailableCharacterService: CharacterService {
 }
 
 enum Characters {
-    /// Weird little creatures → "cartoon alien animals" read well.
-    static let animals = [
-        "axolotl", "tardigrade", "octopus", "newt", "sloth", "platypus", "narwhal",
-        "chameleon", "pangolin", "capybara", "jellyfish", "blobfish", "sea slug", "frog", "moth",
-    ]
+    /// The pool the {animal} token draws from — fully editable in the Prompt Lab.
+    static var subjects: [String] {
+        PromptField.mascotSubjects.value
+            .split(whereSeparator: { $0 == "\n" || $0 == "," })
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+    }
 
-    static func randomAnimal() -> String { animals.randomElement() ?? "axolotl" }
+    static func randomAnimal() -> String { subjects.randomElement() ?? "" }
 
-    /// The "state of mind if you don't do it for too long."
+    /// The "state of mind if you don't do it for too long" — editable per tier.
     static func mood(for tier: UrgencyTier) -> String {
         switch tier {
-        case .calm: "calm, happy and content"
-        case .soon: "a little restless and impatient"
-        case .due: "stressed, wide-eyed and frazzled"
-        case .overdue: "completely unhinged, feral and falling apart"
+        case .calm: PromptField.moodCalm.value
+        case .soon: PromptField.moodSoon.value
+        case .due: PromptField.moodDue.value
+        case .overdue: PromptField.moodOverdue.value
         }
     }
 
-    /// Custom style string from Settings (woven into every mascot prompt).
+    /// Per-install style from Settings (woven into every mascot prompt via {style}).
     static var style: String {
         (UserDefaults.standard.string(forKey: "fmn.mascotStyle") ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
     }
-    static let defaultStyle = "cute funny cartoon alien"
-
-    /// The editable scaffold every mascot prompt is built from. Edit it in Settings to play
-    /// with the art style; tokens are filled per task at generation time:
-    /// {style} (Mascot Style), {animal}, {task}, {details}, {mood} (calmer/feral by overdue).
-    static let defaultPromptTemplate =
-        "a {style} {animal}, the mascot for \"{task}\" ({details}), {mood}, friendly character, plain solid background"
-
-    /// The current template — the Settings override if set, otherwise the default.
-    static var promptTemplate: String {
-        let o = UserDefaults.standard.string(forKey: "fmn.mascotPrompt")?.trimmingCharacters(in: .whitespacesAndNewlines)
-        return (o?.isEmpty == false) ? o! : defaultPromptTemplate
-    }
+    static var defaultStyle: String { PromptField.mascotDefaultStyle.value }
 
     static func prompt(animal: String, task: TaskDTO) -> String {
         let mood = mood(for: Urgency.tier(for: Urgency.ratio(task)))
         let look = style.isEmpty ? defaultStyle : style
         let details = task.description.trimmingCharacters(in: .whitespacesAndNewlines)
-        return promptTemplate
+        return PromptField.mascotTemplate.value
             .replacingOccurrences(of: "{style}", with: look)
             .replacingOccurrences(of: "{animal}", with: animal)
             .replacingOccurrences(of: "{task}", with: task.title)

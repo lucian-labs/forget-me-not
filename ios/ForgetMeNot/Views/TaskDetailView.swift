@@ -218,7 +218,7 @@ struct TaskDetailView: View {
                         } else {
                             Image(systemName: "sparkles").font(.system(size: 13, weight: .bold))
                         }
-                        Text(characters.image(for: task.id) == nil ? "GENERATE ANIMAL" : "NEW ANIMAL")
+                        Text(characters.image(for: task.id) == nil ? "GENERATE" : "NEW MASCOT")
                             .font(WL.mono(12, .bold)).tracking(1)
                     }
                     .frame(maxWidth: .infinity).padding(.vertical, 12)

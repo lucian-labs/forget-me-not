@@ -83,7 +83,7 @@ enum PromptField: String, CaseIterable, Identifiable {
         case .moodCalm: "calm, happy and content"
         case .moodSoon: "a little restless and impatient"
         case .moodDue: "stressed, wide-eyed and frazzled"
-        case .moodOverdue: "completely unhinged, feral and falling apart"
+        case .moodOverdue: "wide-eyed, frantic and overwhelmed"
         case .nudgeInstructions:
             "You coach someone to start a task they keep avoiding. The block is the decision, not the doing. Reply with ONE short sentence naming the smallest concrete first physical action. No preamble, no emoji, no quotes. Match the requested urgency exactly."
         case .nudgeTemplate:

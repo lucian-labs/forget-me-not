@@ -62,13 +62,15 @@ enum Icons {
     /// icon instead of leaving the task permanently blank.
     static func promptLadder(animal: String, task: TaskDTO) -> [String] {
         let look = style.isEmpty ? defaultStyle : style
-        let m = mood(for: Urgency.tier(for: Urgency.ratio(task)))
         let full = prompt(animal: animal, task: task)
-        let simple = "a \(look) \(animal), \(m), friendly, plain solid background"
+        // Fallbacks drop the task title/details AND the mood first — at high urgency the
+        // "feral / falling apart" mood is the most likely thing to trip the content
+        // guardrail (which silently fails generation), so bypass it before going bare.
+        let noContext = "a \(look) \(animal), friendly character, plain solid background"
         let minimal = "a \(look) \(animal)".trimmingCharacters(in: .whitespaces)
         var seen = Set<String>(), ladder: [String] = []
-        for p in [full, simple, minimal] where !p.isEmpty && seen.insert(p).inserted { ladder.append(p) }
-        return ladder.isEmpty ? ["a friendly icon, plain solid background"] : ladder
+        for p in [full, noContext, minimal] where !p.isEmpty && seen.insert(p).inserted { ladder.append(p) }
+        return ladder.isEmpty ? ["a friendly cartoon character, plain solid background"] : ladder
     }
 
     static func service() -> any IconService {

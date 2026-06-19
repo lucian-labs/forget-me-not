@@ -14,7 +14,7 @@ final class AppStore {
 
     /// Bump to reseed from the web set. Demo-phase: a higher version wipes existing
     /// tasks and reseeds (revisit once there's real user data — then seed-if-empty only).
-    private let seedVersion = 2
+    private let seedVersion = 3
 
     init(repository: TaskRepository) {
         self.repository = repository

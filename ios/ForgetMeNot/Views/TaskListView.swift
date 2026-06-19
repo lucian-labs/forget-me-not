@@ -101,28 +101,27 @@ struct TaskListView: View {
                     .listRowSeparator(.hidden)
                     .listRowBackground(WL.bg)
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        // Left swipe (finger moves left) = the primary action: reset a
-                        // recurring task's timer, or complete a one-time chain link.
+                        // Left swipe = reset the timer only; do NOT fire the follow-up chain.
                         if task.recurring {
                             Button { reset(task) } label: {
-                                Label("SNACK", systemImage: "fish.fill")
+                                Label("RESET", systemImage: "arrow.counterclockwise")
                             }
-                            .tint(WL.green)
+                            .tint(WL.cyan)
                         } else {
-                            Button { complete(task) } label: {
+                            // One-time link has no timer; left swipe just marks it done.
+                            Button { markDone(task) } label: {
                                 Label("DONE", systemImage: "checkmark.circle.fill")
                             }
                             .tint(WL.green)
                         }
                     }
-                    .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                        // Right swipe = launch this task's follow-ups (activate its dormant steps).
-                        if store.children(of: task.id).contains(where: { store.isDormantFollowUp($0) }) {
-                            Button { store.launchFollowUps(id: task.id) } label: {
-                                Label("STEPS", systemImage: "arrow.turn.down.right")
-                            }
-                            .tint(WL.cyan)
+                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                        // Right swipe = mark done: resets a recurring task AND fires its
+                        // follow-up sub-tasks (completes + fires for a one-time link).
+                        Button { markDone(task) } label: {
+                            Label("DONE", systemImage: "checkmark.circle.fill")
                         }
+                        .tint(WL.green)
                     }
                 }
             }
@@ -139,10 +138,10 @@ struct TaskListView: View {
         }
     }
 
-    private func complete(_ task: TaskDTO) {
+    private func markDone(_ task: TaskDTO) {
         coordinator.clear(task.id)
         withAnimation(.easeInOut(duration: 0.4)) {
-            store.complete(id: task.id)   // marks done + spawns the next chain link
+            store.markDone(id: task.id)   // reset (recurring) or complete (one-time) + fire follow-ups
         }
     }
 }

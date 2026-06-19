@@ -359,7 +359,7 @@ struct TaskDetailView: View {
                     }
                 }
 
-                Text("each follow-up is its own non-repeating task — tap to open it (and give it follow-ups). They stay tucked away until you launch the chain: right-swipe this task in the list.")
+                Text("each follow-up is its own non-repeating task — tap to open it (and give it follow-ups). They stay tucked away until you mark this task DONE (right swipe in the list); left swipe just resets the timer without firing them.")
                     .font(WL.mono(9)).foregroundStyle(WL.muted)
             }
         }

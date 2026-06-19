@@ -93,6 +93,21 @@ final class AppStore {
         load()
     }
 
+    /// The right-swipe "done" action: reset a recurring task's cycle (or complete a one-time
+    /// link), AND fire its follow-up sub-tasks (activate dormant children). Left-swipe reset,
+    /// by contrast, never fires them.
+    func markDone(id: String) {
+        guard let task = tasks.first(where: { $0.id == id }) else { return }
+        if task.recurring {
+            var rng = SystemRandomNumberGenerator()
+            try? repository.upsert(Lifecycle.reset(task, note: "done", now: Date(), rng: &rng).task)
+        } else {
+            try? repository.upsert(Lifecycle.complete(task, note: "done", now: Date()).task)
+        }
+        activateChildren(of: id)
+        load()
+    }
+
     /// Append a note to the action log without changing the cycle.
     func addNote(id: String, note: String) {
         guard let task = tasks.first(where: { $0.id == id }) else { return }

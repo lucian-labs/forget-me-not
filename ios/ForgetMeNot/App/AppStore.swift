@@ -93,6 +93,29 @@ final class AppStore {
         load()
     }
 
+    /// Bring an inactive (done / paused) or dormant task back into action: open it, clear
+    /// completion, and give it a live cycle — recurring → a fresh instance; one-time → a
+    /// fresh due date. Used by drag-to-activate in the All Tasks view.
+    func reactivate(id: String) {
+        guard var t = tasks.first(where: { $0.id == id }) else { return }
+        let now = Date()
+        t.status = .open
+        t.completedAt = nil
+        if t.recurring, let base = t.baseCadenceSeconds {
+            var rng = SystemRandomNumberGenerator()
+            t.instance = ReminderInstanceDTO(
+                startedAt: now,
+                actualCadenceSeconds: Cadence.randomized(base: base, more: t.cadenceMore, less: t.cadenceLess, using: &rng),
+                snoozed: false)
+        } else {
+            t.startedAt = now
+            t.dueDate = now.addingTimeInterval(t.baseCadenceSeconds ?? 3600)
+        }
+        t.updatedAt = now
+        try? repository.upsert(t)
+        load()
+    }
+
     /// The right-swipe "done" action: reset a recurring task's cycle (or complete a one-time
     /// link), AND fire its follow-up sub-tasks (activate dormant children). Left-swipe reset,
     /// by contrast, never fires them.

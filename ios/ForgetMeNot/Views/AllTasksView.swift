@@ -1,27 +1,26 @@
 import SwiftUI
 
-/// Every task, active and not — grouped by state. The main list only shows active loops;
-/// this surfaces dormant follow-ups, paused tasks, and completed ones too. Tap any to open it.
+/// Every task, active and not. The main list only shows active loops; this surfaces dormant
+/// follow-ups and inactive (paused / done) tasks too. Drag an inactive or dormant task up
+/// into ACTIVE to put it back into action; tap any row to open its detail.
 struct AllTasksView: View {
     @Environment(AppStore.self) private var store
     @Environment(IconStore.self) private var icons
     @Environment(\.dismiss) private var dismiss
     @State private var detailTask: TaskDTO?
+    @State private var dropTargeted = false
 
-    private var groups: [(title: String, tasks: [TaskDTO])] {
-        var active: [TaskDTO] = [], paused: [TaskDTO] = [], dormant: [TaskDTO] = [], done: [TaskDTO] = []
-        for t in store.tasks {
-            if t.status == .done { done.append(t) }
-            else if t.status == .archived || t.status == .cancelled { continue }
-            else if t.status == .blocked { paused.append(t) }
-            else if store.isDormantFollowUp(t) { dormant.append(t) }
-            else { active.append(t) }
-        }
-        active.sort { Urgency.ratio($0) > Urgency.ratio($1) }
-        dormant.sort { $0.title < $1.title }
-        done.sort { ($0.completedAt ?? .distantPast) > ($1.completedAt ?? .distantPast) }
-        return [("ACTIVE", active), ("FOLLOW-UPS · DORMANT", dormant), ("PAUSED", paused), ("DONE", done)]
-            .filter { !$0.1.isEmpty }
+    private var active: [TaskDTO] {
+        store.tasks.filter { $0.status == .open || $0.status == .inProgress }
+            .filter { !store.isDormantFollowUp($0) }
+            .sorted { Urgency.ratio($0) > Urgency.ratio($1) }
+    }
+    private var dormant: [TaskDTO] {
+        store.tasks.filter { store.isDormantFollowUp($0) }.sorted { $0.title < $1.title }
+    }
+    private var inactive: [TaskDTO] {
+        store.tasks.filter { $0.status == .done || $0.status == .blocked }
+            .sorted { ($0.updatedAt) > ($1.updatedAt) }
     }
 
     var body: some View {
@@ -37,15 +36,31 @@ struct AllTasksView: View {
                             Image(systemName: "xmark").font(.system(size: 15, weight: .bold)).foregroundStyle(WL.muted)
                         }
                     }
-                    ForEach(groups, id: \.title) { group in
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(group.title).font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.accent)
-                            ForEach(group.tasks) { row($0) }
+
+                    // ACTIVE — the drop target. Drag inactive/dormant rows here to activate.
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("ACTIVE").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.accent)
+                        if active.isEmpty {
+                            Text("drop a task here to activate it")
+                                .font(WL.mono(9)).foregroundStyle(WL.muted)
+                                .frame(maxWidth: .infinity).padding(.vertical, 16)
+                        } else {
+                            ForEach(active) { row($0) }
                         }
                     }
-                    if store.tasks.isEmpty {
-                        Text("NO TASKS").font(WL.mono(12, .bold)).tracking(2).foregroundStyle(WL.muted)
-                    }
+                    .padding(8)
+                    .background(dropTargeted ? WL.accent.opacity(0.12) : Color.clear)
+                    .overlay(Rectangle().stroke(dropTargeted ? WL.accent : Color.clear, lineWidth: 1))
+                    .dropDestination(for: String.self) { ids, _ in
+                        ids.forEach { store.reactivate(id: $0) }
+                        return !ids.isEmpty
+                    } isTargeted: { dropTargeted = $0 }
+
+                    if !dormant.isEmpty { group("FOLLOW-UPS · DORMANT", dormant) }
+                    if !inactive.isEmpty { group("INACTIVE", inactive) }
+
+                    Text("drag a task up into ACTIVE to put it back in action")
+                        .font(WL.mono(9)).foregroundStyle(WL.muted)
                 }
                 .padding(20)
             }
@@ -53,6 +68,16 @@ struct AllTasksView: View {
         .preferredColorScheme(.dark)
         .fullScreenCover(item: $detailTask) { t in
             TaskDetailView(taskId: t.id).environment(store).environment(icons)
+        }
+    }
+
+    /// A draggable group (dormant + inactive rows can be dragged into ACTIVE).
+    @ViewBuilder private func group(_ title: String, _ tasks: [TaskDTO]) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title).font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
+            ForEach(tasks) { task in
+                row(task).draggable(task.id)
+            }
         }
     }
 

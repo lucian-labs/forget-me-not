@@ -56,6 +56,21 @@ enum Icons {
             .trimmingCharacters(in: .whitespaces)
     }
 
+    /// Prompts to try in order: the user's full template first, then progressively simpler
+    /// fallbacks. If a task's title/details trip the image model's content guardrail (which
+    /// silently fails generation — the "waterize" symptom), a barer prompt still yields an
+    /// icon instead of leaving the task permanently blank.
+    static func promptLadder(animal: String, task: TaskDTO) -> [String] {
+        let look = style.isEmpty ? defaultStyle : style
+        let m = mood(for: Urgency.tier(for: Urgency.ratio(task)))
+        let full = prompt(animal: animal, task: task)
+        let simple = "a \(look) \(animal), \(m), friendly, plain solid background"
+        let minimal = "a \(look) \(animal)".trimmingCharacters(in: .whitespaces)
+        var seen = Set<String>(), ladder: [String] = []
+        for p in [full, simple, minimal] where !p.isEmpty && seen.insert(p).inserted { ladder.append(p) }
+        return ladder.isEmpty ? ["a friendly icon, plain solid background"] : ladder
+    }
+
     static func service() -> any IconService {
         if #available(iOS 26.0, *) { return ImagePlaygroundIconService() }
         return UnavailableIconService()

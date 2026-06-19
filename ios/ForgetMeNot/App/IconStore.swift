@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import OSLog
 
 /// Holds + evolves each task's icon. Reconciles on app open (not on a timer): each
 /// icon renders at most twice a cycle — calm (0%) and feral (100%) — when its on-disk
@@ -20,7 +21,7 @@ final class IconStore {
     private var rendered: [String: RenderState] = [:]
     private struct PendingGen { let task: TaskDTO; let inst: String; let threshold: Double; let akey: String }
     private var attempts: [String: Int] = [:]   // per inst+threshold, capped per session
-    private var running = false
+    private let log = Logger(subsystem: "com.lucianlabs.forgetmenot", category: "icons")
 
     var available: Bool { service.available }
 
@@ -56,12 +57,12 @@ final class IconStore {
 
     private static let thresholds: [Double] = [0.0, 1.0]
 
-    /// Reconcile every icon to the task's CURRENT urgency in a single pass — called when
-    /// the app opens, not on a timer. Only tasks whose on-disk render no longer matches the
-    /// tier they're in now are (re)generated. The `running` guard means a second open while
-    /// a pass is in flight is a no-op rather than a pile-up.
+    /// Reconcile every icon to the task's CURRENT urgency in a single pass — called when the
+    /// app opens, not on a timer. Only tasks whose on-disk render no longer matches the tier
+    /// they're in now are (re)generated. Per-task `generating` guards dedupe overlap, so no
+    /// global "running" latch is needed (a stuck latch was a way to wedge all generation).
     func evolve(for tasks: [TaskDTO], now: Date = Date()) {
-        guard service.available, !running else { return }
+        guard service.available else { return }
         var pending: [PendingGen] = []
         for task in tasks {
             if symbols[task.id] != nil { continue }   // task uses an SF Symbol, not a generated image
@@ -77,18 +78,13 @@ final class IconStore {
             pending.append(PendingGen(task: task, inst: instKey, threshold: crossed, akey: akey))
         }
         guard !pending.isEmpty else { return }
-        running = true
-        Task {
-            for p in pending { await regenerate(p) }
-            running = false
-        }
+        Task { for p in pending { await regenerate(p) } }
     }
 
     /// Wipe every cached icon and re-render from the CURRENT prompt config — used after
     /// editing prompts in the lab so changes show immediately. Re-picks subjects so
     /// edits to the subject list / template take effect too.
     func regenerateAll(for tasks: [TaskDTO]) {
-        running = false
         images.removeAll()
         rendered.removeAll()
         attempts.removeAll()
@@ -102,8 +98,10 @@ final class IconStore {
     }
 
     /// Manual reroll from the detail view: generate a NEW image (and drop any SF Symbol).
+    /// Clears any stuck per-task state first so a wedged task can always be retried by hand.
     func generate(for task: TaskDTO) async {
         if symbols[task.id] != nil { setSymbol(nil, for: task.id) }
+        generating.remove(task.id)
         let animal = Icons.randomAnimal()
         setAnimal(animal, for: task.id)
         let ratio = task.recurring ? Urgency.ratio(task) : 0
@@ -119,21 +117,34 @@ final class IconStore {
         generating.insert(p.task.id)
         defer { generating.remove(p.task.id) }
         let animal = animals[p.task.id] ?? Icons.randomAnimal()
-        let prompt = Icons.prompt(animal: animal, task: p.task)
-        print("[FMN] regenerate '\(p.task.title)' as \(animal) @\(p.threshold)")
-        if let cg = await service.generate(prompt: prompt) {
-            let img = BackgroundRemover.cutout(cg)
-            images[p.task.id] = img
-            if let data = img.pngData() { try? data.write(to: url(p.task.id)) }
-            rendered[p.task.id] = RenderState(inst: p.inst, threshold: p.threshold)
-            saveRendered()
-            attempts[p.akey] = 0
-            print("[FMN] OK '\(p.task.title)' size=\(img.size)")
-        } else {
-            attempts[p.akey, default: 0] += 1
-            setAnimal(Icons.randomAnimal(), for: p.task.id)   // vary the creature on failure
-            print("[FMN] FAIL '\(p.task.title)' attempt=\(attempts[p.akey] ?? 0)")
+        // Try the full prompt, then simpler fallbacks — so a guardrail-tripping title can't
+        // leave the task permanently blank. Each attempt is time-boxed against a stall.
+        for prompt in Icons.promptLadder(animal: animal, task: p.task) {
+            log.info("gen \(p.task.title, privacy: .public) @\(p.threshold, privacy: .public) :: \(String(prompt.prefix(80)), privacy: .public)")
+            if let img = await generateImage(prompt) {
+                images[p.task.id] = img
+                if let data = img.pngData() { try? data.write(to: url(p.task.id)) }
+                rendered[p.task.id] = RenderState(inst: p.inst, threshold: p.threshold)
+                saveRendered()
+                attempts[p.akey] = 0
+                log.info("ok \(p.task.title, privacy: .public)")
+                return
+            }
         }
+        attempts[p.akey, default: 0] += 1
+        setAnimal(Icons.randomAnimal(), for: p.task.id)   // vary the subject for the next pass
+        log.error("fail \(p.task.title, privacy: .public) attempt=\(self.attempts[p.akey] ?? 0, privacy: .public)")
+    }
+
+    /// Generate + background-cut one prompt, time-boxed so a hung image call can't wedge the
+    /// `generating` flag. Heavy work happens off the main actor; only PNG bytes cross back.
+    private func generateImage(_ prompt: String) async -> UIImage? {
+        let svc = service
+        let data = await withTimeout(25) { () -> Data? in
+            guard let cg = await svc.generate(prompt: prompt) else { return nil }
+            return BackgroundRemover.cutout(cg).pngData()
+        }
+        return data.flatMap(UIImage.init(data:))
     }
 
     // MARK: persistence
@@ -173,5 +184,20 @@ final class IconStore {
                 images[f.deletingPathExtension().lastPathComponent] = img
             }
         }
+    }
+}
+
+/// Race an async op against a deadline; returns nil on timeout. Keeps a stalled on-device
+/// model call from wedging state forever.
+func withTimeout<T: Sendable>(_ seconds: Double, _ op: @Sendable @escaping () async -> T?) async -> T? {
+    await withTaskGroup(of: T?.self) { group in
+        group.addTask { await op() }
+        group.addTask {
+            try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+            return nil
+        }
+        let first = await group.next() ?? nil
+        group.cancelAll()
+        return first
     }
 }

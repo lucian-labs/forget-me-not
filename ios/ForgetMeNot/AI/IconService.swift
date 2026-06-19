@@ -1,8 +1,8 @@
 import Foundation
 import CoreGraphics
 
-/// Generates a task's icon — a cartoon alien animal whose mood reflects how overdue
-/// the task is. Swappable: today it's on-device Image Playground; later a model trained
+/// Generates a task's icon from its title/description, with a mood that reflects how
+/// overdue it is. Swappable: today it's on-device Image Playground; later a model trained
 /// on Elijah's own drawings can drop in behind this protocol.
 protocol IconService: Sendable {
     var available: Bool { get }
@@ -15,16 +15,6 @@ struct UnavailableIconService: IconService {
 }
 
 enum Icons {
-    /// The pool the {animal} token draws from — fully editable in the Prompt Lab.
-    static var subjects: [String] {
-        PromptField.iconSubjects.value
-            .split(whereSeparator: { $0 == "\n" || $0 == "," })
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty }
-    }
-
-    static func randomAnimal() -> String { subjects.randomElement() ?? "" }
-
     /// The "state of mind if you don't do it for too long" — editable per tier.
     static func mood(for tier: UrgencyTier) -> String {
         switch tier {
@@ -41,13 +31,13 @@ enum Icons {
     }
     static var defaultStyle: String { PromptField.iconDefaultStyle.value }
 
-    static func prompt(animal: String, task: TaskDTO) -> String {
+    static func prompt(task: TaskDTO) -> String {
         let mood = mood(for: Urgency.tier(for: Urgency.ratio(task)))
         let look = style.isEmpty ? defaultStyle : style
         let details = task.description.trimmingCharacters(in: .whitespacesAndNewlines)
         return PromptField.iconTemplate.value
             .replacingOccurrences(of: "{style}", with: look)
-            .replacingOccurrences(of: "{animal}", with: animal)
+            .replacingOccurrences(of: "{animal}", with: "")   // subjects removed; tolerate old overrides
             .replacingOccurrences(of: "{task}", with: task.title)
             .replacingOccurrences(of: "{details}", with: details)
             .replacingOccurrences(of: "{mood}", with: mood)
@@ -57,20 +47,21 @@ enum Icons {
     }
 
     /// Prompts to try in order: the user's full template first, then progressively simpler
-    /// fallbacks. If a task's title/details trip the image model's content guardrail (which
-    /// silently fails generation — the "waterize" symptom), a barer prompt still yields an
-    /// icon instead of leaving the task permanently blank.
-    static func promptLadder(animal: String, task: TaskDTO) -> [String] {
+    /// fallbacks built from the task's description/title. If the full prompt trips the image
+    /// model's content guardrail (which silently fails generation — the "waterize" symptom),
+    /// a barer prompt still yields an icon instead of leaving the task permanently blank.
+    static func promptLadder(task: TaskDTO) -> [String] {
         let look = style.isEmpty ? defaultStyle : style
-        let full = prompt(animal: animal, task: task)
-        // Fallbacks drop the task title/details AND the mood first — at high urgency the
-        // "feral / falling apart" mood is the most likely thing to trip the content
-        // guardrail (which silently fails generation), so bypass it before going bare.
-        let noContext = "a \(look) \(animal), friendly character, plain solid background"
-        let minimal = "a \(look) \(animal)".trimmingCharacters(in: .whitespaces)
+        let details = task.description.trimmingCharacters(in: .whitespacesAndNewlines)
+        let what = details.isEmpty ? task.title : details
+        let full = prompt(task: task)
+        // Fallbacks drop the mood (the most likely guardrail trigger at high urgency), then
+        // go bare — described by what the task IS, not a random subject.
+        let noMood = "a \(look) icon for \(what), plain solid background"
+        let minimal = "a \(look) icon for \(what)".trimmingCharacters(in: .whitespaces)
         var seen = Set<String>(), ladder: [String] = []
-        for p in [full, noContext, minimal] where !p.isEmpty && seen.insert(p).inserted { ladder.append(p) }
-        return ladder.isEmpty ? ["a friendly cartoon character, plain solid background"] : ladder
+        for p in [full, noMood, minimal] where !p.isEmpty && seen.insert(p).inserted { ladder.append(p) }
+        return ladder.isEmpty ? ["a simple icon, plain solid background"] : ladder
     }
 
     static func service() -> any IconService {

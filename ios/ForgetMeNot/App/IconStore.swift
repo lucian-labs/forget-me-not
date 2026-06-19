@@ -15,7 +15,6 @@ final class IconStore {
     private(set) var images: [String: UIImage] = [:]
     private(set) var generating: Set<String> = []
 
-    private var animals: [String: String] = [:]
     private var symbols: [String: String] = [:]   // task id → SF Symbol name (overrides the image)
     private struct RenderState { var inst: String; var threshold: Double }
     private var rendered: [String: RenderState] = [:]
@@ -29,7 +28,6 @@ final class IconStore {
 
     func image(for id: String) -> UIImage? { images[id] }
     func isGenerating(_ id: String) -> Bool { generating.contains(id) }
-    func animal(for id: String) -> String? { animals[id] }
 
     /// An SF Symbol name set for this task, if any. When set, it's shown instead of a
     /// generated image and no image is generated for the task.
@@ -74,7 +72,6 @@ final class IconStore {
             if generating.contains(task.id) { continue }
             let akey = "\(task.id)|\(instKey)|\(crossed)"
             if (attempts[akey] ?? 0) >= 3 { continue }   // gave up for this session
-            if animals[task.id] == nil { setAnimal(Icons.randomAnimal(), for: task.id) }
             pending.append(PendingGen(task: task, inst: instKey, threshold: crossed, akey: akey))
         }
         guard !pending.isEmpty else { return }
@@ -82,14 +79,11 @@ final class IconStore {
     }
 
     /// Wipe every cached icon and re-render from the CURRENT prompt config — used after
-    /// editing prompts in the lab so changes show immediately. Re-picks subjects so
-    /// edits to the subject list / template take effect too.
+    /// editing prompts in the lab so template/style changes show immediately.
     func regenerateAll(for tasks: [TaskDTO]) {
         images.removeAll()
         rendered.removeAll()
         attempts.removeAll()
-        animals.removeAll()
-        UserDefaults.standard.removeObject(forKey: "fmn.animals")
         UserDefaults.standard.removeObject(forKey: "fmn.rendered")
         if let files = try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) {
             for f in files where f.pathExtension == "png" { try? FileManager.default.removeItem(at: f) }
@@ -102,8 +96,6 @@ final class IconStore {
     func generate(for task: TaskDTO) async {
         if symbols[task.id] != nil { setSymbol(nil, for: task.id) }
         generating.remove(task.id)
-        let animal = Icons.randomAnimal()
-        setAnimal(animal, for: task.id)
         let ratio = task.recurring ? Urgency.ratio(task) : 0
         let instKey = task.instance.map { String(Int($0.startedAt.timeIntervalSince1970)) } ?? "static"
         let crossed = Self.thresholds.last(where: { ratio >= $0 }) ?? 0
@@ -116,10 +108,9 @@ final class IconStore {
         guard service.available, !generating.contains(p.task.id) else { return }
         generating.insert(p.task.id)
         defer { generating.remove(p.task.id) }
-        let animal = animals[p.task.id] ?? Icons.randomAnimal()
         // Try the full prompt, then simpler fallbacks — so a guardrail-tripping title can't
         // leave the task permanently blank. Each attempt is time-boxed against a stall.
-        for prompt in Icons.promptLadder(animal: animal, task: p.task) {
+        for prompt in Icons.promptLadder(task: p.task) {
             log.info("gen \(p.task.title, privacy: .public) @\(p.threshold, privacy: .public) :: \(String(prompt.prefix(80)), privacy: .public)")
             if let img = await generateImage(prompt) {
                 images[p.task.id] = img
@@ -132,7 +123,6 @@ final class IconStore {
             }
         }
         attempts[p.akey, default: 0] += 1
-        setAnimal(Icons.randomAnimal(), for: p.task.id)   // vary the subject for the next pass
         log.error("fail \(p.task.title, privacy: .public) attempt=\(self.attempts[p.akey] ?? 0, privacy: .public)")
     }
 
@@ -158,17 +148,11 @@ final class IconStore {
 
     private func url(_ id: String) -> URL { dir.appendingPathComponent("\(id).png") }
 
-    private func setAnimal(_ animal: String, for id: String) {
-        animals[id] = animal
-        UserDefaults.standard.set(animals, forKey: "fmn.animals")
-    }
-
     private func saveRendered() {
         UserDefaults.standard.set(rendered.mapValues { "\($0.inst)|\($0.threshold)" }, forKey: "fmn.rendered")
     }
 
     private func preload() {
-        if let a = UserDefaults.standard.dictionary(forKey: "fmn.animals") as? [String: String] { animals = a }
         if let s = UserDefaults.standard.dictionary(forKey: "fmn.iconSymbols") as? [String: String] { symbols = s }
         if let r = UserDefaults.standard.dictionary(forKey: "fmn.rendered") as? [String: String] {
             for (k, v) in r {

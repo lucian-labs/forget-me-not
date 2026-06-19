@@ -74,7 +74,7 @@ struct PromptLabView: View {
                 TextEditor(text: binding)
                     .font(WL.mono(11)).foregroundStyle(WL.text).tint(WL.accent)
                     .scrollContentBackground(.hidden).autocorrectionDisabled()
-                    .frame(minHeight: field == .iconSubjects ? 132 : 80)
+                    .frame(minHeight: 80)
                     .padding(8).wlPanel(fill: WL.surface, border: WL.border)
             } else {
                 TextField("", text: binding, axis: .vertical)

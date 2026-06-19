@@ -7,7 +7,6 @@ enum PromptField: String, CaseIterable, Identifiable {
     // Icon (image)
     case iconTemplate = "fmn.iconPrompt"
     case iconDefaultStyle = "fmn.iconDefaultStyle"
-    case iconSubjects = "fmn.iconSubjects"
     case moodCalm = "fmn.moodCalm"
     case moodSoon = "fmn.moodSoon"
     case moodDue = "fmn.moodDue"
@@ -28,7 +27,7 @@ enum PromptField: String, CaseIterable, Identifiable {
     enum Group: String, CaseIterable { case icon = "ICON IMAGE", nudge = "NUDGE", insight = "INSIGHT" }
     var group: Group {
         switch self {
-        case .iconTemplate, .iconDefaultStyle, .iconSubjects, .moodCalm, .moodSoon, .moodDue, .moodOverdue: .icon
+        case .iconTemplate, .iconDefaultStyle, .moodCalm, .moodSoon, .moodDue, .moodOverdue: .icon
         case .nudgeInstructions, .nudgeTemplate, .toneCalm, .toneOverdue, .toneBad, .toneFrantic: .nudge
         case .insightTaskInstructions, .insightOverviewInstructions: .insight
         }
@@ -38,7 +37,6 @@ enum PromptField: String, CaseIterable, Identifiable {
         switch self {
         case .iconTemplate: "Image prompt"
         case .iconDefaultStyle: "Default style (used when Icon Style is blank)"
-        case .iconSubjects: "Subjects — one per line, picked at random for {animal}"
         case .moodCalm: "Mood · on track"
         case .moodSoon: "Mood · due soon"
         case .moodDue: "Mood · overdue"
@@ -57,7 +55,7 @@ enum PromptField: String, CaseIterable, Identifiable {
     /// Tokens that get substituted with live data at generation time, if any.
     var tokens: String? {
         switch self {
-        case .iconTemplate: "{style} {animal} {task} {details} {mood}"
+        case .iconTemplate: "{style} {task} {details} {mood}"
         case .nudgeTemplate: "{task} {detail} {area} {tone} {voice}"
         default: nil
         }
@@ -65,7 +63,7 @@ enum PromptField: String, CaseIterable, Identifiable {
 
     var multiline: Bool {
         switch self {
-        case .iconTemplate, .iconSubjects, .nudgeInstructions, .nudgeTemplate,
+        case .iconTemplate, .nudgeInstructions, .nudgeTemplate,
              .insightTaskInstructions, .insightOverviewInstructions: true
         default: false
         }
@@ -74,12 +72,8 @@ enum PromptField: String, CaseIterable, Identifiable {
     var def: String {
         switch self {
         case .iconTemplate:
-            "a {style} {animal}, the icon for \"{task}\" ({details}), {mood}, friendly icon, plain solid background"
-        case .iconDefaultStyle: "cute funny cartoon alien"
-        case .iconSubjects:
-            ["axolotl", "tardigrade", "octopus", "newt", "sloth", "platypus", "narwhal",
-             "chameleon", "pangolin", "capybara", "jellyfish", "blobfish", "sea slug", "frog", "moth"]
-                .joined(separator: "\n")
+            "a {style} icon for \"{task}\" ({details}), {mood}, plain solid background"
+        case .iconDefaultStyle: "cute funny cartoon"
         case .moodCalm: "calm, happy and content"
         case .moodSoon: "a little restless and impatient"
         case .moodDue: "stressed, wide-eyed and frazzled"

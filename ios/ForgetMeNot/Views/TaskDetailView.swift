@@ -3,7 +3,7 @@ import UIKit
 
 /// Full task panel — reads live from the store by id so actions reflect immediately.
 /// Waveloop-styled. RESET / COMPLETE / LOG / DELETE + a per-task on-device insight,
-/// plus the task's generated alien-animal icon.
+/// plus the task's generated icon (from its title/description).
 struct TaskDetailView: View {
     let taskId: String
 

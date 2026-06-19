@@ -7,13 +7,11 @@ import SwiftUI
 struct TaskListView: View {
     @Environment(AppStore.self) private var store
     @Environment(CharacterStore.self) private var characters
-    @State private var coordinator = NudgeCoordinator()
+    @Environment(NudgeCoordinator.self) private var coordinator
     @State private var detailTask: TaskDTO?
     @State private var showLoops = false
     @State private var showCreate = false
     @State private var showSettings = false
-
-    private let ticker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         ZStack {
@@ -25,9 +23,6 @@ struct TaskListView: View {
             }
         }
         .preferredColorScheme(.dark)
-        .onReceive(ticker) { _ in
-            coordinator.evaluate(store.sortedActive, now: Date())
-        }
         .fullScreenCover(item: $detailTask) { task in
             TaskDetailView(taskId: task.id).environment(store).environment(characters)
         }

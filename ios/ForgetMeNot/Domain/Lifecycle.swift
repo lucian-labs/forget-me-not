@@ -24,7 +24,8 @@ enum Lifecycle {
         task.completedAt = now
         task.actionLog.append(ActionLogEntryDTO(note: note, at: now, action: .complete))
         task.updatedAt = now
-        return CompleteResult(task: task, spawned: spawnFollowUp(from: task, now: now))
+        // Follow-ups are real child tasks now (AppStore.activateChildren), not spawned here.
+        return CompleteResult(task: task, spawned: nil)
     }
 
     static func snooze(_ t: TaskDTO, now: Date = Date()) -> TaskDTO {

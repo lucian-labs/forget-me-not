@@ -1,23 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<!-- CloudKit + Push entitlements are temporarily removed so the app provisions with a
-     basic development profile. They live in git history (commit 829e06b) and get
-     restored once the iCloud.com.lucianlabs.forgetmenot container is provisioned. -->
 <plist version="1.0">
 <dict>
-	<!-- CloudKit sync is wired in code (FMNModelContainer.cloudKitReady) but the iCloud
-	     container `iCloud.com.lucianlabs.forgetmenot` must first be CREATED + associated to
-	     the App ID — an Xcode "Signing & Capabilities → iCloud/CloudKit" action (the public
-	     App Store Connect API has no container endpoint). Once it exists, restore these:
-	         com.apple.developer.icloud-container-identifiers = [iCloud.com.lucianlabs.forgetmenot]
-	         com.apple.developer.icloud-services = [CloudKit]
-	         com.apple.developer.aps-environment = development
-	     and flip FMNModelContainer.cloudKitReady to true. (iCloud + Push are already enabled
-	     on the App ID; only the container is missing.) -->
-	<!-- Local MCP server socket. Sandbox entitlements (not App-ID capabilities). -->
-	<key>com.apple.security.network.server</key>
-	<true/>
+	<key>com.apple.developer.icloud-container-identifiers</key>
+	<array/>
+	<key>com.apple.developer.icloud-services</key>
+	<array>
+		<string>CloudKit</string>
+	</array>
 	<key>com.apple.security.network.client</key>
+	<true/>
+	<key>com.apple.security.network.server</key>
 	<true/>
 </dict>
 </plist>

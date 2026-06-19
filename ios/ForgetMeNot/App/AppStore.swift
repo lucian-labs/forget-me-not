@@ -16,7 +16,7 @@ final class AppStore {
 
     /// Bump to reseed from the web set. Demo-phase: a higher version wipes existing
     /// tasks and reseeds (revisit once there's real user data — then seed-if-empty only).
-    private let seedVersion = 4
+    private let seedVersion = 6
 
     init(repository: TaskRepository) {
         self.repository = repository
@@ -77,23 +77,19 @@ final class AppStore {
         load()
     }
 
-    /// Deliberately kick off this task's follow-up chain — spawns the first step (carrying
-    /// the rest). No-op if the task has no chain or a step is already in progress.
+    /// Launch a task's follow-ups on demand (STEPS swipe) — activate its dormant children.
     func launchFollowUps(id: String) {
-        guard let task = tasks.first(where: { $0.id == id }), !task.followUps.isEmpty else { return }
-        if children(of: id).contains(where: { $0.status != .done && $0.status != .archived }) { return }
-        if let spawned = Lifecycle.spawnFollowUp(from: task) {
-            try? repository.upsert(spawned)
-            load()
-        }
+        activateChildren(of: id)
+        load()
     }
 
-    /// Mark a task done (and spawn any follow-up). Removes it from the active list.
+    /// Mark a task done. Removes it from the active list and launches its own follow-ups
+    /// (so finishing one chain link surfaces the next).
     func complete(id: String, note: String = "") {
         guard let task = tasks.first(where: { $0.id == id }) else { return }
         let result = Lifecycle.complete(task, note: note, now: Date())
         try? repository.upsert(result.task)
-        if let spawned = result.spawned { try? repository.upsert(spawned) }
+        activateChildren(of: id)
         load()
     }
 
@@ -114,44 +110,47 @@ final class AppStore {
         load()
     }
 
-    /// Append a step to a task's follow-up CHAIN. The chain is a list of non-repeating steps;
-    /// on each reset/complete the first spawns as a one-time task (carrying the rest), and
-    /// finishing that spawns the next — so the chain unfolds one link at a time.
-    func addFollowUp(id: String, title: String, cadenceSeconds: Double) {
-        guard var t = tasks.first(where: { $0.id == id }) else { return }
+    /// Add a follow-up: a real, non-repeating CHILD task linked to this one. It starts
+    /// "dormant" (no due date → hidden from the main list) until the chain is launched. Tap
+    /// it in the detail to configure it or give it its OWN follow-ups (nesting). Returns its id.
+    @discardableResult
+    func addFollowUp(parentId: String, title: String, cadenceSeconds: Double) -> String? {
+        guard let parent = tasks.first(where: { $0.id == parentId }) else { return nil }
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-        t.followUps.append(FollowUpDTO(title: trimmed, cadenceSeconds: cadenceSeconds, domain: nil))
-        t.updatedAt = Date()
-        try? repository.upsert(t)
+        guard !trimmed.isEmpty else { return nil }
+        let now = Date()
+        let child = TaskDTO(
+            id: UUID().uuidString, title: trimmed, description: "", domain: parent.domain, tags: [],
+            status: .open, priority: .normal, createdAt: now, updatedAt: now,
+            dueDate: nil, startedAt: nil, completedAt: nil, estimatedHours: nil,
+            recurring: false, baseCadenceSeconds: cadenceSeconds, cadenceMore: nil, cadenceLess: nil,
+            instance: nil, followUps: [], parentTaskId: parentId, prompts: [], soundSeed: nil, actionLog: [])
+        try? repository.upsert(child)
         load()
+        return child.id
     }
 
-    func removeFollowUp(id: String, at index: Int) {
-        guard var t = tasks.first(where: { $0.id == id }), t.followUps.indices.contains(index) else { return }
-        t.followUps.remove(at: index)
-        t.updatedAt = Date()
-        try? repository.upsert(t)
-        load()
-    }
-
-    /// Configure a chain step (title / cadence / details). Details flow into the step's
-    /// description when it spawns, which drives its icon.
-    func updateFollowUp(id: String, at index: Int, title: String, cadenceSeconds: Double, details: String) {
-        guard var t = tasks.first(where: { $0.id == id }), t.followUps.indices.contains(index) else { return }
-        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-        let d = details.trimmingCharacters(in: .whitespacesAndNewlines)
-        t.followUps[index] = FollowUpDTO(title: trimmed, cadenceSeconds: cadenceSeconds,
-                                         domain: t.followUps[index].domain, details: d.isEmpty ? nil : d)
-        t.updatedAt = Date()
-        try? repository.upsert(t)
-        load()
-    }
-
-    /// Steps already spawned from this task's chain (real one-time tasks pointed at it).
+    /// This task's follow-ups — child tasks linked via parentTaskId (dormant + active).
     func children(of id: String) -> [TaskDTO] {
         tasks.filter { $0.parentTaskId == id }
+    }
+
+    /// A dormant follow-up = non-repeating, has a parent, no due date yet → hidden from the
+    /// main list until its chain is launched.
+    func isDormantFollowUp(_ t: TaskDTO) -> Bool {
+        !t.recurring && t.parentTaskId != nil && t.dueDate == nil
+    }
+
+    /// Activate a task's direct dormant children — give each a due date so it surfaces in the
+    /// list. Drives both launching a chain (STEPS) and advancing it (on completing a step).
+    private func activateChildren(of id: String, now: Date = Date()) {
+        for var child in children(of: id) where isDormantFollowUp(child) {
+            let offset = child.baseCadenceSeconds ?? 3600
+            child.startedAt = now
+            child.dueDate = now.addingTimeInterval(offset)
+            child.updatedAt = now
+            try? repository.upsert(child)
+        }
     }
 
     func addReminder(id: String, _ text: String) {
@@ -211,6 +210,7 @@ final class AppStore {
     func activeSorted(now: Date) -> [TaskDTO] {
         tasks
             .filter { $0.status != .done && $0.status != .archived && $0.status != .cancelled }
+            .filter { !isDormantFollowUp($0) }   // hide un-launched follow-up steps
             .sorted { Urgency.ratio($0, now: now) > Urgency.ratio($1, now: now) }
     }
 

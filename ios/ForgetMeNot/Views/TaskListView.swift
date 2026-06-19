@@ -116,8 +116,8 @@ struct TaskListView: View {
                         }
                     }
                     .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                        // Right swipe = launch the follow-up chain on demand (reset no longer does).
-                        if task.recurring && !task.followUps.isEmpty {
+                        // Right swipe = launch this task's follow-ups (activate its dormant steps).
+                        if store.children(of: task.id).contains(where: { store.isDormantFollowUp($0) }) {
                             Button { store.launchFollowUps(id: task.id) } label: {
                                 Label("STEPS", systemImage: "arrow.turn.down.right")
                             }

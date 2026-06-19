@@ -16,13 +16,9 @@ struct TaskDetailView: View {
     @State private var fuTitle = ""
     @State private var fuCadence: Double = 3600
     @State private var reminderDraft = ""
-    @State private var editFU: EditFU?
     /// In-detail navigation: tapping a follow-up pushes its id; back pops (or dismisses
     /// at the root). The shown task is the top of the stack.
     @State private var navStack: [String] = []
-
-    /// Identifies the chain step being configured (for the editor sheet).
-    private struct EditFU: Identifiable { let id = UUID(); let index: Int; let fu: FollowUpDTO }
 
     private var currentId: String { navStack.last ?? taskId }
     private var task: TaskDTO? { store.task(currentId) }
@@ -41,9 +37,6 @@ struct TaskDetailView: View {
         .sheet(item: $insightTask) { t in
             InsightView(title: t.title) { await Insights.service().insight(for: t) }
                 .presentationDetents([.medium, .large])
-        }
-        .sheet(item: $editFU) { e in
-            FollowUpEditSheet(taskId: currentId, index: e.index, fu: e.fu).environment(store)
         }
         .onChange(of: navStack) { _, _ in descDraft = store.task(currentId)?.description ?? "" }
     }
@@ -310,30 +303,32 @@ struct TaskDetailView: View {
         reminderDraft = ""
     }
 
-    /// The follow-up CHAIN: ordered non-repeating steps that spawn one at a time as this
-    /// (repeating) task is reset/completed. Shows the chain definition (add/remove) plus the
-    /// step currently in progress (a real one-time task — tap to open).
+    /// Follow-ups are real, non-repeating CHILD tasks. Each row opens that task's own detail
+    /// (configure it, give it its own follow-ups). They stay dormant — tucked away here, off
+    /// the main list — until the chain is launched (right swipe on the list).
     @ViewBuilder
     private func followUpsSection(_ task: TaskDTO) -> some View {
         section("FOLLOW-UPS") {
             VStack(alignment: .leading, spacing: 10) {
-                ForEach(Array(task.followUps.enumerated()), id: \.offset) { idx, fu in
+                ForEach(store.children(of: task.id)) { child in
                     HStack(spacing: 8) {
-                        Button { editFU = EditFU(index: idx, fu: fu) } label: {
+                        Button { open(child.id) } label: {
                             HStack(spacing: 8) {
-                                Text("\(idx + 1)").font(WL.mono(9, .bold)).foregroundStyle(WL.bg)
-                                    .frame(width: 18, height: 18).background(WL.accent)
-                                Text(fu.title).font(WL.mono(12)).foregroundStyle(WL.text).lineLimit(1)
-                                Text("· \(CadenceOptions.label(fu.cadenceSeconds))").font(WL.mono(10)).foregroundStyle(WL.muted)
+                                Image(systemName: followUpIcon(child))
+                                    .font(.system(size: 11, weight: .bold)).foregroundStyle(followUpColor(child))
+                                Text(child.title.capitalized).font(WL.mono(12)).foregroundStyle(WL.text).lineLimit(1)
                                 Spacer(minLength: 6)
-                                Image(systemName: "slider.horizontal.3").font(.system(size: 10, weight: .bold)).foregroundStyle(WL.muted)
+                                if store.isDormantFollowUp(child) {
+                                    Text("· \(CadenceOptions.label(child.baseCadenceSeconds ?? 0))")
+                                        .font(WL.mono(9)).foregroundStyle(WL.muted)
+                                }
+                                Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold)).foregroundStyle(WL.muted)
                             }
-                            .padding(.horizontal, 10).padding(.vertical, 8)
-                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, 10).padding(.vertical, 9).frame(maxWidth: .infinity)
                             .wlPanel(fill: WL.surface, border: WL.border)
                         }
                         .buttonStyle(.plain)
-                        Button { store.removeFollowUp(id: task.id, at: idx) } label: {
+                        Button { store.delete(id: child.id) } label: {
                             Image(systemName: "xmark").font(.system(size: 10, weight: .bold)).foregroundStyle(WL.muted)
                                 .frame(width: 30, height: 30).overlay(Rectangle().stroke(WL.border, lineWidth: 1))
                         }
@@ -342,7 +337,7 @@ struct TaskDetailView: View {
                 }
 
                 HStack(spacing: 8) {
-                    TextField("add a step", text: $fuTitle)
+                    TextField("add a follow-up", text: $fuTitle)
                         .font(WL.mono(13)).foregroundStyle(WL.text).tint(WL.accent)
                         .autocorrectionDisabled()
                         .padding(10).wlPanel(fill: WL.surface, border: WL.border)
@@ -356,7 +351,7 @@ struct TaskDetailView: View {
                             .overlay(Rectangle().stroke(WL.border, lineWidth: 1))
                     }
                     Button {
-                        store.addFollowUp(id: task.id, title: fuTitle, cadenceSeconds: fuCadence)
+                        store.addFollowUp(parentId: task.id, title: fuTitle, cadenceSeconds: fuCadence)
                         fuTitle = ""
                     } label: {
                         Image(systemName: "plus").font(.system(size: 14, weight: .bold)).foregroundStyle(WL.bg)
@@ -364,28 +359,19 @@ struct TaskDetailView: View {
                     }
                 }
 
-                let active = store.children(of: task.id).filter { $0.status != .done && $0.status != .archived }
-                if !active.isEmpty {
-                    Text("IN PROGRESS").font(WL.mono(9, .bold)).tracking(1).foregroundStyle(WL.muted).padding(.top, 4)
-                    ForEach(active) { child in
-                        Button { open(child.id) } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: "arrow.turn.down.right").font(.system(size: 11, weight: .bold)).foregroundStyle(WL.muted)
-                                Text(child.title.capitalized).font(WL.mono(12)).foregroundStyle(WL.accent).lineLimit(1)
-                                Spacer(minLength: 6)
-                                Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold)).foregroundStyle(WL.muted)
-                            }
-                            .padding(.horizontal, 10).padding(.vertical, 9).frame(maxWidth: .infinity)
-                            .wlPanel(fill: WL.surface, border: WL.border)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-
-                Text("non-repeating steps that spawn one at a time as you reset this loop; finish a step to unlock the next")
+                Text("each follow-up is its own non-repeating task — tap to open it (and give it follow-ups). They stay tucked away until you launch the chain: right-swipe this task in the list.")
                     .font(WL.mono(9)).foregroundStyle(WL.muted)
             }
         }
+    }
+
+    private func followUpIcon(_ t: TaskDTO) -> String {
+        if t.status == .done { return "checkmark.circle.fill" }
+        return store.isDormantFollowUp(t) ? "circle" : "circle.fill"
+    }
+    private func followUpColor(_ t: TaskDTO) -> Color {
+        if t.status == .done { return WL.green }
+        return store.isDormantFollowUp(t) ? WL.muted : WL.accent
     }
 
     private func actionColor(_ a: ActionType) -> Color {

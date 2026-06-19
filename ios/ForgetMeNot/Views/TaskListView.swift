@@ -100,23 +100,23 @@ struct TaskListView: View {
                     .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                     .listRowSeparator(.hidden)
                     .listRowBackground(WL.bg)
-                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        // Left swipe (finger moves left) = the primary action: reset a
+                        // recurring task's timer, or complete a one-time chain link.
                         if task.recurring {
                             Button { reset(task) } label: {
                                 Label("SNACK", systemImage: "fish.fill")
                             }
                             .tint(WL.green)
                         } else {
-                            // Non-repeating chain links are completed, not reset — finishing
-                            // one spawns the next link in the chain.
                             Button { complete(task) } label: {
                                 Label("DONE", systemImage: "checkmark.circle.fill")
                             }
                             .tint(WL.green)
                         }
                     }
-                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        // Reset no longer auto-launches follow-ups; this starts the chain on demand.
+                    .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                        // Right swipe = launch the follow-up chain on demand (reset no longer does).
                         if task.recurring && !task.followUps.isEmpty {
                             Button { store.launchFollowUps(id: task.id) } label: {
                                 Label("STEPS", systemImage: "arrow.turn.down.right")

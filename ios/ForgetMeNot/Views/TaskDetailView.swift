@@ -13,6 +13,8 @@ struct TaskDetailView: View {
     @State private var note = ""
     @State private var descDraft = ""
     @State private var insightTask: TaskDTO?
+    @State private var fuTitle = ""
+    @State private var fuCadence: Double = 3600
 
     private var task: TaskDTO? { store.task(taskId) }
 
@@ -107,6 +109,8 @@ struct TaskDetailView: View {
                     }
                 }
             }
+
+            followUpsSection(task)
 
             // active switch (off = paused; the creature sleeps)
             HStack {
@@ -221,6 +225,79 @@ struct TaskDetailView: View {
             content()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private static let cadenceOptions: [(label: String, value: Double)] = [
+        ("15 min", 900), ("30 min", 1800), ("1 hour", 3600), ("1.5 hours", 5400),
+        ("2 hours", 7200), ("4 hours", 14400), ("8 hours", 28800),
+        ("1 day", 86400), ("2 days", 172800), ("1 week", 604800),
+    ]
+    private func cadenceLabel(_ v: Double) -> String {
+        Self.cadenceOptions.first { $0.value == v }?.label ?? Format.duration(v)
+    }
+
+    /// The follow-up chain: queued steps (each spawns on reset/complete), an add row, and
+    /// the tasks already spawned from this one. Mirrors the web detail panel.
+    @ViewBuilder
+    private func followUpsSection(_ task: TaskDTO) -> some View {
+        section("FOLLOW-UPS") {
+            VStack(alignment: .leading, spacing: 10) {
+                ForEach(Array(task.followUps.enumerated()), id: \.offset) { idx, fu in
+                    HStack(spacing: 8) {
+                        Text("\(idx + 1)").font(WL.mono(9, .bold)).foregroundStyle(WL.bg)
+                            .frame(width: 18, height: 18).background(WL.accent)
+                        Text(fu.title).font(WL.mono(12)).foregroundStyle(WL.text).lineLimit(1)
+                        Text("· \(cadenceLabel(fu.cadenceSeconds))").font(WL.mono(10)).foregroundStyle(WL.muted)
+                        Spacer(minLength: 6)
+                        Button { store.removeFollowUp(id: task.id, at: idx) } label: {
+                            Image(systemName: "xmark").font(.system(size: 10, weight: .bold)).foregroundStyle(WL.muted)
+                        }
+                    }
+                    .padding(.horizontal, 10).padding(.vertical, 8)
+                    .wlPanel(fill: WL.surface, border: WL.border)
+                }
+
+                HStack(spacing: 8) {
+                    TextField("follow-up title", text: $fuTitle)
+                        .font(WL.mono(13)).foregroundStyle(WL.text).tint(WL.accent)
+                        .padding(10).wlPanel(fill: WL.surface, border: WL.border)
+                    Menu {
+                        ForEach(Self.cadenceOptions, id: \.value) { opt in
+                            Button(opt.label) { fuCadence = opt.value }
+                        }
+                    } label: {
+                        Text(cadenceLabel(fuCadence)).font(WL.mono(11, .bold)).foregroundStyle(WL.accent)
+                            .frame(minWidth: 60).padding(.vertical, 11).padding(.horizontal, 8)
+                            .overlay(Rectangle().stroke(WL.border, lineWidth: 1))
+                    }
+                    Button {
+                        store.addFollowUp(id: task.id, title: fuTitle, cadenceSeconds: fuCadence)
+                        fuTitle = ""
+                    } label: {
+                        Image(systemName: "plus").font(.system(size: 14, weight: .bold)).foregroundStyle(WL.bg)
+                            .frame(width: 40, height: 40).background(WL.accent)
+                    }
+                }
+
+                let kids = store.children(of: task.id)
+                if !kids.isEmpty {
+                    Text("SPAWNED").font(WL.mono(9, .bold)).tracking(1).foregroundStyle(WL.muted).padding(.top, 4)
+                    ForEach(kids) { child in
+                        HStack(spacing: 8) {
+                            Text(child.title).font(WL.mono(12)).foregroundStyle(WL.accent).lineLimit(1)
+                            Spacer(minLength: 6)
+                            if !child.followUps.isEmpty {
+                                Text("+\(child.followUps.count)").font(WL.mono(9)).foregroundStyle(WL.muted)
+                            }
+                            Text(child.status.rawValue.uppercased()).font(WL.mono(9, .bold))
+                                .foregroundStyle(child.status == .done ? WL.green : WL.muted)
+                        }
+                        .padding(.horizontal, 10).padding(.vertical, 8)
+                        .wlPanel(fill: WL.surface, border: WL.border)
+                    }
+                }
+            }
+        }
     }
 
     private func actionColor(_ a: ActionType) -> Color {

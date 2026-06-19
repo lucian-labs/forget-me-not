@@ -89,6 +89,31 @@ final class AppStore {
         load()
     }
 
+    /// Append a step to a task's follow-up chain. On each reset/complete the first step
+    /// spawns as its own task (carrying the rest), so the chain unfolds over time.
+    func addFollowUp(id: String, title: String, cadenceSeconds: Double) {
+        guard var task = tasks.first(where: { $0.id == id }) else { return }
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        task.followUps.append(FollowUpDTO(title: trimmed, cadenceSeconds: cadenceSeconds, domain: nil))
+        task.updatedAt = Date()
+        try? repository.upsert(task)
+        load()
+    }
+
+    func removeFollowUp(id: String, at index: Int) {
+        guard var task = tasks.first(where: { $0.id == id }), task.followUps.indices.contains(index) else { return }
+        task.followUps.remove(at: index)
+        task.updatedAt = Date()
+        try? repository.upsert(task)
+        load()
+    }
+
+    /// Tasks already spawned from this one's chain.
+    func children(of id: String) -> [TaskDTO] {
+        tasks.filter { $0.parentTaskId == id }
+    }
+
     func setDescription(id: String, _ text: String) {
         guard var task = tasks.first(where: { $0.id == id }) else { return }
         task.description = text

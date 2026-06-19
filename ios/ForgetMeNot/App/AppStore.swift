@@ -11,6 +11,8 @@ final class AppStore {
     var themeName: String = "waveloop"
     var mascotStyle: String = ""
     var nudgeStyle: String = ""
+    var mascotPrompt: String = ""        // editable image-prompt template (tokens filled per task)
+    var nudgeInstructions: String = ""   // editable nudge system prompt
 
     /// Bump to reseed from the web set. Demo-phase: a higher version wipes existing
     /// tasks and reseeds (revisit once there's real user data — then seed-if-empty only).
@@ -30,6 +32,8 @@ final class AppStore {
         WL.apply(Theme.named(themeName))
         mascotStyle = UserDefaults.standard.string(forKey: "fmn.mascotStyle") ?? ""
         nudgeStyle = UserDefaults.standard.string(forKey: "fmn.nudgeStyle") ?? ""
+        mascotPrompt = UserDefaults.standard.string(forKey: "fmn.mascotPrompt") ?? Characters.defaultPromptTemplate
+        nudgeInstructions = UserDefaults.standard.string(forKey: "fmn.nudgeInstructions") ?? Prompts.defaultNudgeInstructions
     }
 
     func setTheme(_ name: String) {
@@ -47,6 +51,11 @@ final class AppStore {
         nudgeStyle = style
         UserDefaults.standard.set(style, forKey: "fmn.nudgeStyle")
     }
+
+    func setMascotPrompt(_ s: String) { mascotPrompt = s; UserDefaults.standard.set(s, forKey: "fmn.mascotPrompt") }
+    func resetMascotPrompt() { setMascotPrompt(Characters.defaultPromptTemplate) }
+    func setNudgeInstructions(_ s: String) { nudgeInstructions = s; UserDefaults.standard.set(s, forKey: "fmn.nudgeInstructions") }
+    func resetNudgeInstructions() { setNudgeInstructions(Prompts.defaultNudgeInstructions) }
 
     func load() {
         tasks = (try? repository.all()) ?? []
@@ -89,27 +98,44 @@ final class AppStore {
         load()
     }
 
-    /// Append a step to a task's follow-up chain. On each reset/complete the first step
-    /// spawns as its own task (carrying the rest), so the chain unfolds over time.
-    func addFollowUp(id: String, title: String, cadenceSeconds: Double) {
-        guard var task = tasks.first(where: { $0.id == id }) else { return }
+    /// Link a follow-up — a follow-up is just another task. Finds an existing task by title
+    /// (case-insensitive) or creates a new recurring one, then points it at `parentId`.
+    /// Returns the linked task's id.
+    @discardableResult
+    func linkFollowUp(parentId: String, title: String, cadenceSeconds: Double) -> String? {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-        task.followUps.append(FollowUpDTO(title: trimmed, cadenceSeconds: cadenceSeconds, domain: nil))
-        task.updatedAt = Date()
-        try? repository.upsert(task)
+        guard !trimmed.isEmpty, let parent = tasks.first(where: { $0.id == parentId }) else { return nil }
+        let now = Date()
+        if var existing = tasks.first(where: { $0.id != parentId && $0.title.caseInsensitiveCompare(trimmed) == .orderedSame }) {
+            existing.parentTaskId = parentId
+            existing.updatedAt = now
+            try? repository.upsert(existing)
+            load()
+            return existing.id
+        }
+        let new = TaskDTO(
+            id: UUID().uuidString, title: trimmed, description: "", domain: parent.domain,
+            tags: parent.tags, status: .open, priority: .normal, createdAt: now, updatedAt: now,
+            dueDate: nil, startedAt: now, completedAt: nil, estimatedHours: nil, recurring: true,
+            baseCadenceSeconds: cadenceSeconds, cadenceMore: nil, cadenceLess: nil,
+            instance: ReminderInstanceDTO(startedAt: now, actualCadenceSeconds: cadenceSeconds, snoozed: false),
+            followUps: [], parentTaskId: parentId, prompts: [], soundSeed: nil, actionLog: [])
+        try? repository.upsert(new)
+        load()
+        return new.id
+    }
+
+    /// Unlink a follow-up: clears the child's parent. Does NOT delete it — it's just
+    /// another task and still lives in the main list.
+    func unlinkFollowUp(id childId: String) {
+        guard var child = tasks.first(where: { $0.id == childId }) else { return }
+        child.parentTaskId = nil
+        child.updatedAt = Date()
+        try? repository.upsert(child)
         load()
     }
 
-    func removeFollowUp(id: String, at index: Int) {
-        guard var task = tasks.first(where: { $0.id == id }), task.followUps.indices.contains(index) else { return }
-        task.followUps.remove(at: index)
-        task.updatedAt = Date()
-        try? repository.upsert(task)
-        load()
-    }
-
-    /// Tasks already spawned from this one's chain.
+    /// This task's follow-ups — tasks pointed at it via parentTaskId.
     func children(of id: String) -> [TaskDTO] {
         tasks.filter { $0.parentTaskId == id }
     }

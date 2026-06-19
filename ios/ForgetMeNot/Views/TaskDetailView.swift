@@ -15,15 +15,19 @@ struct TaskDetailView: View {
     @State private var insightTask: TaskDTO?
     @State private var fuTitle = ""
     @State private var fuCadence: Double = 3600
+    /// In-detail navigation: tapping a follow-up pushes its id; back pops (or dismisses
+    /// at the root). The shown task is the top of the stack.
+    @State private var navStack: [String] = []
 
-    private var task: TaskDTO? { store.task(taskId) }
+    private var currentId: String { navStack.last ?? taskId }
+    private var task: TaskDTO? { store.task(currentId) }
 
     var body: some View {
         ZStack {
             WL.bg.ignoresSafeArea()
             if let task {
                 ScrollView { body(task) }
-                    .simultaneousGesture(swipeToClose(task))
+                    .simultaneousGesture(swipeBack)
             } else {
                 Color.clear.onAppear { dismiss() }
             }
@@ -33,25 +37,32 @@ struct TaskDetailView: View {
             InsightView(title: t.title) { await Insights.service().insight(for: t) }
                 .presentationDetents([.medium, .large])
         }
+        .onChange(of: navStack) { _, _ in descDraft = store.task(currentId)?.description ?? "" }
     }
 
-    /// Save the in-flight description draft, then dismiss.
-    private func closeSaving(_ task: TaskDTO) {
-        store.setDescription(id: task.id, descDraft)
-        dismiss()
+    /// Open a follow-up's detail in place (save the current draft first).
+    private func open(_ id: String) {
+        store.setDescription(id: currentId, descDraft)
+        navStack.append(id)
     }
 
-    /// Left-edge swipe-right to close (fullScreenCover has no built-in back gesture).
+    /// Back: pop to the parent task, or dismiss at the root. Saves the draft either way.
+    private func back() {
+        store.setDescription(id: currentId, descDraft)
+        if navStack.isEmpty { dismiss() } else { navStack.removeLast() }
+    }
+
+    /// Left-edge swipe-right to go back (fullScreenCover has no built-in back gesture).
     /// Simultaneous so the ScrollView keeps scrolling; gated to a deliberate, mostly-
     /// horizontal drag that starts at the very left edge.
-    private func swipeToClose(_ task: TaskDTO) -> some Gesture {
+    private var swipeBack: some Gesture {
         DragGesture(minimumDistance: 20, coordinateSpace: .local)
             .onEnded { value in
                 guard value.startLocation.x < 24,
                       value.translation.width > 80,
                       abs(value.translation.width) > abs(value.translation.height) * 1.5
                 else { return }
-                closeSaving(task)
+                back()
             }
     }
 
@@ -59,7 +70,7 @@ struct TaskDetailView: View {
         VStack(alignment: .leading, spacing: 20) {
             // header
             HStack {
-                Button { closeSaving(task) } label: {
+                Button { back() } label: {
                     Image(systemName: "chevron.left").font(.system(size: 16, weight: .bold))
                         .foregroundStyle(WL.muted)
                 }
@@ -236,30 +247,40 @@ struct TaskDetailView: View {
         Self.cadenceOptions.first { $0.value == v }?.label ?? Format.duration(v)
     }
 
-    /// The follow-up chain: queued steps (each spawns on reset/complete), an add row, and
-    /// the tasks already spawned from this one. Mirrors the web detail panel.
+    /// Follow-ups are just other tasks pointed at this one. Each row opens that task's
+    /// detail to edit; the add row finds an existing task by title or creates a new one.
     @ViewBuilder
     private func followUpsSection(_ task: TaskDTO) -> some View {
         section("FOLLOW-UPS") {
             VStack(alignment: .leading, spacing: 10) {
-                ForEach(Array(task.followUps.enumerated()), id: \.offset) { idx, fu in
+                ForEach(store.children(of: task.id)) { child in
                     HStack(spacing: 8) {
-                        Text("\(idx + 1)").font(WL.mono(9, .bold)).foregroundStyle(WL.bg)
-                            .frame(width: 18, height: 18).background(WL.accent)
-                        Text(fu.title).font(WL.mono(12)).foregroundStyle(WL.text).lineLimit(1)
-                        Text("· \(cadenceLabel(fu.cadenceSeconds))").font(WL.mono(10)).foregroundStyle(WL.muted)
-                        Spacer(minLength: 6)
-                        Button { store.removeFollowUp(id: task.id, at: idx) } label: {
-                            Image(systemName: "xmark").font(.system(size: 10, weight: .bold)).foregroundStyle(WL.muted)
+                        Button { open(child.id) } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "arrow.turn.down.right").font(.system(size: 11, weight: .bold)).foregroundStyle(WL.muted)
+                                Text(child.title.capitalized).font(WL.mono(12)).foregroundStyle(WL.accent).lineLimit(1)
+                                Spacer(minLength: 6)
+                                Text(child.status.rawValue.uppercased()).font(WL.mono(9, .bold))
+                                    .foregroundStyle(child.status == .done ? WL.green : WL.muted)
+                                Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold)).foregroundStyle(WL.muted)
+                            }
+                            .padding(.horizontal, 10).padding(.vertical, 9)
+                            .frame(maxWidth: .infinity)
+                            .wlPanel(fill: WL.surface, border: WL.border)
                         }
+                        .buttonStyle(.plain)
+                        Button { store.unlinkFollowUp(id: child.id) } label: {
+                            Image(systemName: "xmark").font(.system(size: 10, weight: .bold)).foregroundStyle(WL.muted)
+                                .frame(width: 30, height: 30).overlay(Rectangle().stroke(WL.border, lineWidth: 1))
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .padding(.horizontal, 10).padding(.vertical, 8)
-                    .wlPanel(fill: WL.surface, border: WL.border)
                 }
 
                 HStack(spacing: 8) {
-                    TextField("follow-up title", text: $fuTitle)
+                    TextField("find or create a task…", text: $fuTitle)
                         .font(WL.mono(13)).foregroundStyle(WL.text).tint(WL.accent)
+                        .autocorrectionDisabled()
                         .padding(10).wlPanel(fill: WL.surface, border: WL.border)
                     Menu {
                         ForEach(Self.cadenceOptions, id: \.value) { opt in
@@ -271,7 +292,7 @@ struct TaskDetailView: View {
                             .overlay(Rectangle().stroke(WL.border, lineWidth: 1))
                     }
                     Button {
-                        store.addFollowUp(id: task.id, title: fuTitle, cadenceSeconds: fuCadence)
+                        store.linkFollowUp(parentId: task.id, title: fuTitle, cadenceSeconds: fuCadence)
                         fuTitle = ""
                     } label: {
                         Image(systemName: "plus").font(.system(size: 14, weight: .bold)).foregroundStyle(WL.bg)
@@ -279,23 +300,8 @@ struct TaskDetailView: View {
                     }
                 }
 
-                let kids = store.children(of: task.id)
-                if !kids.isEmpty {
-                    Text("SPAWNED").font(WL.mono(9, .bold)).tracking(1).foregroundStyle(WL.muted).padding(.top, 4)
-                    ForEach(kids) { child in
-                        HStack(spacing: 8) {
-                            Text(child.title).font(WL.mono(12)).foregroundStyle(WL.accent).lineLimit(1)
-                            Spacer(minLength: 6)
-                            if !child.followUps.isEmpty {
-                                Text("+\(child.followUps.count)").font(WL.mono(9)).foregroundStyle(WL.muted)
-                            }
-                            Text(child.status.rawValue.uppercased()).font(WL.mono(9, .bold))
-                                .foregroundStyle(child.status == .done ? WL.green : WL.muted)
-                        }
-                        .padding(.horizontal, 10).padding(.vertical, 8)
-                        .wlPanel(fill: WL.surface, border: WL.border)
-                    }
-                }
+                Text("a follow-up is just another task — tap to open & edit it; the cadence applies when creating a new one")
+                    .font(WL.mono(9)).foregroundStyle(WL.muted)
             }
         }
     }

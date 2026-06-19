@@ -13,6 +13,7 @@ struct TaskListView: View {
     @State private var showCreate = false
     @State private var showSettings = false
     @State private var now = Date()
+    @State private var orderKey: [String] = []
 
     /// Drives live re-sorting + nudge re-evaluation. Icons still reconcile only on open.
     private let ticker = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
@@ -28,10 +29,15 @@ struct TaskListView: View {
         }
         .preferredColorScheme(.dark)
         .onReceive(ticker) { _ in
-            // bump `now` (read in `content`) so the list re-sorts as urgency rises, and
-            // re-evaluate nudges so a task crossing a threshold mid-session gets a prompt.
-            withAnimation(.easeInOut(duration: 0.45)) { now = Date() }
             coordinator.evaluate(store.sortedActive, now: Date())
+            // Only re-render the list when the SORT ORDER actually changes — re-rendering
+            // every tick collapsed in-progress swipe drawers (a row wouldn't reset).
+            let t = Date()
+            let key = store.activeSorted(now: t).map(\.id)
+            if key != orderKey {
+                orderKey = key
+                withAnimation(.easeInOut(duration: 0.45)) { now = t }
+            }
         }
         .fullScreenCover(item: $detailTask) { task in
             TaskDetailView(taskId: task.id).environment(store).environment(icons)

@@ -23,9 +23,15 @@ DEVICE_ID="$(xcrun devicectl list devices 2>/dev/null | grep -i "$DEVICE_NAME" \
 
 # Build for a generic iOS device (xcodebuild's device IDs differ from devicectl's,
 # so don't pin to the devicectl UUID here); install/launch below use devicectl's ID.
+# Stamp a real build number (monotonic commit count) + revision (short SHA, +=dirty) so the
+# in-app footer can confirm both devices are on the same build.
+BUILD_NO="$(git rev-list --count HEAD 2>/dev/null || echo 1)"
+BUILD_REV="$(git rev-parse --short HEAD 2>/dev/null || echo dev)$(git diff --quiet HEAD 2>/dev/null || echo +)"
+
 xcodebuild -project ForgetMeNot.xcodeproj -scheme ForgetMeNot -configuration Debug \
   -destination 'generic/platform=iOS' -derivedDataPath build \
   CODE_SIGN_STYLE=Automatic DEVELOPMENT_TEAM="$TEAM" \
+  CURRENT_PROJECT_VERSION="$BUILD_NO" FMN_BUILD_REV="$BUILD_REV" \
   -allowProvisioningUpdates \
   -authenticationKeyPath "$KEY_PATH" \
   -authenticationKeyID "$KEY_ID" \

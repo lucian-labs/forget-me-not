@@ -30,6 +30,7 @@
 		577568184FF4396AF09BB84E /* Urgency.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27CF3ADE60A16F2DA9D6DED3 /* Urgency.swift */; };
 		598FC31D6C3EAF422431C23E /* Seed.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8312E5CD645860FE723F0EF /* Seed.swift */; };
 		5D003B7A434FC8AC3A1BBFC8 /* ExportEnvelope.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D0053E36AD58662ABEF0075 /* ExportEnvelope.swift */; };
+		5D978CBED9152C25EF3E365C /* AppVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C30DCCAF74E880AF8098A996 /* AppVersion.swift */; };
 		6112E972121FE14FE828301E /* EntityRoundTripTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F0154265D603D1014903D83 /* EntityRoundTripTests.swift */; };
 		6259F906D65BBE7D68F7090B /* FMNModelContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DCB8D81EF9B60D11C8AA65 /* FMNModelContainer.swift */; };
 		658422E8A3C989D8997E3BC7 /* FoundationModelsNudgeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A80B0B95FD37E57C8AB49C /* FoundationModelsNudgeService.swift */; };
@@ -124,6 +125,7 @@
 		C023C17A98C5EA9520D61152 /* PromptField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptField.swift; sourceTree = "<group>"; };
 		C20D5AD7B83C5433C9A8D306 /* TaskMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskMapper.swift; sourceTree = "<group>"; };
 		C217373FE55EC5A910C414AB /* InsightView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightView.swift; sourceTree = "<group>"; };
+		C30DCCAF74E880AF8098A996 /* AppVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersion.swift; sourceTree = "<group>"; };
 		C6571BC608A3F26F348738AC /* web-export.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "web-export.json"; sourceTree = "<group>"; };
 		C8338B551D0E6F1998DD06B8 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		C945153F2F3A274EE6CCEBFE /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
@@ -278,6 +280,7 @@
 			isa = PBXGroup;
 			children = (
 				313C2EA16D371E2A314FF331 /* AppStore.swift */,
+				C30DCCAF74E880AF8098A996 /* AppVersion.swift */,
 				2478B8B2872AB24E4AF78816 /* IconStore.swift */,
 				A8312E5CD645860FE723F0EF /* Seed.swift */,
 				D3A21E0AF88D5FA9BAA866F6 /* SyncedPrefs.swift */,
@@ -407,6 +410,7 @@
 			files = (
 				97CA89EE1B5C2EFA77224626 /* AllTasksView.swift in Sources */,
 				C3AF43F432E4FE66571575C7 /* AppStore.swift in Sources */,
+				5D978CBED9152C25EF3E365C /* AppVersion.swift in Sources */,
 				27A14D1AA41BFEFEC54C0AAF /* BackgroundRemover.swift in Sources */,
 				C798319CCC36D449AABECB95 /* Cadence.swift in Sources */,
 				7FA34BCAA835714B09599E41 /* CadenceOptions.swift in Sources */,

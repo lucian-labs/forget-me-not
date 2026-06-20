@@ -28,6 +28,7 @@ struct TaskListView: View {
                 header
                 Rectangle().fill(WL.line).frame(height: 1)
                 content
+                footer
             }
         }
         .preferredColorScheme(.dark)
@@ -87,6 +88,14 @@ struct TaskListView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
+    }
+
+    private var footer: some View {
+        Text(AppVersion.footer)
+            .font(WL.mono(9)).tracking(1)
+            .foregroundStyle(WL.muted.opacity(0.55))
+            .frame(maxWidth: .infinity)
+            .padding(.top, 4).padding(.bottom, 6)
     }
 
     @ViewBuilder private var content: some View {

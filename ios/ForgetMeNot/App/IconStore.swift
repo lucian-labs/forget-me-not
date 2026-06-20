@@ -46,6 +46,13 @@ final class IconStore {
         Task { for t in pending { await regenerate(t) } }
     }
 
+    /// Drop a task's cached icon + retry state so the next evolve regenerates it.
+    func forget(_ id: String) {
+        images[id] = nil
+        attempts[id] = nil
+        failed.remove(id)
+    }
+
     /// Manual reroll: drop the current icon and generate a new one.
     func generate(for task: TaskDTO) async {
         images[task.id] = nil
@@ -75,7 +82,11 @@ final class IconStore {
                 images[task.id] = img
                 attempts[task.id] = 0
                 failed.remove(task.id)
-                onGenerated?(task.id, data)   // persist on the task → syncs to other devices
+                // Only sync icons that fit CloudKit's ~1MB per-record limit — an oversized blob
+                // silently wedges the whole mirroring queue. Downscale keeps these ~100KB; this
+                // is the last line of defense. Still shown locally, just not pushed.
+                if data.count <= 900_000 { onGenerated?(task.id, data) }
+                else { log.error("icon too large to sync (\(data.count, privacy: .public)B) \(task.title, privacy: .public)") }
                 log.info("ok \(task.title, privacy: .public)")
                 return
             }
@@ -91,11 +102,32 @@ final class IconStore {
         let svc = service
         let data = await withTimeout(25) { () -> Data? in
             guard let cg = await svc.generate(prompt: prompt) else { return nil }
-            return BackgroundRemover.cutout(cg).pngData()
+            // Downscale before encoding: full-size cutouts ran 1.5–1.8MB, over CloudKit's ~1MB
+            // per-record limit, which silently jammed ALL sync. 256px is plenty for the card.
+            return downscaledPNG(BackgroundRemover.cutout(cg), maxDimension: 256)
         }
         guard let data, let img = UIImage(data: data) else { return nil }
         return (img, data)
     }
+}
+
+/// Downscale a cutout so the encoded PNG stays well under CloudKit's ~1MB per-record limit
+/// (cards render it small, so 256px is ample), then return its PNG bytes.
+func downscaledPNG(_ image: UIImage, maxDimension: CGFloat) -> Data? {
+    // Decide on PIXEL dimensions via size × scale — robust even when the cutout is CIImage-backed
+    // (cgImage nil), where point size alone underreports and skips the resize (the 887KB bug).
+    let pxW = image.size.width * image.scale
+    let pxH = image.size.height * image.scale
+    let longest = Swift.max(pxW, pxH)
+    guard longest > maxDimension, longest > 0 else { return image.pngData() }
+    let scale = maxDimension / longest
+    let size = CGSize(width: pxW * scale, height: pxH * scale)
+    let format = UIGraphicsImageRendererFormat.default()
+    format.scale = 1   // size is in points; scale 1 → that many pixels exactly
+    let resized = UIGraphicsImageRenderer(size: size, format: format).image { _ in
+        image.draw(in: CGRect(origin: .zero, size: size))
+    }
+    return resized.pngData()
 }
 
 /// Race an async op against a deadline; returns nil on timeout. Keeps a stalled on-device

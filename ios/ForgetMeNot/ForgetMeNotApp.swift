@@ -56,6 +56,7 @@ struct ForgetMeNotApp: App {
                     wireIcons()         // persist generated icons onto tasks (so they sync)
                     startMCP()          // expose tools to MCP clients on a local port
                     reconcileOnOpen()   // render icons + quotes from current state
+                    healIconsOnce()     // drop pre-downscale oversized icons that jammed sync
                     await scheduler.requestAuthorization()
                     await scheduler.sync(store.sortedActive, characterURL: { iconURL(for: $0) })
                 }
@@ -90,6 +91,20 @@ struct ForgetMeNotApp: App {
         let active = store.sortedActive
         icons.evolve(for: active)
         coordinator.evaluate(active, now: Date())
+    }
+
+    /// One-time repair: early builds stored full-size icon PNGs on the task; at 1.5–1.8MB they
+    /// exceeded CloudKit's ~1MB per-record limit and silently jammed ALL sync (0 records ever
+    /// exported, both directions). Clear the oversized ones so the export queue drains — they
+    /// regenerate downscaled. Runs once per device.
+    @MainActor private func healIconsOnce() {
+        guard !UserDefaults.standard.bool(forKey: "fmn.iconHealV1") else { return }
+        UserDefaults.standard.set(true, forKey: "fmn.iconHealV1")
+        for task in store.tasks where (task.iconImageData?.count ?? 0) > 900_000 {
+            store.setIconImage(id: task.id, nil)   // shrink the synced record
+            icons.forget(task.id)                  // drop the cached copy → regenerates downscaled
+        }
+        icons.evolve(for: store.sortedActive)
     }
 
     @MainActor private func startMCP() {

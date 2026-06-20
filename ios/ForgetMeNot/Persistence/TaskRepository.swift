@@ -12,18 +12,23 @@ protocol TaskRepository {
 @MainActor
 final class SwiftDataTaskRepository: TaskRepository {
     private let container: ModelContainer
-    /// All work goes through the container's mainContext. CloudKit mirroring exports the changes
-    /// it sees on THIS context — saving through ad-hoc `ModelContext(container)` instances left
-    /// the export queue empty (every sync affected 0 objects). The mainContext also auto-merges
-    /// CloudKit imports, so reads here reflect another device's changes once they arrive.
-    private var context: ModelContext { container.mainContext }
 
-    /// Owns the container so it can't be deallocated out from under the context.
+    /// Owns the container so it can't be deallocated out from under any context it vends.
     init(container: ModelContainer) {
         self.container = container
     }
 
-    private func entity(_ id: String) -> TaskEntity? {
+    /// WRITES go through the mainContext — that's the context NSPersistentCloudKitContainer
+    /// watches to EXPORT changes; saving through ad-hoc contexts left the export queue empty.
+    private var writeContext: ModelContext { container.mainContext }
+
+    /// READS go through a fresh context. The long-lived mainContext keeps serving the stale
+    /// registered copy of a task after CloudKit imports an UPDATE to it (e.g. a reset from
+    /// another device) — so creates showed up but resets didn't. A new context reads straight
+    /// from the store, so imported updates are always visible.
+    private func freshContext() -> ModelContext { ModelContext(container) }
+
+    private func entity(_ id: String, in context: ModelContext) -> TaskEntity? {
         // Fetch-and-filter rather than #Predicate: on the iOS 26 SDK a #Predicate over
         // a @Model with Data-backed (Codable) attributes traps during fetch. Result
         // sets are small and fully local, so the full fetch is cheap.
@@ -31,15 +36,16 @@ final class SwiftDataTaskRepository: TaskRepository {
     }
 
     func all() throws -> [TaskDTO] {
-        try context.fetch(FetchDescriptor<TaskEntity>()).map(TaskMapper.dto(from:))
+        try freshContext().fetch(FetchDescriptor<TaskEntity>()).map(TaskMapper.dto(from:))
     }
 
     func get(_ id: String) -> TaskDTO? {
-        entity(id).map(TaskMapper.dto(from:))
+        entity(id, in: freshContext()).map(TaskMapper.dto(from:))
     }
 
     func upsert(_ task: TaskDTO) throws {
-        if let existing = entity(task.id) {
+        let context = writeContext
+        if let existing = entity(task.id, in: context) {
             TaskMapper.apply(task, to: existing)
         } else {
             context.insert(TaskMapper.entity(from: task))
@@ -48,6 +54,7 @@ final class SwiftDataTaskRepository: TaskRepository {
     }
 
     func delete(_ id: String) throws {
-        if let e = entity(id) { context.delete(e); try context.save() }
+        let context = writeContext
+        if let e = entity(id, in: context) { context.delete(e); try context.save() }
     }
 }

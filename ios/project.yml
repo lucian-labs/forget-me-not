@@ -35,6 +35,13 @@ targets:
         UIBackgroundModes: [remote-notification, processing]
         BGTaskSchedulerPermittedIdentifiers: [com.lucianlabs.forgetmenot.refresh]
         UILaunchScreen: {}
+    scheme:
+      # Silence the os_log firehose. NSPersistentCloudKitContainer logs a flood of "queue
+      # operation" mirroring chatter to the Xcode console once sync is active — Apple's own
+      # logging, with no public flag to quiet just CloudKit. Trade-off: this also hides the app's
+      # own os.Logger output when running from Xcode; remove it temporarily to get logs back.
+      environmentVariables:
+        OS_ACTIVITY_MODE: disable
   ForgetMeNotTests:
     type: bundle.unit-test
     platform: iOS

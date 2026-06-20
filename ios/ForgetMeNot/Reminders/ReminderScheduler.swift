@@ -19,7 +19,7 @@ final class ReminderScheduler {
     /// Swipe / long-press a reminder to manage the task without opening the app.
     static let taskCategory: UNNotificationCategory = {
         let done = UNNotificationAction(identifier: NotificationActions.done, title: "Done", options: [])
-        let reset = UNNotificationAction(identifier: NotificationActions.reset, title: "Reset Timer", options: [])
+        let reset = UNNotificationAction(identifier: NotificationActions.skip, title: "Skip", options: [])
         let snooze = UNNotificationAction(identifier: NotificationActions.snooze, title: "Snooze", options: [])
         return UNNotificationCategory(identifier: "FMN_TASK", actions: [done, reset, snooze],
                                       intentIdentifiers: [], options: [])

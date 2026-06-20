@@ -7,7 +7,7 @@ enum TaskPriority: String, Codable, CaseIterable, Sendable {
     case low, normal, high, critical
 }
 enum ActionType: String, Codable, Sendable {
-    case reset, complete, note, lapsed
+    case reset, complete, note, lapsed, done, skipped
 }
 
 struct FollowUpDTO: Codable, Equatable, Sendable {

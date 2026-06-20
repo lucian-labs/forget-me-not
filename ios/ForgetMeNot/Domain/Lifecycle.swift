@@ -3,13 +3,13 @@ import Foundation
 enum Lifecycle {
     struct ResetResult { var task: TaskDTO; var spawned: TaskDTO? }
 
-    static func reset<R: RandomNumberGenerator>(_ t: TaskDTO, note: String, now: Date = Date(), rng: inout R) -> ResetResult {
+    static func reset<R: RandomNumberGenerator>(_ t: TaskDTO, note: String, action: ActionType = .reset, now: Date = Date(), rng: inout R) -> ResetResult {
         // Web parity (store.ts:138): reset is a no-op without a base cadence.
         guard let base = t.baseCadenceSeconds else { return ResetResult(task: t, spawned: nil) }
         var task = t
         let cadence = Cadence.randomized(base: base, more: t.cadenceMore, less: t.cadenceLess, using: &rng)
         task.instance = ReminderInstanceDTO(startedAt: now, actualCadenceSeconds: cadence, snoozed: false)
-        task.actionLog.append(ActionLogEntryDTO(note: note, at: now, action: .reset))
+        task.actionLog.append(ActionLogEntryDTO(note: note, at: now, action: action))
         task.updatedAt = now
         // Reset is purely a timer restart — it does NOT launch the follow-up chain. (The web
         // spawned here; we intentionally diverge. Use launchFollowUps to start a chain.)
@@ -18,11 +18,11 @@ enum Lifecycle {
 
     struct CompleteResult { var task: TaskDTO; var spawned: TaskDTO? }
 
-    static func complete(_ t: TaskDTO, note: String, now: Date = Date()) -> CompleteResult {
+    static func complete(_ t: TaskDTO, note: String, action: ActionType = .complete, now: Date = Date()) -> CompleteResult {
         var task = t
         task.status = .done
         task.completedAt = now
-        task.actionLog.append(ActionLogEntryDTO(note: note, at: now, action: .complete))
+        task.actionLog.append(ActionLogEntryDTO(note: note, at: now, action: action))
         task.updatedAt = now
         // Follow-ups are real child tasks now (AppStore.activateChildren), not spawned here.
         return CompleteResult(task: task, spawned: nil)

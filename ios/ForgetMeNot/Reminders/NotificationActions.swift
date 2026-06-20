@@ -5,7 +5,7 @@ import UserNotifications
 /// can fire while the app is backgrounded). The app picks the change up on next foreground
 /// (AppStore.load on scene-active) and reschedules. Action ids match ReminderScheduler.
 enum NotificationActions {
-    static let reset = "FMN_RESET"
+    static let skip = "FMN_SKIP"
     static let done = "FMN_DONE"
     static let snooze = "FMN_SNOOZE"
 
@@ -13,15 +13,19 @@ enum NotificationActions {
         let repo = SwiftDataTaskRepository(container: FMNModelContainer.resolve())
         guard let task = repo.get(taskId) else { return }
         switch action {
-        case reset:
-            var rng = SystemRandomNumberGenerator()
-            try? repo.upsert(Lifecycle.reset(task, note: "via notification", now: Date(), rng: &rng).task)
+        case skip:
+            if task.recurring {
+                var rng = SystemRandomNumberGenerator()
+                try? repo.upsert(Lifecycle.reset(task, note: "", action: .skipped, now: Date(), rng: &rng).task)
+            } else {
+                try? repo.upsert(Lifecycle.complete(task, note: "", action: .skipped, now: Date()).task)
+            }
         case done:
             if task.recurring {
                 var rng = SystemRandomNumberGenerator()
-                try? repo.upsert(Lifecycle.reset(task, note: "done via notification", now: Date(), rng: &rng).task)
+                try? repo.upsert(Lifecycle.reset(task, note: "", action: .done, now: Date(), rng: &rng).task)
             } else {
-                try? repo.upsert(Lifecycle.complete(task, note: "done via notification", now: Date()).task)
+                try? repo.upsert(Lifecycle.complete(task, note: "", action: .done, now: Date()).task)
             }
             activateChildren(of: taskId, repo: repo)
         case snooze:

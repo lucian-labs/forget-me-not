@@ -109,23 +109,14 @@ struct TaskListView: View {
                     .listRowSeparator(.hidden)
                     .listRowBackground(WL.bg)
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        // Left swipe = reset the timer only; do NOT fire the follow-up chain.
-                        if task.recurring {
-                            Button { reset(task) } label: {
-                                Label("RESET", systemImage: "arrow.counterclockwise")
-                            }
-                            .tint(WL.cyan)
-                        } else {
-                            // One-time link has no timer; left swipe just marks it done.
-                            Button { markDone(task) } label: {
-                                Label("DONE", systemImage: "checkmark.circle.fill")
-                            }
-                            .tint(WL.green)
+                        // Left swipe = SKIP: restart the timer, no follow-ups (logged "skipped").
+                        Button { skip(task) } label: {
+                            Label("SKIP", systemImage: "arrow.counterclockwise")
                         }
+                        .tint(WL.cyan)
                     }
                     .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                        // Right swipe = mark done: resets a recurring task AND fires its
-                        // follow-up sub-tasks (completes + fires for a one-time link).
+                        // Right swipe = DONE: reset + fire follow-ups (logged "done").
                         Button { markDone(task) } label: {
                             Label("DONE", systemImage: "checkmark.circle.fill")
                         }
@@ -139,10 +130,10 @@ struct TaskListView: View {
         }
     }
 
-    private func reset(_ task: TaskDTO) {
+    private func skip(_ task: TaskDTO) {
         coordinator.clear(task.id)
         withAnimation(.easeInOut(duration: 0.4)) {
-            store.reset(id: task.id)
+            store.skip(id: task.id)
         }
     }
 

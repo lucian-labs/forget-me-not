@@ -123,11 +123,24 @@ final class AppStore {
         guard let task = tasks.first(where: { $0.id == id }) else { return }
         if task.recurring {
             var rng = SystemRandomNumberGenerator()
-            try? repository.upsert(Lifecycle.reset(task, note: "done", now: Date(), rng: &rng).task)
+            try? repository.upsert(Lifecycle.reset(task, note: "", action: .done, now: Date(), rng: &rng).task)
         } else {
-            try? repository.upsert(Lifecycle.complete(task, note: "done", now: Date()).task)
+            try? repository.upsert(Lifecycle.complete(task, note: "", action: .done, now: Date()).task)
         }
         activateChildren(of: id)
+        load()
+    }
+
+    /// The left-swipe "skip": restart the cycle (recurring) or dismiss the link (one-time)
+    /// WITHOUT firing follow-ups; logged as `skipped` in history.
+    func skip(id: String) {
+        guard let task = tasks.first(where: { $0.id == id }) else { return }
+        if task.recurring {
+            var rng = SystemRandomNumberGenerator()
+            try? repository.upsert(Lifecycle.reset(task, note: "", action: .skipped, now: Date(), rng: &rng).task)
+        } else {
+            try? repository.upsert(Lifecycle.complete(task, note: "", action: .skipped, now: Date()).task)
+        }
         load()
     }
 

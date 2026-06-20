@@ -89,7 +89,7 @@ struct TaskDetailView: View {
             }
 
             // live meter
-            TimelineView(.periodic(from: .now, by: 1)) { ctx in
+            TimelineView(.periodic(from: .now, by: 5)) { ctx in
                 let ratio = Urgency.ratio(task, now: ctx.date)
                 VStack(alignment: .leading, spacing: 6) {
                     UrgencyBarView(ratio: ratio)

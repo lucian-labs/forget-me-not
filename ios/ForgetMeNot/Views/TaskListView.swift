@@ -16,8 +16,10 @@ struct TaskListView: View {
     @State private var now = Date()
     @State private var orderKey: [String] = []
 
-    /// Drives live re-sorting + nudge re-evaluation. Icons still reconcile only on open.
-    private let ticker = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
+    /// Drives live re-sorting + nudge re-evaluation. 10s (was 2s) — order/nudge changes are
+    /// slow, so waking every 2s just to re-sort the same list wasted battery. Icons reconcile
+    /// only on open.
+    private let ticker = Timer.publish(every: 10, on: .main, in: .common).autoconnect()
 
     var body: some View {
         ZStack {

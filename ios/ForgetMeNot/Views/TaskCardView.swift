@@ -29,7 +29,9 @@ struct TaskCardView: View {
                 if let nudge, !asleep {
                     SpeechBubble(text: nudge).transition(.opacity)
                 }
-                TimelineView(.periodic(from: .now, by: 1)) { context in
+                // 10s, not 1s: urgency creeps slowly, so per-second redraws of every card
+                // were burning CPU continuously for an imperceptible change.
+                TimelineView(.periodic(from: .now, by: 10)) { context in
                     let ratio = Urgency.ratio(task, now: context.date)
                     HStack(spacing: 10) {
                         UrgencyBarView(ratio: ratio)

@@ -57,23 +57,22 @@ final class IconStore {
 
     private static let thresholds: [Double] = [0.0, 1.0]
 
-    /// Reconcile every icon to the task's CURRENT urgency in a single pass — called when the
-    /// app opens, not on a timer. Only tasks whose on-disk render no longer matches the tier
-    /// they're in now are (re)generated. Per-task `generating` guards dedupe overlap, so no
-    /// global "running" latch is needed (a stuck latch was a way to wedge all generation).
+    /// Generate any MISSING icon once, on app open. Battery: the old behavior regenerated on
+    /// every new instance / urgency threshold, which fired the Image Playground diffusion model
+    /// constantly (a major drain). Now an icon is generated once and kept; clearing it (Prompt
+    /// Lab → Regenerate, or a one-off failure self-heal) is the only thing that re-triggers it.
     func evolve(for tasks: [TaskDTO], now: Date = Date()) {
         guard service.available else { return }
         var pending: [PendingGen] = []
         for task in tasks {
             if symbols[task.id] != nil { continue }   // task uses an SF Symbol, not a generated image
+            if images[task.id] != nil { continue }    // already has an icon — keep it
+            if generating.contains(task.id) { continue }
+            let akey = "\(task.id)|once"
+            if (attempts[akey] ?? 0) >= 3 { continue }   // gave up for this session
             let ratio = task.recurring ? Urgency.ratio(task, now: now) : 0
             let instKey = task.instance.map { String(Int($0.startedAt.timeIntervalSince1970)) } ?? "static"
-            guard let crossed = Self.thresholds.last(where: { ratio >= $0 }) else { continue }
-            // Skip only if we've rendered this level for this instance AND the image exists.
-            if let r = rendered[task.id], r.inst == instKey, r.threshold >= crossed, images[task.id] != nil { continue }
-            if generating.contains(task.id) { continue }
-            let akey = "\(task.id)|\(instKey)|\(crossed)"
-            if (attempts[akey] ?? 0) >= 3 { continue }   // gave up for this session
+            let crossed = Self.thresholds.last(where: { ratio >= $0 }) ?? 0
             pending.append(PendingGen(task: task, inst: instKey, threshold: crossed, akey: akey))
         }
         guard !pending.isEmpty else { return }

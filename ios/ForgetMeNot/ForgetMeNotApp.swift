@@ -11,18 +11,11 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         UNUserNotificationCenter.current().delegate = self
         return true
     }
-
-    /// CloudKit posts a silent push when another device changes the shared store. Implementing
-    /// this — paired with the `remote-notification` background mode — is what lets the OS wake
-    /// the app in the background so NSPersistentCloudKitContainer can import that change. Without
-    /// it, imports only ran on foreground/focus, so a swipe on the Mac never reached a
-    /// backgrounded phone (and the Mac itself only caught up when refocused). The container does
-    /// the actual import off the same push; we just need to be awake and report back.
-    nonisolated func application(_ application: UIApplication,
-                                 didReceiveRemoteNotification userInfo: [AnyHashable: Any],
-                                 fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-        completionHandler(.newData)
-    }
+    // NOTE: deliberately do NOT implement didReceiveRemoteNotification. Handling the silent push
+    // and returning .newData intercepted CloudKit's push before NSPersistentCloudKitContainer
+    // could run its fetch, which stalled imports on BOTH devices (export kept working, so nothing
+    // synced either way). Letting the container own push handling restores live foreground sync.
+    // Background import to a suspended device is an OS-throttled problem to revisit separately.
 
     /// Show reminders even while the app is foregrounded.
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,

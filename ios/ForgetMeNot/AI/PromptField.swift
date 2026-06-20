@@ -100,6 +100,6 @@ enum PromptField: String, CaseIterable, Identifiable {
         return raw
     }
 
-    func set(_ s: String) { UserDefaults.standard.set(s, forKey: rawValue) }
-    func reset() { UserDefaults.standard.removeObject(forKey: rawValue) }
+    func set(_ s: String) { SyncedPrefs.set(s, forKey: rawValue) }       // → iCloud + local
+    func reset() { SyncedPrefs.set(nil, forKey: rawValue) }
 }

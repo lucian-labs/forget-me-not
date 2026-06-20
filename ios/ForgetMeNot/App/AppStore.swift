@@ -49,6 +49,19 @@ final class AppStore {
         iconStyle = UserDefaults.standard.string(forKey: "fmn.iconStyle") ?? ""
         nudgeStyle = UserDefaults.standard.string(forKey: "fmn.nudgeStyle") ?? ""
         observeCloudChanges()
+        observeSyncedPrefs()
+    }
+
+    /// Pull prompt/style/theme edits made on another device (iCloud key-value store) into the
+    /// cached, observable copies so the UI reflects them live.
+    private func observeSyncedPrefs() {
+        SyncedPrefs.start { [weak self] in
+            guard let self else { return }
+            self.iconStyle = UserDefaults.standard.string(forKey: "fmn.iconStyle") ?? ""
+            self.nudgeStyle = UserDefaults.standard.string(forKey: "fmn.nudgeStyle") ?? ""
+            let theme = UserDefaults.standard.string(forKey: "fmn.theme") ?? "waveloop"
+            if theme != self.themeName { self.themeName = theme; WL.apply(Theme.named(theme)) }
+        }
     }
 
     /// Reload the in-memory snapshot whenever CloudKit imports remote changes, so a reset
@@ -64,22 +77,27 @@ final class AppStore {
 
     func setTheme(_ name: String) {
         themeName = name
-        UserDefaults.standard.set(name, forKey: "fmn.theme")
+        SyncedPrefs.set(name, forKey: "fmn.theme")
         WL.apply(Theme.named(name))
     }
 
     func setIconStyle(_ style: String) {
         iconStyle = style
-        UserDefaults.standard.set(style, forKey: "fmn.iconStyle")
+        SyncedPrefs.set(style, forKey: "fmn.iconStyle")
     }
 
     func setNudgeStyle(_ style: String) {
         nudgeStyle = style
-        UserDefaults.standard.set(style, forKey: "fmn.nudgeStyle")
+        SyncedPrefs.set(style, forKey: "fmn.nudgeStyle")
     }
 
+    /// Reload the in-memory snapshot, but only swap it in when something actually changed.
+    /// This makes it safe to poll every tick (so CloudKit imports from another device surface
+    /// even when the remote-change push is missed) without churning the list — an unchanged
+    /// reload would otherwise re-render and collapse any in-progress swipe drawer.
     func load() {
-        tasks = (try? repository.all()) ?? []
+        let fresh = (try? repository.all()) ?? []
+        if fresh != tasks { tasks = fresh }
     }
 
     /// Reset a recurring task's cycle (left swipe): start a fresh randomized instance and log

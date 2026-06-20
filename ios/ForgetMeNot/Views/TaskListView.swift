@@ -32,6 +32,7 @@ struct TaskListView: View {
         }
         .preferredColorScheme(.dark)
         .onReceive(ticker) { _ in
+            store.load()   // poll the store so a swipe/reset from another device surfaces live
             coordinator.evaluate(store.sortedActive, now: Date())
             // Only re-render the list when the SORT ORDER actually changes — re-rendering
             // every tick collapsed in-progress swipe drawers (a row wouldn't reset).

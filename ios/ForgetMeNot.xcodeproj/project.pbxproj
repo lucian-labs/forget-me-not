@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0CC93CB5B827B92E996D24D1 /* CreateTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73BDC64A35C3187BE0BDF6B3 /* CreateTaskView.swift */; };
+		0D3344D9ACAA33D765022C20 /* SyncedPrefs.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A21E0AF88D5FA9BAA866F6 /* SyncedPrefs.swift */; };
 		14D3F1FD3275943DE58345B6 /* WLBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C8B25C31E2067CB6F4A9AED /* WLBackground.swift */; };
 		202A6E8EED15219B8A3FEA93 /* TaskMapperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E662B702E610D1F484C87B /* TaskMapperTests.swift */; };
 		22B65CFD92089134EC1CDA20 /* ReminderScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B551D8D93C476C70D17E18 /* ReminderScheduler.swift */; };
@@ -126,6 +127,7 @@
 		C6571BC608A3F26F348738AC /* web-export.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "web-export.json"; sourceTree = "<group>"; };
 		C8338B551D0E6F1998DD06B8 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		C945153F2F3A274EE6CCEBFE /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
+		D3A21E0AF88D5FA9BAA866F6 /* SyncedPrefs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncedPrefs.swift; sourceTree = "<group>"; };
 		D918676D8F74311463FE58A2 /* FMNIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FMNIntents.swift; sourceTree = "<group>"; };
 		DC26CB17EC41CCDE313E4B6F /* ForgetMeNot.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ForgetMeNot.entitlements; sourceTree = "<group>"; };
 		DFC95A22730610A096937910 /* TaskDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskDetailView.swift; sourceTree = "<group>"; };
@@ -278,6 +280,7 @@
 				313C2EA16D371E2A314FF331 /* AppStore.swift */,
 				2478B8B2872AB24E4AF78816 /* IconStore.swift */,
 				A8312E5CD645860FE723F0EF /* Seed.swift */,
+				D3A21E0AF88D5FA9BAA866F6 /* SyncedPrefs.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -435,6 +438,7 @@
 				598FC31D6C3EAF422431C23E /* Seed.swift in Sources */,
 				37980F97A71DF8B63369B934 /* SettingsView.swift in Sources */,
 				9A1314364E8EC66AEA82E522 /* SpeechBubble.swift in Sources */,
+				0D3344D9ACAA33D765022C20 /* SyncedPrefs.swift in Sources */,
 				54D512FEC57955D2049713C4 /* TaskCardView.swift in Sources */,
 				233F216B7A0F517A69C4E92B /* TaskDTO.swift in Sources */,
 				FBEA757AF5BC51E5F0E3CEC9 /* TaskDetailView.swift in Sources */,

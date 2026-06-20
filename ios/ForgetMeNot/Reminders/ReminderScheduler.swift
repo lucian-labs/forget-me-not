@@ -12,8 +12,18 @@ final class ReminderScheduler {
     private var dynamicCache: [String: String] = [:]   // "taskId|instanceStart" -> AI nudge
 
     func requestAuthorization() async {
+        center.setNotificationCategories([Self.taskCategory])
         _ = try? await center.requestAuthorization(options: [.alert, .sound, .badge])
     }
+
+    /// Swipe / long-press a reminder to manage the task without opening the app.
+    static let taskCategory: UNNotificationCategory = {
+        let done = UNNotificationAction(identifier: NotificationActions.done, title: "Done", options: [])
+        let reset = UNNotificationAction(identifier: NotificationActions.reset, title: "Reset Timer", options: [])
+        let snooze = UNNotificationAction(identifier: NotificationActions.snooze, title: "Snooze", options: [])
+        return UNNotificationCategory(identifier: "FMN_TASK", actions: [done, reset, snooze],
+                                      intentIdentifiers: [], options: [])
+    }()
 
     func sync(_ tasks: [TaskDTO], characterURL: (String) -> URL?, now: Date = Date()) async {
         center.removeAllPendingNotificationRequests()
@@ -32,6 +42,7 @@ final class ReminderScheduler {
                 content.body = n == 1 ? dueBody : "\(task.title) — still waiting (\(n)× over)."
                 content.sound = .default
                 content.userInfo = ["taskId": task.id]
+                content.categoryIdentifier = "FMN_TASK"
                 if let icon, let att = attachment(icon, key: "\(task.id)-\(n)") {
                     content.attachments = [att]
                 }

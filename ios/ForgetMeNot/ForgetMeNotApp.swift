@@ -1,13 +1,33 @@
 import SwiftUI
 import UIKit
+import UserNotifications
 
-/// Registers for remote notifications so CloudKit's silent pushes arrive promptly — that's
-/// what makes cross-device sync near-realtime rather than next-launch.
-final class AppDelegate: NSObject, UIApplicationDelegate {
+/// Registers for remote notifications (CloudKit pushes) and receives notification ACTIONS —
+/// swipe/long-press a reminder to Done / Reset / Snooze the task without opening the app.
+final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         application.registerForRemoteNotifications()
+        UNUserNotificationCenter.current().delegate = self
         return true
+    }
+
+    /// Show reminders even while the app is foregrounded.
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,
+                                            withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.banner, .sound])
+    }
+
+    /// Apply the tapped action (Done / Reset / Snooze) to the task.
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
+                                            withCompletionHandler completionHandler: @escaping () -> Void) {
+        let id = response.notification.request.content.userInfo["taskId"] as? String
+        let action = response.actionIdentifier
+        // UN delegate callbacks run on the main thread, so apply the change synchronously.
+        MainActor.assumeIsolated {
+            if let id { NotificationActions.handle(action, taskId: id) }
+        }
+        completionHandler()
     }
 }
 

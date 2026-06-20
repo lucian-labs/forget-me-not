@@ -1,12 +1,13 @@
 import SwiftUI
+import UserNotifications
 
-/// Settings — currently the theme picker (the 11 web themes + Waveloop). Each swatch
-/// previews the palette; tapping applies it instantly app-wide.
+/// Settings — theme picker, mascot/nudge styles, prompt lab, MCP + notification controls.
 struct SettingsView: View {
     @Environment(AppStore.self) private var store
     @Environment(IconStore.self) private var icons
     @Environment(\.dismiss) private var dismiss
     @State private var showPromptLab = false
+    @State private var notifStatus: UNAuthorizationStatus = .notDetermined
 
     private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
@@ -70,6 +71,28 @@ struct SettingsView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(12).wlPanel(fill: WL.surface, border: WL.border)
 
+                    Text("NOTIFICATIONS").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(notifStatusText).font(WL.mono(11, .bold)).foregroundStyle(notifStatusColor)
+                        Button {
+                            Task {
+                                await ReminderScheduler.sendTest(taskId: store.sortedActive.first?.id)
+                                notifStatus = await ReminderScheduler.authStatus()
+                            }
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "bell.badge").font(.system(size: 13, weight: .bold))
+                                Text("SEND TEST (4s)").font(WL.mono(12, .bold)).tracking(1)
+                            }
+                            .frame(maxWidth: .infinity).padding(.vertical, 12)
+                            .foregroundStyle(WL.bg).background(WL.accent)
+                        }
+                        Text("Fires a reminder in 4 seconds. If nothing appears, enable it in System Settings › Notifications › Forget Me Not (banners on).")
+                            .font(WL.mono(9)).foregroundStyle(WL.muted)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12).wlPanel(fill: WL.surface, border: WL.border)
+
                     Text("THEME").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
 
                     LazyVGrid(columns: columns, spacing: 12) {
@@ -85,6 +108,22 @@ struct SettingsView: View {
         .preferredColorScheme(.dark)
         .sheet(isPresented: $showPromptLab) {
             PromptLabView().environment(store).environment(icons)
+        }
+        .task { notifStatus = await ReminderScheduler.authStatus() }
+    }
+
+    private var notifStatusText: String {
+        switch notifStatus {
+        case .authorized, .provisional, .ephemeral: "Allowed"
+        case .denied: "Off — enable in System Settings"
+        default: "Not requested yet — tap Send Test"
+        }
+    }
+    private var notifStatusColor: Color {
+        switch notifStatus {
+        case .authorized, .provisional, .ephemeral: WL.green
+        case .denied: WL.red
+        default: WL.muted
         }
     }
 

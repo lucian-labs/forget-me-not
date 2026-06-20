@@ -25,6 +25,27 @@ final class ReminderScheduler {
                                       intentIdentifiers: [], options: [])
     }()
 
+    /// Current notification permission (for the Settings status line).
+    static func authStatus() async -> UNAuthorizationStatus {
+        await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
+    }
+
+    /// Fire a test reminder in 4 seconds — confirms permission + delivery without waiting for
+    /// a real cadence mark. Carries `taskId` so its Done/Reset/Snooze actions work too.
+    static func sendTest(taskId: String?) async {
+        let center = UNUserNotificationCenter.current()
+        center.setNotificationCategories([taskCategory])
+        _ = try? await center.requestAuthorization(options: [.alert, .sound, .badge])
+        let content = UNMutableNotificationContent()
+        content.title = "Forget Me Not"
+        content.body = "Test reminder — long-press for Done / Reset / Snooze."
+        content.sound = .default
+        content.categoryIdentifier = "FMN_TASK"
+        if let taskId { content.userInfo = ["taskId": taskId] }
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 4, repeats: false)
+        try? await center.add(UNNotificationRequest(identifier: "fmn-test", content: content, trigger: trigger))
+    }
+
     func sync(_ tasks: [TaskDTO], characterURL: (String) -> URL?, now: Date = Date()) async {
         center.removeAllPendingNotificationRequests()
         for task in tasks where task.recurring {

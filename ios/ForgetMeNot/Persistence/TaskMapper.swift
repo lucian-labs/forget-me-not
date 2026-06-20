@@ -26,6 +26,8 @@ enum TaskMapper {
         e.prompts = d.prompts
         e.soundSeed = d.soundSeed
         e.actionLog = d.actionLog
+        e.iconImageData = d.iconImageData
+        e.iconSymbol = d.iconSymbol
         return e
     }
 
@@ -44,7 +46,8 @@ enum TaskMapper {
             estimatedHours: e.estimatedHours, recurring: e.recurring,
             baseCadenceSeconds: e.baseCadenceSeconds, cadenceMore: e.cadenceMore, cadenceLess: e.cadenceLess,
             instance: instance, followUps: e.followUps, parentTaskId: e.parentTaskId,
-            prompts: e.prompts, soundSeed: e.soundSeed, actionLog: e.actionLog
+            prompts: e.prompts, soundSeed: e.soundSeed, actionLog: e.actionLog,
+            iconSymbol: e.iconSymbol, iconImageData: e.iconImageData
         )
     }
 
@@ -60,5 +63,6 @@ enum TaskMapper {
         e.instanceStartedAt = fresh.instanceStartedAt; e.instanceActualCadenceSeconds = fresh.instanceActualCadenceSeconds; e.instanceSnoozed = fresh.instanceSnoozed
         e.followUps = fresh.followUps; e.parentTaskId = fresh.parentTaskId
         e.prompts = fresh.prompts; e.soundSeed = fresh.soundSeed; e.actionLog = fresh.actionLog
+        e.iconImageData = fresh.iconImageData; e.iconSymbol = fresh.iconSymbol
     }
 }

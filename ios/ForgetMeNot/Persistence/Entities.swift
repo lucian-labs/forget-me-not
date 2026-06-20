@@ -30,6 +30,8 @@ final class TaskEntity {
     var parentTaskId: String?
     var prompts: [String] = []
     var soundSeed: String?
+    var iconImageData: Data?   // generated icon PNG (synced via CloudKit)
+    var iconSymbol: String?    // SF Symbol override (synced)
 
     // Computed accessors used by TaskMapper — encode/decode on the fly.
     // @Transient excludes them from the SwiftData schema (they're backed by *Data above).

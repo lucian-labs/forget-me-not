@@ -270,6 +270,35 @@ final class AppStore {
 
     func isActive(id: String) -> Bool { tasks.first { $0.id == id }?.status == .open }
 
+    /// Save a generated icon PNG onto the task itself — so it syncs via CloudKit and shows on
+    /// other devices (including the Mac, which can't generate).
+    func setIconImage(id: String, _ data: Data?) {
+        guard var t = tasks.first(where: { $0.id == id }) else { return }
+        t.iconImageData = data
+        t.updatedAt = Date()
+        try? repository.upsert(t)
+        load()
+    }
+
+    /// Set (or clear) an SF Symbol for the task; setting one drops the generated image.
+    func setIconSymbol(id: String, _ name: String?) {
+        guard var t = tasks.first(where: { $0.id == id }) else { return }
+        let trimmed = name?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let trimmed, !trimmed.isEmpty { t.iconSymbol = trimmed; t.iconImageData = nil }
+        else { t.iconSymbol = nil }
+        t.updatedAt = Date()
+        try? repository.upsert(t)
+        load()
+    }
+
+    /// Wipe every task and reseed from scratch — used to put the shared CloudKit store into a
+    /// clean state both devices then sync to.
+    func freshReseed() {
+        for t in tasks { try? repository.delete(t.id) }
+        for t in Seed.tasks() { try? repository.upsert(t) }
+        load()
+    }
+
     func task(_ id: String) -> TaskDTO? { tasks.first { $0.id == id } }
 
     /// Active tasks, most urgent first at `now`. Urgency rises with time, so the order

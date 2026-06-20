@@ -53,18 +53,33 @@ struct ForgetMeNotApp: App {
                 .environment(icons)
                 .environment(coordinator)
                 .task {
+                    wireIcons()         // persist generated icons onto tasks (so they sync)
                     startMCP()          // expose tools to MCP clients on a local port
                     reconcileOnOpen()   // render icons + quotes from current state
                     await scheduler.requestAuthorization()
-                    await scheduler.sync(store.sortedActive, characterURL: { icons.imageURL(for: $0) })
+                    await scheduler.sync(store.sortedActive, characterURL: { iconURL(for: $0) })
                 }
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 reconcileOnOpen()   // and again whenever it returns to foreground
-                Task { await scheduler.sync(store.sortedActive, characterURL: { icons.imageURL(for: $0) }) }
+                Task { await scheduler.sync(store.sortedActive, characterURL: { iconURL(for: $0) }) }
             }
         }
+    }
+
+    /// Persist generated icons onto the task (→ CloudKit) so other devices show them.
+    @MainActor private func wireIcons() {
+        icons.onGenerated = { [store] id, data in store.setIconImage(id: id, data) }
+        icons.onCleared = { [store] id in store.setIconImage(id: id, nil) }
+    }
+
+    /// Stage a task's synced icon to a temp PNG for notification attachments.
+    @MainActor private func iconURL(for id: String) -> URL? {
+        guard let data = store.task(id)?.iconImageData else { return nil }
+        let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("fmn-notif-\(id).png")
+        try? data.write(to: tmp)
+        return tmp
     }
 
     /// Both the icon images and the nudge quotes render from each task's current urgency

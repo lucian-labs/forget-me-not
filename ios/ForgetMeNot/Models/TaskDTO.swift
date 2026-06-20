@@ -53,11 +53,14 @@ struct TaskDTO: Codable, Equatable, Identifiable, Sendable {
     var prompts: [String]
     var soundSeed: String?
     var actionLog: [ActionLogEntryDTO]
+    var iconSymbol: String? = nil          // SF Symbol override (synced)
+    var iconImageData: Data? = nil         // generated icon PNG (synced; not exported — mapper carries it)
 
     enum CodingKeys: String, CodingKey {
         case id, title, description, domain, tags, status, priority, createdAt, updatedAt,
              dueDate, startedAt, completedAt, estimatedHours, recurring, baseCadenceSeconds,
-             cadenceMore, cadenceLess, instance, followUps, parentTaskId, prompts, soundSeed, actionLog
+             cadenceMore, cadenceLess, instance, followUps, parentTaskId, prompts, soundSeed, actionLog,
+             iconSymbol
     }
 
     // Custom encode so nullable fields are emitted as explicit `null` (web parity),
@@ -87,5 +90,6 @@ struct TaskDTO: Codable, Equatable, Identifiable, Sendable {
         try c.encode(prompts, forKey: .prompts)
         try c.encode(soundSeed, forKey: .soundSeed)
         try c.encode(actionLog, forKey: .actionLog)
+        try c.encode(iconSymbol, forKey: .iconSymbol)
     }
 }

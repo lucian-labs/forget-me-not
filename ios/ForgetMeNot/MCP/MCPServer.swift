@@ -188,12 +188,16 @@ final class MCPServer: @unchecked Sendable {
         case "set_icon_symbol":
             guard let t = resolve(args) else { throw MCPError.notFound }
             let symbol = (args["symbol"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
-            icons.setSymbol(symbol, for: t.id)
+            store.setIconSymbol(id: t.id, symbol)
             return (symbol?.isEmpty == false) ? "Set \(t.title) icon to \(symbol!)." : "Cleared \(t.title)'s icon symbol."
 
         case "delete_task":
             guard let t = resolve(args) else { throw MCPError.notFound }
             store.delete(id: t.id); return "Deleted \(t.title)."
+
+        case "reset_all":
+            store.freshReseed()
+            return "Wiped and reseeded — \(store.tasks.count) tasks."
 
         default:
             throw MCPError("Unknown tool: \(name)")
@@ -271,5 +275,6 @@ enum MCPTools {
         tool("delete_task", "Delete a task. Identify by id or title.", [
             "id": str, "title": str("Task title"),
         ]),
+        tool("reset_all", "Wipe ALL tasks and reseed from scratch (clean shared state).", [:]),
     ] }
 }

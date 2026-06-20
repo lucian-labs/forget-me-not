@@ -104,7 +104,7 @@ struct TaskListView: View {
                         TaskCardView(task: task,
                                      nudge: coordinator.nudge(for: task.id),
                                      icon: icons.image(for: task.id),
-                                     symbol: icons.symbol(for: task.id))
+                                     symbol: task.iconSymbol)
                     }
                     .buttonStyle(.plain)
                     .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))

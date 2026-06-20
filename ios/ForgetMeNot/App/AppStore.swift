@@ -21,12 +21,28 @@ final class AppStore {
     init(repository: TaskRepository) {
         self.repository = repository
         load()
-        let stored = UserDefaults.standard.integer(forKey: "fmn.seedVersion")
-        if tasks.isEmpty || stored < seedVersion {
-            for task in tasks { try? repository.delete(task.id) }
-            for task in Seed.tasks() { try? repository.upsert(task) }
-            UserDefaults.standard.set(seedVersion, forKey: "fmn.seedVersion")
-            load()
+        if FMNModelContainer.usingCloudKit {
+            // CloudKit: never wipe synced data. Seed only if empty, and DEFER it so an initial
+            // import from another device lands first — otherwise both devices seed and the
+            // CloudKit store ends up with duplicates.
+            if tasks.isEmpty {
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 4_000_000_000)
+                    self.load()
+                    guard self.tasks.isEmpty else { return }
+                    for task in Seed.tasks() { try? self.repository.upsert(task) }
+                    self.load()
+                }
+            }
+        } else {
+            // Local dev: a higher seedVersion wipes + reseeds.
+            let stored = UserDefaults.standard.integer(forKey: "fmn.seedVersion")
+            if tasks.isEmpty || stored < seedVersion {
+                for task in tasks { try? repository.delete(task.id) }
+                for task in Seed.tasks() { try? repository.upsert(task) }
+                UserDefaults.standard.set(seedVersion, forKey: "fmn.seedVersion")
+                load()
+            }
         }
         themeName = UserDefaults.standard.string(forKey: "fmn.theme") ?? "waveloop"
         WL.apply(Theme.named(themeName))

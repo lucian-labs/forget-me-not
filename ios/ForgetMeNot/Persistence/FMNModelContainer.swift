@@ -39,7 +39,10 @@ enum FMNModelContainer {
     /// the cloudKit() container would crash at init (missing container entitlement), so we
     /// stay on the local store. Everything else (mirroring config, remote-change observer,
     /// push registration) is already wired and waiting on this flag.
-    static let cloudKitReady = false
+    static let cloudKitReady = true
+
+    /// True once resolve() actually picked the CloudKit store (enabled + iCloud signed in).
+    @MainActor private(set) static var usingCloudKit = false
 
     @MainActor static func resolve() -> ModelContainer {
         if let shared { return shared }
@@ -48,6 +51,7 @@ enum FMNModelContainer {
         // fall back to a local store otherwise.
         if cloudKitReady, FileManager.default.ubiquityIdentityToken != nil, let ck = try? cloudKit() {
             c = ck
+            usingCloudKit = true
         } else {
             c = (try? local()) ?? (try! inMemory())
         }

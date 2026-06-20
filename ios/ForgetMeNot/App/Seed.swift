@@ -34,10 +34,20 @@ enum Seed {
         SeedTask(title: "bathrooms", domain: "home", cadence: 604800, prompts: []),
     ]
 
+    /// Stable, content-derived id so every device seeds the SAME records. With random UUIDs each
+    /// device created its own copies and CloudKit merged nothing → 2× tasks. A deterministic id
+    /// means both devices' seeds map to one CloudKit record (idempotent, no duplicates).
+    private static func slug(_ s: String) -> String {
+        let mapped = String(s.lowercased().map { ($0.isLetter || $0.isNumber) ? $0 : "-" })
+        var r = mapped
+        while r.contains("--") { r = r.replacingOccurrences(of: "--", with: "-") }
+        return r.trimmingCharacters(in: CharacterSet(charactersIn: "-"))
+    }
+
     static func tasks(now: Date = Date()) -> [TaskDTO] {
         var out: [TaskDTO] = []
         for s in seeds {
-            let parentId = UUID().uuidString
+            let parentId = "seed-" + slug(s.title)
             out.append(TaskDTO(
                 id: parentId, title: s.title, description: "", domain: s.domain, tags: [],
                 status: .open, priority: .normal, createdAt: now, updatedAt: now,
@@ -49,7 +59,7 @@ enum Seed {
             // (no due date → hidden) until the previous one launches/completes it.
             var prevId = parentId
             for sub in s.subs {
-                let childId = UUID().uuidString
+                let childId = parentId + "-" + slug(sub.title)
                 out.append(TaskDTO(
                     id: childId, title: sub.title, description: "", domain: s.domain, tags: [],
                     status: .open, priority: .normal, createdAt: now, updatedAt: now,

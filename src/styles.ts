@@ -221,9 +221,8 @@ button:active { opacity: 0.8; }
 /* Progress bar */
 
 .fmn-progress {
-  height: 4px;
+  height: 1px;
   background: var(--border);
-  border-radius: 2px;
   margin-top: 8px;
   overflow: hidden;
   transition: height 0.3s ease, margin-top 0.3s ease, opacity 0.3s ease;
@@ -237,7 +236,6 @@ button:active { opacity: 0.8; }
 
 .fmn-progress-fill {
   height: 100%;
-  border-radius: 2px;
   transition: width 1s linear;
 }
 

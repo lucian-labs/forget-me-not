@@ -4,7 +4,7 @@ import {
   getRemainingSeconds, resetTask, completeTask, snoozeTask, archiveTask, addActionNote,
   getCycleHistory,
 } from './store'
-import { formatTime, formatCadence, el, renderStreakStrip, renderProgressGraph } from './utils'
+import { formatTime, formatCadence, el, renderStreakStrip } from './utils'
 import { navigate } from './app'
 import { animateOut } from './animate'
 import { appName } from './brand'
@@ -154,6 +154,7 @@ function renderGroupedByCategory(container: HTMLElement, tasks: Task[]): void {
 
 function renderTaskItem(task: Task): HTMLElement {
   const ratio = getUrgencyRatio(task)
+  const color = getUrgencyColor(ratio)
   const urgencyClass = getUrgencyClass(ratio)
   const isOverdue = ratio >= 1.0
   const isRecurring = task.recurring
@@ -245,10 +246,12 @@ function renderTaskItem(task: Task): HTMLElement {
 
   card.appendChild(row)
 
-  // Progress sparkline — step-line of recent cycle ratios + current cycle.
-  // Hidden in clock mode via height transition.
+  // Progress bar — hidden in clock mode via height transition
   const progress = el('div', { className: `fmn-progress${sortByTime ? ' fmn-progress-hidden' : ''}` })
-  progress.appendChild(renderProgressGraph(isRecurring ? getCycleHistory(task) : [], ratio))
+  const fill = el('div', { className: 'fmn-progress-fill' })
+  fill.style.width = sortByTime ? '0%' : `${Math.min(ratio * 100, 100)}%`
+  fill.style.background = color
+  progress.appendChild(fill)
   card.appendChild(progress)
 
   // Streak strip — recurring tasks only, shows recent cycle history

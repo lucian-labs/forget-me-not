@@ -220,12 +220,10 @@ button:active { opacity: 0.8; }
 
 /* Progress bar */
 
-/* Progress sparkline — step-line of recent cycle ratios + current cycle.
-   The line itself is 1px (drawn inside the SVG); the container gives the
-   line room to vary in height across the row. */
 .fmn-progress {
-  height: 12px;
-  margin-top: 6px;
+  height: 1px;
+  background: var(--border);
+  margin-top: 8px;
   overflow: hidden;
   transition: height 0.3s ease, margin-top 0.3s ease, opacity 0.3s ease;
 }
@@ -236,29 +234,9 @@ button:active { opacity: 0.8; }
   opacity: 0;
 }
 
-.fmn-progress-graph {
-  width: 100%;
+.fmn-progress-fill {
   height: 100%;
-  display: block;
-}
-
-/* Latest step (the live, in-progress cycle) reads brighter than the
-   muted history behind it. */
-.fmn-progress-graph rect {
-  opacity: 0.55;
-  transition: opacity 0.15s ease;
-}
-
-.fmn-progress-graph .fmn-progress-graph-latest {
-  opacity: 1;
-}
-
-.fmn-progress:hover .fmn-progress-graph rect {
-  opacity: 0.85;
-}
-
-.fmn-progress:hover .fmn-progress-graph .fmn-progress-graph-latest {
-  opacity: 1;
+  transition: width 1s linear;
 }
 
 /* Streak strip */

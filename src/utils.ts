@@ -65,49 +65,51 @@ interface StreakPip {
   at: string
 }
 
-/** Color a pip by how close the cycle was to expected cadence. */
+/** Color thresholds (shared by streak pips, progress sparkline, labels):
+ *    ratio ≤ 1.20  → green   (safe zone, up to 120% of cadence)
+ *    ratio ≤ 3.00  → yellow  (warning zone, 120%–300%)
+ *    ratio  > 3.00 → red     (critical zone, past 300%)
+ *  Lapsed always reads red regardless of ratio. */
+const GREEN_MAX = 1.2
+const YELLOW_MAX = 3.0
+
 function pipColor(p: StreakPip): string {
   if (p.action === 'lapsed') return 'var(--red)'
-  if (p.ratio < 0.5) return 'var(--cyan)'
-  if (p.ratio <= 1.0) return 'var(--green)'
-  if (p.ratio <= 1.5) return 'var(--orange)'
+  if (p.ratio <= GREEN_MAX) return 'var(--green)'
+  if (p.ratio <= YELLOW_MAX) return 'var(--orange)'
   return 'var(--red)'
 }
 
 function pipLabel(p: StreakPip): string {
   const pct = Math.round(p.ratio * 100)
   if (p.action === 'lapsed') return `lapsed (${pct}%)`
-  if (p.ratio < 0.5) return `early (${pct}%)`
-  if (p.ratio <= 1.0) return `on time (${pct}%)`
-  if (p.ratio <= 1.5) return `late (${pct}%)`
+  if (p.ratio <= GREEN_MAX) return `on time (${pct}%)`
+  if (p.ratio <= YELLOW_MAX) return `late (${pct}%)`
   return `very late (${pct}%)`
 }
 
-/** Map a pip's state to a 0–1 bar height. Tallest = on-time; lapsed/extreme
- *  deviations get short bars so the chart reads as rhythm consistency. */
+/** Map a pip's state to a 0–1 bar height. Tallest = inside the safe zone;
+ *  shorter as the cycle drifts further past it. */
 function pipHeight(p: StreakPip): number {
   if (p.action === 'lapsed') return 0.2
-  if (p.ratio < 0.5) return 0.5            // significantly early
-  if (p.ratio <= 1.0) return 1.0           // on time / a touch early
-  if (p.ratio <= 1.5) return 0.7           // late
-  return 0.35                              // very late
+  if (p.ratio <= GREEN_MAX) return 1.0     // safe band: full height
+  if (p.ratio <= YELLOW_MAX) return 0.6    // warning band: half-ish
+  return 0.3                               // critical band: short
 }
 
-/** Continuous color for a urgency/cycle ratio. No three-tier hard buckets —
- *  smoothly walks the hue from cyan (early) through green (on time) to orange
- *  and red (late). Used by the progress sparkline. */
+/** Continuous color for the progress sparkline. Smooth hue walk from cyan
+ *  (early) through green (on time) to orange and red (late) — anchors
+ *  independent of the streak-strip GREEN_MAX/YELLOW_MAX thresholds so the
+ *  live progress reads as a continuous gradient. */
 function progressColor(ratio: number): string {
   const r = Math.max(0, Math.min(ratio, 2))
   let hue: number
   if (r <= 1.0) {
-    // 0 → 180 cyan; 1.0 → 120 green
-    hue = 180 - r * 60
+    hue = 180 - r * 60                     // 0 → 180 cyan; 1.0 → 120 green
   } else if (r <= 1.5) {
-    // 1.0 → 120 green; 1.5 → 30 orange
-    hue = 120 - ((r - 1.0) / 0.5) * 90
+    hue = 120 - ((r - 1.0) / 0.5) * 90     // 1.0 → 120 green; 1.5 → 30 orange
   } else {
-    // 1.5 → 30 orange; 2.0 → 0 red
-    hue = 30 - ((r - 1.5) / 0.5) * 30
+    hue = 30 - ((r - 1.5) / 0.5) * 30      // 1.5 → 30 orange; 2.0 → 0 red
   }
   return `hsl(${hue}, 70%, 55%)`
 }

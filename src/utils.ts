@@ -93,6 +93,67 @@ function pipHeight(p: StreakPip): number {
   return 0.35                              // very late
 }
 
+/** Continuous color for a urgency/cycle ratio. No three-tier hard buckets —
+ *  smoothly walks the hue from cyan (early) through green (on time) to orange
+ *  and red (late). Used by the progress sparkline. */
+function progressColor(ratio: number): string {
+  const r = Math.max(0, Math.min(ratio, 2))
+  let hue: number
+  if (r <= 1.0) {
+    // 0 → 180 cyan; 1.0 → 120 green
+    hue = 180 - r * 60
+  } else if (r <= 1.5) {
+    // 1.0 → 120 green; 1.5 → 30 orange
+    hue = 120 - ((r - 1.0) / 0.5) * 90
+  } else {
+    // 1.5 → 30 orange; 2.0 → 0 red
+    hue = 30 - ((r - 1.5) / 0.5) * 30
+  }
+  return `hsl(${hue}, 70%, 55%)`
+}
+
+/** Build a step-line sparkline of cycle ratios for the progress bar.
+ *
+ *  Each completed cycle is one horizontal plateau at a height proportional
+ *  to its ratio (0..2 clamped to 0..1 of the chart height). The current
+ *  cycle is appended as the rightmost plateau. Colors interpolate
+ *  continuously — no three-tier bucketing.
+ *
+ *  Returns an SVG element sized via viewBox so CSS controls the actual
+ *  rendered size. */
+export function renderProgressGraph(history: StreakPip[], currentRatio: number): SVGSVGElement {
+  const ns = 'http://www.w3.org/2000/svg'
+  const svg = document.createElementNS(ns, 'svg')
+  svg.setAttribute('class', 'fmn-progress-graph')
+  svg.setAttribute('viewBox', '0 0 100 12')
+  svg.setAttribute('preserveAspectRatio', 'none')
+
+  const ratios: { r: number; latest: boolean }[] = history.map((h) => ({ r: h.ratio, latest: false }))
+  ratios.push({ r: currentRatio, latest: true })
+
+  const N = ratios.length
+  const W = 100, H = 12
+  const stepW = W / N
+  const lineH = 1
+
+  for (let i = 0; i < N; i++) {
+    const { r, latest } = ratios[i]
+    const clamped = Math.max(0, Math.min(r, 2))
+    const y = Math.max(0, Math.min(H - lineH, H - (clamped / 2) * H))
+
+    const rect = document.createElementNS(ns, 'rect')
+    rect.setAttribute('x', String(i * stepW))
+    rect.setAttribute('y', String(y))
+    rect.setAttribute('width', String(stepW))
+    rect.setAttribute('height', String(lineH))
+    rect.setAttribute('fill', progressColor(r))
+    if (latest) rect.setAttribute('class', 'fmn-progress-graph-latest')
+    svg.appendChild(rect)
+  }
+
+  return svg
+}
+
 /** Render a horizontal strip of cycle-history pips.
  *
  *  Right-aligned and full-width. Renders every pip into the DOM, then measures

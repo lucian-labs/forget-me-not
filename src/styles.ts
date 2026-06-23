@@ -262,7 +262,7 @@ button:active { opacity: 0.8; }
   min-height: 2px;
   border-radius: 0;
   background: var(--dim);
-  opacity: 0.4;
+  opacity: 0.28;
   transition: opacity 0.15s ease, border-radius 0.15s ease;
 }
 

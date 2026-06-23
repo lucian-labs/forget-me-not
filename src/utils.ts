@@ -98,12 +98,60 @@ function pipHeight(p: StreakPip): number {
 }
 
 
+// Shared cursor-following tooltip for the streak strip. Sized + styled via
+// the existing .fmn-tip class — only the positioning model differs (tracks
+// the mouse instead of anchoring to a fixed element rect).
+let streakTip: HTMLElement | null = null
+let streakHideTimer: number | null = null
+
+function getStreakTip(): HTMLElement {
+  if (!streakTip) {
+    streakTip = document.createElement('div')
+    streakTip.className = 'fmn-tip fmn-streak-tip'
+    document.body.appendChild(streakTip)
+  }
+  return streakTip
+}
+
+function showStreakTip(text: string, cx: number, cy: number): void {
+  const tip = getStreakTip()
+  if (streakHideTimer) { clearTimeout(streakHideTimer); streakHideTimer = null }
+  if (tip.textContent !== text) tip.textContent = text
+
+  // Measure off-screen first, then position above the cursor with clearance.
+  tip.style.left = '0px'
+  tip.style.top = '0px'
+  const tipRect = tip.getBoundingClientRect()
+  const offset = 14
+  let x = cx - tipRect.width / 2
+  let y = cy - tipRect.height - offset
+  x = Math.max(4, Math.min(x, window.innerWidth - tipRect.width - 4))
+  y = Math.max(4, Math.min(y, window.innerHeight - tipRect.height - 4))
+  tip.style.left = `${x}px`
+  tip.style.top = `${y}px`
+  if (!tip.classList.contains('fmn-tip-visible')) {
+    requestAnimationFrame(() => tip.classList.add('fmn-tip-visible'))
+  }
+}
+
+function hideStreakTip(): void {
+  if (!streakTip) return
+  if (streakHideTimer) clearTimeout(streakHideTimer)
+  streakHideTimer = window.setTimeout(() => {
+    streakTip?.classList.remove('fmn-tip-visible')
+  }, 50)
+}
+
 /** Render a horizontal strip of cycle-history pips.
  *
  *  Right-aligned and full-width. Renders every pip into the DOM, then measures
  *  the available width via ResizeObserver and hides the oldest pips when they
  *  don't fit — surfacing a "+N" badge at the left of the visible cluster.
  *  Newest pip is always visible at the right edge.
+ *
+ *  The hover target is the entire chart strip (not the individual narrow pips)
+ *  and the tooltip follows the cursor so it never sits under the user's
+ *  pointer or off-screen on a tiny target.
  *
  *  Returns null if there are no pips to show. */
 export function renderStreakStrip(pips: StreakPip[], large = false): HTMLElement | null {
@@ -116,18 +164,50 @@ export function renderStreakStrip(pips: StreakPip[], large = false): HTMLElement
   strip.appendChild(moreBadge)
 
   const pipNodes: HTMLElement[] = []
+  const pipLabels: string[] = []
   for (let i = 0; i < pips.length; i++) {
     const p = pips[i]
     const pip = el('span', { className: 'fmn-streak-pip' })
     pip.style.background = pipColor(p)
     pip.style.setProperty('--h', String(pipHeight(p)))
     const when = new Date(p.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-    pip.dataset.tip = `${pipLabel(p)} · ${when}`
-    // No tipPos — defaults to 'above' so the cursor doesn't cover the tooltip.
+    pipLabels.push(`${pipLabel(p)} · ${when}`)
+    // No per-pip data-tip — strip-level mousemove drives the tooltip so the
+    // hover area is the whole chart height, not just the narrow colored bar.
     if (i === pips.length - 1) pip.classList.add('fmn-streak-pip-latest')
     pipNodes.push(pip)
     strip.appendChild(pip)
   }
+
+  // Whole-chart hover: figure out which pip the cursor is over, update the
+  // tip text + position on every move, fade out on leave.
+  strip.addEventListener('mousemove', (e) => {
+    const stripRect = strip.getBoundingClientRect()
+    const cursorX = e.clientX
+
+    // Skip when hovering the "+N" badge — there's no pip behind it.
+    if (moreBadge.style.display !== 'none') {
+      const badgeRect = moreBadge.getBoundingClientRect()
+      if (cursorX >= badgeRect.left && cursorX <= badgeRect.right) {
+        hideStreakTip()
+        return
+      }
+    }
+
+    // Pips are uniform width with gap 0, right-aligned. Compute the index by
+    // walking inward from the right edge.
+    const pipW = pipNodes[pipNodes.length - 1]?.offsetWidth || 4
+    if (pipW <= 0) { hideStreakTip(); return }
+    const xFromRight = stripRect.right - cursorX
+    const indexFromEnd = Math.floor(xFromRight / pipW)
+    const hoveredIdx = pipNodes.length - 1 - indexFromEnd
+    if (hoveredIdx < 0 || hoveredIdx >= pipNodes.length) { hideStreakTip(); return }
+    if (pipNodes[hoveredIdx].style.display === 'none') { hideStreakTip(); return }
+
+    showStreakTip(pipLabels[hoveredIdx], cursorX, e.clientY)
+  })
+
+  strip.addEventListener('mouseleave', hideStreakTip)
 
   const markEnds = (firstVisibleIdx: number): void => {
     // Clear all end markers, then tag the leftmost-visible and rightmost pips

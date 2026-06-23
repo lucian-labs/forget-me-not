@@ -1,214 +1,75 @@
 import SwiftUI
+import UIKit
 
+/// A task panel: icon (vertically centered, transparent cutout) on the left; on the
+/// right the title with the task type, the domain, the nudge speech bubble (middle), and
+/// the live LED urgency meter. When the task is paused (inactive) the icon sleeps.
 struct TaskCardView: View {
-    let task: FMNTask
-    @Environment(TaskStore.self) private var store
-    @State private var captureMode: CaptureMode?
-    @State private var captureText = ""
-    @State private var autoSubmitWork: DispatchWorkItem?
+    let task: TaskDTO
+    let nudge: String?
+    let icon: UIImage?
+    let symbol: String?
 
-    enum CaptureMode {
-        case check, note
-    }
-
-    private var ratio: Double { task.urgencyRatio }
-
-    private var urgencyColor: Color {
-        if ratio < 0.75 { return store.theme.green }
-        if ratio < 0.95 { return store.theme.orange }
-        return store.theme.red
-    }
-
-    private var overduePrompt: String? {
-        guard task.isOverdue, !task.prompts.isEmpty else { return nil }
-        let period = Int(Date().timeIntervalSince1970 / 10)
-        let index = abs((task.id.hashValue &+ period)) % task.prompts.count
-        return task.prompts[index]
-    }
+    private var asleep: Bool { task.status == .blocked }
 
     var body: some View {
-        let _ = store.tick
-
-        VStack(alignment: .leading, spacing: 8) {
-            // Title row
-            HStack(spacing: 10) {
-                Button { toggleCapture(.check) } label: {
-                    Image(systemName: captureMode == .check ? "checkmark.circle.fill" : "checkmark.circle")
-                        .font(.system(size: 20))
-                        .foregroundStyle(store.theme.accent)
-                }
-                .buttonStyle(.plain)
-
-                Text(task.title)
-                    .font(store.theme.body(size: store.theme.fontSize, weight: .medium))
-                    .foregroundStyle(store.theme.text)
-                    .lineLimit(1)
-
-                Spacer(minLength: 4)
-
-                if task.priority == .high || task.priority == .critical {
-                    Text(task.priority.rawValue)
-                        .font(.system(size: 10, weight: .semibold))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(task.priority == .critical ? store.theme.red.opacity(0.2) : store.theme.orange.opacity(0.2))
-                        .foregroundStyle(task.priority == .critical ? store.theme.red : store.theme.orange)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
-                }
-
-                Button { toggleCapture(.note) } label: {
-                    Image(systemName: "pencil")
-                        .font(.system(size: 14))
-                        .foregroundStyle(store.theme.dim)
-                }
-                .buttonStyle(.plain)
-
-                if task.recurring {
-                    Button {
-                        withAnimation { store.snoozeTask(id: task.id) }
-                    } label: {
-                        Text("zz")
-                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(store.theme.dim)
+        HStack(alignment: .center, spacing: 10) {
+            iconSlot
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(task.title.capitalized)
+                        .font(WL.mono(16, .semibold)).tracking(1)
+                        .foregroundStyle(WL.text).lineLimit(2)
+                    Spacer(minLength: 6)
+                    if !task.domain.isEmpty {
+                        Text(task.domain.uppercased())
+                            .font(WL.mono(9, .bold)).tracking(1).foregroundStyle(WL.muted)
                     }
-                    .buttonStyle(.plain)
+                }
+                if let nudge, !asleep {
+                    SpeechBubble(text: nudge).transition(.opacity)
+                }
+                // 10s, not 1s: urgency creeps slowly, so per-second redraws of every card
+                // were burning CPU continuously for an imperceptible change.
+                TimelineView(.periodic(from: .now, by: 10)) { context in
+                    let ratio = Urgency.ratio(task, now: context.date)
+                    HStack(spacing: 10) {
+                        UrgencyBarView(ratio: ratio)
+                        Text("\(Int(min(ratio, 9.99) * 100))%")
+                            .font(WL.mono(11, .bold))
+                            .foregroundStyle(WL.urgencyColor(Urgency.tier(for: ratio)))
+                            .frame(width: 46, alignment: .trailing)
+                    }
+                }
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .wlPanel(fill: WL.surface, border: WL.border)
+        .opacity(asleep ? 0.6 : 1)
+        .animation(.easeInOut(duration: 0.25), value: nudge)
+    }
+
+    private var iconSlot: some View {
+        ZStack {
+            Group {
+                if let symbol {
+                    Image(systemName: symbol).font(.system(size: 26)).foregroundStyle(WL.accent)
+                } else if let icon {
+                    Image(uiImage: icon).resizable().scaledToFit()
                 } else {
-                    Button {
-                        withAnimation { store.archiveTask(id: task.id) }
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 12))
-                            .foregroundStyle(store.theme.dim)
-                    }
-                    .buttonStyle(.plain)
+                    Image(systemName: "sparkle").font(.system(size: 18)).foregroundStyle(WL.muted.opacity(0.4))
                 }
             }
-
-            // Meta
-            if let meta = metaText {
-                Text(meta)
-                    .font(.system(size: 11))
-                    .foregroundStyle(store.theme.dim)
-            }
-
-            // Urgency bar
-            UrgencyBar(ratio: ratio, color: urgencyColor)
-
-            // Overdue prompt
-            if let prompt = overduePrompt {
-                Text("? \(prompt)")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(store.theme.orange)
-            }
-
-            // Quick capture
-            if let mode = captureMode {
-                HStack(spacing: 8) {
-                    TextField(
-                        mode == .note ? "what did you do?" : "quick note (auto-submits)...",
-                        text: $captureText
-                    )
-                    .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 13))
-                    .onSubmit { executeCapture() }
-                    .onChange(of: captureText) {
-                        if mode == .check { scheduleAutoSubmit() }
-                    }
-
-                    Button { dismissCapture() } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(store.theme.dim)
-                    }
-                    .buttonStyle(.plain)
-                }
-                .transition(.opacity.combined(with: .move(edge: .top)))
-                .onAppear {
-                    if mode == .check { scheduleAutoSubmit() }
-                }
+            .opacity(asleep ? 0.5 : 1)
+            .grayscale(asleep ? 0.9 : 0)
+            if asleep {
+                Image(systemName: "zzz")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(WL.muted)
+                    .offset(x: 18, y: -16)
             }
         }
-        .padding(12)
-        .background(store.theme.surface)
-        .clipShape(RoundedRectangle(cornerRadius: store.theme.borderRadius))
-        .overlay(
-            RoundedRectangle(cornerRadius: store.theme.borderRadius)
-                .stroke(task.isOverdue ? store.theme.red.opacity(0.4) : store.theme.border, lineWidth: 1)
-        )
-        .onAppear { checkAlert() }
-        .onChange(of: store.tick) { checkAlert() }
-    }
-
-    // MARK: - Meta text
-
-    private var metaText: String? {
-        var parts: [String] = []
-        if task.recurring, let cadence = task.cadenceSeconds, let lastReset = task.lastResetAt {
-            let elapsed = Date().timeIntervalSince(lastReset)
-            let remaining = cadence - elapsed
-            parts.append(remaining > 0 ? "\(formatTime(remaining)) left" : "\(formatTime(abs(remaining))) over")
-            parts.append("every \(formatCadence(cadence))")
-        } else if let due = task.dueDate {
-            let remaining = due.timeIntervalSinceNow
-            parts.append(remaining > 0 ? "\(formatTime(remaining)) left" : "\(formatTime(abs(remaining))) over")
-        }
-        return parts.isEmpty ? nil : parts.joined(separator: " \u{00B7} ")
-    }
-
-    // MARK: - Capture
-
-    private func toggleCapture(_ mode: CaptureMode) {
-        withAnimation(.easeInOut(duration: 0.2)) {
-            if captureMode == mode {
-                dismissCapture()
-            } else {
-                autoSubmitWork?.cancel()
-                captureMode = mode
-                captureText = ""
-            }
-        }
-    }
-
-    private func dismissCapture() {
-        autoSubmitWork?.cancel()
-        captureMode = nil
-        captureText = ""
-    }
-
-    private func scheduleAutoSubmit() {
-        autoSubmitWork?.cancel()
-        let work = DispatchWorkItem { [self] in
-            DispatchQueue.main.async { executeCapture() }
-        }
-        autoSubmitWork = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: work)
-    }
-
-    private func executeCapture() {
-        autoSubmitWork?.cancel()
-        let note = captureText.trimmingCharacters(in: .whitespaces)
-
-        withAnimation {
-            if captureMode == .note {
-                if !note.isEmpty { store.addNote(id: task.id, note: note) }
-            } else {
-                if task.recurring {
-                    store.resetTask(id: task.id, note: note)
-                } else {
-                    store.completeTask(id: task.id, note: note)
-                }
-            }
-            captureMode = nil
-            captureText = ""
-        }
-    }
-
-    // MARK: - Alerts
-
-    private func checkAlert() {
-        if task.isOverdue {
-            SoundManager.shared.playAlert(for: task.id, settings: store.settings)
-        } else {
-            SoundManager.shared.clearAlert(for: task.id)
-        }
+        .frame(width: 56, height: 56)
     }
 }

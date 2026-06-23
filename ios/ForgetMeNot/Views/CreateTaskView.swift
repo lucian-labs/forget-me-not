@@ -1,301 +1,152 @@
 import SwiftUI
 
+/// Create a new task — waveloop-styled form (square controls, mono uppercase labels).
+/// Recurring tasks start a fresh instance immediately, mirroring web createTask.
 struct CreateTaskView: View {
-    @Environment(TaskStore.self) private var store
+    @Environment(AppStore.self) private var store
     @Environment(\.dismiss) private var dismiss
-    @FocusState private var titleFocused: Bool
 
     @State private var title = ""
-    @State private var isRecurring = true
-    @State private var cadence: Double = 86400
     @State private var domain = ""
-    @State private var priority: TaskPriority = .normal
-    @State private var dueDate = Date()
-    @State private var hasDueDate = false
-    @State private var tags = ""
-    @State private var notes = ""
-    @State private var followUps: [FollowUp] = []
+    @State private var details = ""
+    @State private var recurring = true
+    @State private var amount = 1
+    @State private var unit: Unit = .hour
     @State private var prompts: [String] = []
-    @State private var newFollowUpTitle = ""
-    @State private var newFollowUpCadence: Double = 86400
     @State private var newPrompt = ""
-    @State private var showAdvanced = false
-    @State private var createdTasks: [FMNTask] = []
+
+    enum Unit: String, CaseIterable, Identifiable {
+        case min = "MIN", hour = "HR", day = "DAY"
+        var id: String { rawValue }
+        var seconds: Double { switch self { case .min: 60; case .hour: 3600; case .day: 86400 } }
+    }
+
+    private var canSave: Bool { !title.trimmingCharacters(in: .whitespaces).isEmpty }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                titleRow
-                cadenceAndCategory
-                followUpsSection
-                remindersSection
-                advancedSection
-                createButton
-
-                if !createdTasks.isEmpty {
-                    createdList
-                }
-            }
-            .padding()
-        }
-        .background(store.theme.bg.ignoresSafeArea())
-        .navigationTitle("New Task")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Done") { dismiss() }
-            }
-        }
-        .onAppear { titleFocused = true }
-    }
-
-    // MARK: - Title
-
-    private var titleRow: some View {
-        HStack(spacing: 12) {
-            TextField("What needs doing...", text: $title)
-                .textFieldStyle(.roundedBorder)
-                .focused($titleFocused)
-
-            Toggle(isOn: $isRecurring) {
-                Text(isRecurring ? "repeats" : "once")
-                    .font(.caption)
-                    .foregroundStyle(store.theme.dim)
-            }
-            .toggleStyle(.switch)
-            .labelsHidden()
-
-            Text(isRecurring ? "repeats" : "once")
-                .font(.caption)
-                .foregroundStyle(store.theme.dim)
-        }
-    }
-
-    // MARK: - Cadence + Category
-
-    private var cadenceAndCategory: some View {
-        HStack(spacing: 16) {
-            if isRecurring {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Every").font(.caption).foregroundStyle(store.theme.dim)
-                    Picker("", selection: $cadence) {
-                        ForEach(cadenceOptions, id: \.value) { Text($0.label).tag($0.value) }
-                    }
-                    .pickerStyle(.menu)
-                    .labelsHidden()
-                }
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Category").font(.caption).foregroundStyle(store.theme.dim)
-                Picker("", selection: $domain) {
-                    Text("\u{2014}").tag("")
-                    ForEach(store.settings.domains, id: \.self) { Text($0).tag($0) }
-                }
-                .pickerStyle(.menu)
-                .labelsHidden()
-            }
-        }
-    }
-
-    // MARK: - Follow-ups
-
-    private var followUpsSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Follow-ups").font(.caption).foregroundStyle(store.theme.dim)
-
-            if !followUps.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 4) {
-                        ForEach(Array(followUps.enumerated()), id: \.offset) { idx, fu in
-                            if idx > 0 {
-                                Image(systemName: "arrow.right")
-                                    .font(.system(size: 10))
-                                    .foregroundStyle(store.theme.dim)
-                            }
-                            HStack(spacing: 4) {
-                                Text("\(fu.title) (\(formatCadence(fu.cadenceSeconds)))")
-                                    .font(.caption)
-                                Button { followUps.remove(at: idx) } label: {
-                                    Image(systemName: "xmark")
-                                        .font(.system(size: 8, weight: .bold))
-                                        .foregroundStyle(store.theme.dim)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(store.theme.surface)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
+        ZStack {
+            WL.bg.ignoresSafeArea()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                    HStack {
+                        Text("NEW TASK").font(WL.mono(15, .bold)).tracking(3).foregroundStyle(WL.text)
+                        Spacer()
+                        Button { dismiss() } label: {
+                            Image(systemName: "xmark").font(.system(size: 15, weight: .bold)).foregroundStyle(WL.muted)
                         }
                     }
-                }
-            }
 
-            HStack(spacing: 8) {
-                TextField("Next step...", text: $newFollowUpTitle)
-                    .font(.system(size: 13))
-                    .textFieldStyle(.roundedBorder)
+                    field("TITLE") { textField("what to remember", $title) }
+                    field("DOMAIN") { textField("home / work / health", $domain) }
+                    field("DETAILS") { textField("optional — what is this? (flavors the icon)", $details) }
 
-                Picker("", selection: $newFollowUpCadence) {
-                    ForEach(cadenceOptions, id: \.value) { Text($0.label).tag($0.value) }
-                }
-                .pickerStyle(.menu)
-                .labelsHidden()
-
-                Button {
-                    let trimmed = newFollowUpTitle.trimmingCharacters(in: .whitespaces)
-                    guard !trimmed.isEmpty else { return }
-                    followUps.append(FollowUp(title: trimmed, cadenceSeconds: newFollowUpCadence))
-                    newFollowUpTitle = ""
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .foregroundStyle(store.theme.accent)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-    }
-
-    // MARK: - Reminders
-
-    private var remindersSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Reminders").font(.caption).foregroundStyle(store.theme.dim)
-
-            ForEach(Array(prompts.enumerated()), id: \.offset) { idx, prompt in
-                HStack {
-                    Text(prompt).font(.caption)
-                    Spacer()
-                    Button { prompts.remove(at: idx) } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 10))
-                            .foregroundStyle(store.theme.dim)
+                    field("TYPE") {
+                        HStack(spacing: 8) {
+                            segment("RECURRING", on: recurring) { recurring = true }
+                            segment("ONE-TIME", on: !recurring) { recurring = false }
+                        }
                     }
-                    .buttonStyle(.plain)
-                }
-                .padding(6)
-                .background(store.theme.surface)
-                .clipShape(RoundedRectangle(cornerRadius: 6))
-            }
 
-            TextField("e.g. Did you check the pockets?", text: $newPrompt)
-                .font(.system(size: 13))
-                .textFieldStyle(.roundedBorder)
-                .onSubmit {
-                    let trimmed = newPrompt.trimmingCharacters(in: .whitespaces)
-                    guard !trimmed.isEmpty else { return }
-                    prompts.append(trimmed)
-                    newPrompt = ""
-                }
-        }
-    }
-
-    // MARK: - Advanced
-
-    private var advancedSection: some View {
-        DisclosureGroup("More options", isExpanded: $showAdvanced) {
-            VStack(alignment: .leading, spacing: 12) {
-                Picker("Priority", selection: $priority) {
-                    ForEach(TaskPriority.allCases) { Text($0.rawValue).tag($0) }
-                }
-                .pickerStyle(.segmented)
-
-                if !isRecurring {
-                    Toggle("Due date", isOn: $hasDueDate)
-                    if hasDueDate {
-                        DatePicker("", selection: $dueDate)
-                            .labelsHidden()
+                    if recurring {
+                        field("EVERY") {
+                            HStack(spacing: 10) {
+                                stepperButton("minus") { amount = max(1, amount - 1) }
+                                Text("\(amount)").font(WL.mono(18, .bold)).foregroundStyle(WL.text)
+                                    .frame(minWidth: 36)
+                                stepperButton("plus") { amount += 1 }
+                                Spacer(minLength: 12)
+                                ForEach(Unit.allCases) { u in
+                                    segment(u.rawValue, on: unit == u) { unit = u }
+                                }
+                            }
+                        }
                     }
-                }
 
-                TextField("Tags (comma separated)", text: $tags)
-                    .textFieldStyle(.roundedBorder)
-
-                TextField("Notes", text: $notes, axis: .vertical)
-                    .textFieldStyle(.roundedBorder)
-                    .lineLimit(3...6)
-            }
-            .padding(.top, 4)
-        }
-        .tint(store.theme.dim)
-    }
-
-    // MARK: - Create
-
-    private var createButton: some View {
-        Button {
-            createTask()
-        } label: {
-            Text("Create")
-                .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.borderedProminent)
-        .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
-    }
-
-    // MARK: - Created list
-
-    private var createdList: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Created (\(createdTasks.count))")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(store.theme.dim)
-
-            ForEach(createdTasks.reversed()) { task in
-                HStack {
-                    Text(task.title)
-                        .font(.system(size: 14))
-                        .foregroundStyle(store.theme.text)
-                    Spacer()
-                    if task.recurring, let cadence = task.cadenceSeconds {
-                        Text("every \(formatCadence(cadence))")
-                            .font(.caption)
-                            .foregroundStyle(store.theme.accent)
+                    field("PROMPTS") {
+                        VStack(alignment: .leading, spacing: 8) {
+                            ForEach(prompts, id: \.self) { p in
+                                HStack {
+                                    Text("· \(p)").font(WL.mono(12)).foregroundStyle(WL.muted)
+                                    Spacer()
+                                    Button { prompts.removeAll { $0 == p } } label: {
+                                        Image(systemName: "xmark").font(.system(size: 10)).foregroundStyle(WL.muted)
+                                    }
+                                }
+                            }
+                            HStack(spacing: 8) {
+                                textField("add a nudge prompt", $newPrompt)
+                                Button {
+                                    let t = newPrompt.trimmingCharacters(in: .whitespaces)
+                                    guard !t.isEmpty else { return }
+                                    prompts.append(t); newPrompt = ""
+                                } label: {
+                                    Image(systemName: "plus").font(.system(size: 14, weight: .bold)).foregroundStyle(WL.bg)
+                                        .frame(width: 40, height: 40).background(WL.accent)
+                                }
+                            }
+                        }
                     }
-                    if !task.domain.isEmpty {
-                        Text(task.domain)
-                            .font(.caption)
-                            .foregroundStyle(store.theme.cyan)
+
+                    Button {
+                        store.create(makeTask()); dismiss()
+                    } label: {
+                        Text("CREATE").font(WL.mono(14, .bold)).tracking(2)
+                            .frame(maxWidth: .infinity).padding(.vertical, 14)
+                            .foregroundStyle(canSave ? WL.bg : WL.muted)
+                            .background(canSave ? WL.accent : WL.surface)
+                            .overlay(Rectangle().stroke(WL.border, lineWidth: 1))
                     }
+                    .disabled(!canSave)
                 }
-                .padding(10)
-                .background(store.theme.surface)
-                .clipShape(RoundedRectangle(cornerRadius: store.theme.borderRadius))
+                .padding(20)
             }
         }
+        .preferredColorScheme(.dark)
     }
 
-    // MARK: - Logic
-
-    private func createTask() {
-        let tagsList = tags.split(separator: ",")
-            .map { String($0).trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty }
-
-        let task = FMNTask(
-            title: title.trimmingCharacters(in: .whitespaces),
-            description: notes,
-            domain: domain,
-            tags: tagsList,
-            priority: priority,
-            dueDate: (!isRecurring && hasDueDate) ? dueDate : nil,
-            startedAt: (!isRecurring && hasDueDate) ? Date() : nil,
-            recurring: isRecurring,
-            cadenceSeconds: isRecurring ? cadence : nil,
-            followUps: followUps,
-            prompts: prompts
+    private func makeTask() -> TaskDTO {
+        let now = Date()
+        let cadence: Double? = recurring ? Double(amount) * unit.seconds : nil
+        return TaskDTO(
+            id: UUID().uuidString, title: title.trimmingCharacters(in: .whitespaces),
+            description: details.trimmingCharacters(in: .whitespaces),
+            domain: domain.trimmingCharacters(in: .whitespaces), tags: [], status: .open, priority: .normal,
+            createdAt: now, updatedAt: now, dueDate: nil, startedAt: nil, completedAt: nil, estimatedHours: nil,
+            recurring: recurring, baseCadenceSeconds: cadence, cadenceMore: nil, cadenceLess: nil,
+            instance: (recurring && cadence != nil) ? ReminderInstanceDTO(startedAt: now, actualCadenceSeconds: cadence!, snoozed: false) : nil,
+            followUps: [], parentTaskId: nil, prompts: prompts, soundSeed: nil, actionLog: []
         )
+    }
 
-        store.createTask(task)
-        createdTasks.append(task)
+    // MARK: components
 
-        // Reset form, keep sticky state (isRecurring, domain, cadence)
-        title = ""
-        followUps = []
-        prompts = []
-        notes = ""
-        tags = ""
-        titleFocused = true
+    @ViewBuilder private func field<C: View>(_ label: String, @ViewBuilder _ content: () -> C) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(label).font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
+            content()
+        }
+    }
+
+    private func textField(_ placeholder: String, _ text: Binding<String>) -> some View {
+        TextField(placeholder, text: text)
+            .font(WL.mono(14)).foregroundStyle(WL.text).tint(WL.accent)
+            .padding(12).wlPanel(fill: WL.surface, border: WL.border)
+    }
+
+    private func segment(_ label: String, on: Bool, _ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(label).font(WL.mono(11, .bold)).tracking(1)
+                .padding(.horizontal, 12).padding(.vertical, 10)
+                .foregroundStyle(on ? WL.bg : WL.muted)
+                .background(on ? WL.accent : WL.surface)
+                .overlay(Rectangle().stroke(WL.border, lineWidth: 1))
+        }
+    }
+
+    private func stepperButton(_ icon: String, _ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: icon).font(.system(size: 13, weight: .bold)).foregroundStyle(WL.accent)
+                .frame(width: 36, height: 36).overlay(Rectangle().stroke(WL.border, lineWidth: 1))
+        }
     }
 }

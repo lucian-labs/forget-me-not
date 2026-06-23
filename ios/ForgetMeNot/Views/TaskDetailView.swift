@@ -1,486 +1,309 @@
 import SwiftUI
+import UIKit
 
+/// Full task panel — reads live from the store by id so actions reflect immediately.
+/// Waveloop-styled. RESET / COMPLETE / LOG / DELETE + a per-task on-device insight,
+/// plus the task's generated icon (from its title/description).
 struct TaskDetailView: View {
     let taskId: String
-    @Environment(TaskStore.self) private var store
-    @Environment(\.dismiss) private var dismiss
-    @State private var editingTitle = false
-    @State private var titleText = ""
-    @State private var descriptionText = ""
-    @State private var newPrompt = ""
-    @State private var newFollowUpTitle = ""
-    @State private var newFollowUpCadence: Double = 86400
-    @State private var newNote = ""
-    @State private var showMore = false
 
-    private var task: FMNTask? {
-        store.tasks.first { $0.id == taskId }
-    }
+    @Environment(AppStore.self) private var store
+    @Environment(\.dismiss) private var dismiss
+    @State private var note = ""
+    @State private var descDraft = ""
+    @State private var insightTask: TaskDTO?
+    @State private var fuTitle = ""
+    @State private var fuCadence: Double = 3600
+    @State private var reminderDraft = ""
+    /// In-detail navigation: tapping a follow-up pushes its id; back pops (or dismisses
+    /// at the root). The shown task is the top of the stack.
+    @State private var navStack: [String] = []
+
+    private var currentId: String { navStack.last ?? taskId }
+    private var task: TaskDTO? { store.task(currentId) }
 
     var body: some View {
-        let _ = store.tick
-
-        Group {
+        ZStack {
+            WL.bg.ignoresSafeArea()
             if let task {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        taskHeader(task)
-                        statusBadges(task)
-                        descriptionSection(task)
-                        remindersSection(task)
-                        followUpsSection(task)
-                        actionsRow(task)
-                        moreSection(task)
-                    }
-                    .padding()
-                }
-                .background(store.theme.bg.ignoresSafeArea())
+                ScrollView { body(task) }
+                    .simultaneousGesture(swipeBack)
             } else {
-                ContentUnavailableView("Task not found", systemImage: "questionmark.circle")
+                Color.clear.onAppear { dismiss() }
             }
         }
-        .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            if let task {
-                titleText = task.title
-                descriptionText = task.description
-            }
+        .preferredColorScheme(.dark)
+        .sheet(item: $insightTask) { t in
+            InsightView(title: t.title) { await Insights.service().insight(for: t) }
+                .presentationDetents([.medium, .large])
         }
+        .onChange(of: navStack) { _, _ in descDraft = store.task(currentId)?.description ?? "" }
     }
 
-    // MARK: - Header
+    /// Open a follow-up's detail in place (save the current draft first).
+    private func open(_ id: String) {
+        store.setDescription(id: currentId, descDraft)
+        navStack.append(id)
+    }
 
-    @ViewBuilder
-    private func taskHeader(_ task: FMNTask) -> some View {
-        HStack(alignment: .firstTextBaseline) {
-            if editingTitle {
-                TextField("Title", text: $titleText)
-                    .font(store.theme.header(size: 22, weight: .bold))
-                    .foregroundStyle(store.theme.accent)
-                    .onSubmit {
-                        store.updateTask(id: task.id) { $0.title = titleText }
-                        editingTitle = false
-                    }
-            } else {
-                Text(task.title)
-                    .font(store.theme.header(size: 22, weight: .bold))
-                    .foregroundStyle(store.theme.accent)
-                    .onTapGesture { editingTitle = true }
+    /// Back: pop to the parent task, or dismiss at the root. Saves the draft either way.
+    private func back() {
+        store.setDescription(id: currentId, descDraft)
+        if navStack.isEmpty { dismiss() } else { navStack.removeLast() }
+    }
+
+    /// Left-edge swipe-right to go back (fullScreenCover has no built-in back gesture).
+    /// Simultaneous so the ScrollView keeps scrolling; gated to a deliberate, mostly-
+    /// horizontal drag that starts at the very left edge.
+    private var swipeBack: some Gesture {
+        DragGesture(minimumDistance: 20, coordinateSpace: .local)
+            .onEnded { value in
+                guard value.startLocation.x < 24,
+                      value.translation.width > 80,
+                      abs(value.translation.width) > abs(value.translation.height) * 1.5
+                else { return }
+                back()
+            }
+    }
+
+    private func body(_ task: TaskDTO) -> some View {
+        VStack(alignment: .leading, spacing: 20) {
+            // header
+            HStack {
+                Button { back() } label: {
+                    Image(systemName: "chevron.left").font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(WL.muted)
+                }
+                Spacer()
+                Button { insightTask = task } label: {
+                    Image(systemName: "waveform.path.ecg").font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(WL.accent)
+                }
             }
 
-            Spacer()
-
+            Text(task.title.capitalized)
+                .font(WL.mono(22, .bold)).tracking(1).foregroundStyle(WL.text)
+                .fixedSize(horizontal: false, vertical: true)
             if !task.domain.isEmpty {
-                Text(task.domain)
-                    .font(.caption)
-                    .foregroundStyle(store.theme.cyan)
-            }
-        }
-    }
-
-    // MARK: - Status
-
-    @ViewBuilder
-    private func statusBadges(_ task: FMNTask) -> some View {
-        HStack(spacing: 8) {
-            if task.recurring {
-                badge("recurring", color: store.theme.accent)
-                if let cadence = task.cadenceSeconds {
-                    Text("every \(formatCadence(cadence))")
-                        .font(.caption)
-                        .foregroundStyle(store.theme.dim)
-                }
-                if let lastReset = task.lastResetAt, let cadence = task.cadenceSeconds {
-                    let elapsed = Date().timeIntervalSince(lastReset)
-                    let remaining = cadence - elapsed
-                    let text = remaining > 0 ? "\(formatTime(remaining)) left" : "\(formatTime(abs(remaining))) over"
-                    Text(text)
-                        .font(.caption.bold())
-                        .foregroundStyle(urgencyColor(task.urgencyRatio))
-                }
-            } else {
-                Menu {
-                    ForEach([TaskStatus.open, .inProgress, .blocked, .done, .cancelled], id: \.self) { status in
-                        Button(status.label) {
-                            store.updateTask(id: task.id) { $0.status = status }
-                        }
-                    }
-                } label: {
-                    badge(task.status.label, color: store.theme.accent)
-                }
-            }
-        }
-    }
-
-    // MARK: - Description
-
-    @ViewBuilder
-    private func descriptionSection(_ task: FMNTask) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            sectionTitle("Description")
-            TextEditor(text: $descriptionText)
-                .font(.system(size: 14))
-                .frame(minHeight: 60, maxHeight: 120)
-                .scrollContentBackground(.hidden)
-                .padding(8)
-                .background(store.theme.surface)
-                .clipShape(RoundedRectangle(cornerRadius: store.theme.borderRadius))
-                .overlay(
-                    RoundedRectangle(cornerRadius: store.theme.borderRadius)
-                        .stroke(store.theme.border, lineWidth: 1)
-                )
-                .onChange(of: descriptionText) { _, val in
-                    store.updateTask(id: task.id) { $0.description = val }
-                }
-        }
-    }
-
-    // MARK: - Reminders
-
-    @ViewBuilder
-    private func remindersSection(_ task: FMNTask) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            sectionTitle("Reminders")
-
-            ForEach(Array(task.prompts.enumerated()), id: \.offset) { idx, prompt in
-                HStack(spacing: 6) {
-                    Text(prompt)
-                        .font(.system(size: 13))
-                        .foregroundStyle(store.theme.text)
-                    Spacer()
-                    Button {
-                        store.updateTask(id: task.id) { $0.prompts.remove(at: idx) }
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(store.theme.dim)
-                    }
-                    .buttonStyle(.plain)
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(store.theme.accent.opacity(0.08))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+                Text(task.domain.uppercased()).font(WL.mono(11)).tracking(2).foregroundStyle(WL.muted)
             }
 
-            TextField("Add a reminder...", text: $newPrompt)
-                .font(.system(size: 13))
-                .textFieldStyle(.roundedBorder)
-                .onSubmit {
-                    let trimmed = newPrompt.trimmingCharacters(in: .whitespaces)
-                    guard !trimmed.isEmpty else { return }
-                    store.updateTask(id: task.id) { $0.prompts.append(trimmed) }
-                    newPrompt = ""
-                }
-        }
-    }
-
-    // MARK: - Follow-ups
-
-    @ViewBuilder
-    private func followUpsSection(_ task: FMNTask) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            sectionTitle("Follow-up Chain")
-
-            if !task.followUps.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 4) {
-                        ForEach(Array(task.followUps.enumerated()), id: \.offset) { idx, fu in
-                            if idx > 0 {
-                                Image(systemName: "arrow.right")
-                                    .font(.system(size: 10))
-                                    .foregroundStyle(store.theme.dim)
-                            }
-                            HStack(spacing: 4) {
-                                Text("\(fu.title) (\(formatCadence(fu.cadenceSeconds)))")
-                                    .font(.caption)
-                                Button {
-                                    store.updateTask(id: task.id) { $0.followUps.remove(at: idx) }
-                                } label: {
-                                    Image(systemName: "xmark")
-                                        .font(.system(size: 8, weight: .bold))
-                                        .foregroundStyle(store.theme.dim)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(store.theme.surface)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(store.theme.border, lineWidth: 1)
-                            )
-                        }
+            // live meter
+            TimelineView(.periodic(from: .now, by: 5)) { ctx in
+                let ratio = Urgency.ratio(task, now: ctx.date)
+                VStack(alignment: .leading, spacing: 6) {
+                    UrgencyBarView(ratio: ratio)
+                    HStack {
+                        Text(task.recurring ? "EVERY \(Format.duration(task.baseCadenceSeconds ?? 0).uppercased())" : "ONE-TIME")
+                            .font(WL.mono(10)).tracking(1).foregroundStyle(WL.muted)
+                        Spacer()
+                        Text("\(Int(min(ratio, 9.99) * 100))%")
+                            .font(WL.mono(11, .bold)).foregroundStyle(WL.urgencyColor(Urgency.tier(for: ratio)))
                     }
                 }
             }
 
-            HStack(spacing: 8) {
-                TextField("Follow-up title...", text: $newFollowUpTitle)
-                    .font(.system(size: 13))
-                    .textFieldStyle(.roundedBorder)
+            section("DETAILS") {
+                TextField("what is this? (flavors the icon + nudges)", text: $descDraft, axis: .vertical)
+                    .font(WL.mono(13)).foregroundStyle(WL.text).tint(WL.accent)
+                    .lineLimit(1...4)
+                    .padding(10).wlPanel(fill: WL.surface, border: WL.border)
+                    .onSubmit { store.setDescription(id: task.id, descDraft) }
+            }
 
-                Picker("", selection: $newFollowUpCadence) {
-                    ForEach(cadenceOptions, id: \.value) { opt in
-                        Text(opt.label).tag(opt.value)
-                    }
-                }
-                .pickerStyle(.menu)
+            remindersSection(task)
+
+            followUpsSection(task)
+
+            // active switch (off = paused; the creature sleeps)
+            HStack {
+                Text("ACTIVE").font(WL.mono(12, .bold)).tracking(1).foregroundStyle(WL.text)
+                Spacer()
+                Toggle("", isOn: Binding(
+                    get: { task.status == .open },
+                    set: { store.setActive(id: task.id, $0) }
+                ))
                 .labelsHidden()
+                .tint(WL.accent)
+            }
+            .padding(.horizontal, 12).padding(.vertical, 8)
+            .wlPanel(fill: WL.surface, border: WL.border)
 
-                Button {
-                    let trimmed = newFollowUpTitle.trimmingCharacters(in: .whitespaces)
-                    guard !trimmed.isEmpty else { return }
-                    store.updateTask(id: task.id) {
-                        $0.followUps.append(FollowUp(title: trimmed, cadenceSeconds: newFollowUpCadence))
+            // quick log
+            section("LOG A NOTE") {
+                HStack(spacing: 8) {
+                    TextField("what did you do?", text: $note)
+                        .font(WL.mono(13)).foregroundStyle(WL.text)
+                        .padding(10).wlPanel(fill: WL.surface, border: WL.border)
+                    Button {
+                        let trimmed = note.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !trimmed.isEmpty else { return }
+                        store.addNote(id: task.id, note: trimmed); note = ""
+                    } label: {
+                        Image(systemName: "plus").font(.system(size: 14, weight: .bold)).foregroundStyle(WL.bg)
+                            .frame(width: 40, height: 40).background(WL.accent)
                     }
-                    newFollowUpTitle = ""
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .foregroundStyle(store.theme.accent)
                 }
-                .buttonStyle(.plain)
-            }
-        }
-    }
-
-    // MARK: - Actions
-
-    @ViewBuilder
-    private func actionsRow(_ task: FMNTask) -> some View {
-        HStack(spacing: 12) {
-            if task.recurring {
-                Button("Reset") {
-                    store.resetTask(id: task.id, note: "")
-                    dismiss()
-                }
-                .buttonStyle(.borderedProminent)
             }
 
-            Button("Complete") {
-                store.completeTask(id: task.id, note: "")
-                dismiss()
-            }
-            .buttonStyle(.bordered)
-
-            Button("Archive") {
-                store.archiveTask(id: task.id)
-                dismiss()
-            }
-            .buttonStyle(.bordered)
-            .tint(.red)
-
-            Spacer()
-        }
-    }
-
-    // MARK: - More
-
-    @ViewBuilder
-    private func moreSection(_ task: FMNTask) -> some View {
-        DisclosureGroup("More", isExpanded: $showMore) {
-            VStack(alignment: .leading, spacing: 16) {
-                // Category
-                HStack {
-                    label("Category")
-                    Picker("", selection: Binding(
-                        get: { task.domain },
-                        set: { val in store.updateTask(id: task.id) { $0.domain = val } }
-                    )) {
-                        Text("\u{2014}").tag("")
-                        ForEach(store.settings.domains, id: \.self) { d in
-                            Text(d).tag(d)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                }
-
-                // Type
-                HStack {
-                    label("Type")
-                    Picker("", selection: Binding(
-                        get: { task.recurring },
-                        set: { val in
-                            store.updateTask(id: task.id) {
-                                $0.recurring = val
-                                if val && $0.lastResetAt == nil { $0.lastResetAt = Date() }
+            if !task.actionLog.isEmpty {
+                section("HISTORY") {
+                    ForEach(Array(task.actionLog.suffix(12).reversed().enumerated()), id: \.offset) { _, entry in
+                        HStack(alignment: .top, spacing: 8) {
+                            Text(entry.action.rawValue.uppercased())
+                                .font(WL.mono(9, .bold)).tracking(1)
+                                .foregroundStyle(actionColor(entry.action))
+                                .frame(width: 64, alignment: .leading)
+                            VStack(alignment: .leading, spacing: 2) {
+                                if !entry.note.isEmpty {
+                                    Text(entry.note).font(WL.mono(12)).foregroundStyle(WL.text)
+                                }
+                                Text(entry.at.formatted(date: .abbreviated, time: .shortened))
+                                    .font(WL.mono(9)).foregroundStyle(WL.muted)
                             }
                         }
-                    )) {
-                        Text("Recurring").tag(true)
-                        Text("One-time").tag(false)
-                    }
-                    .pickerStyle(.segmented)
-                }
-
-                // Cadence
-                if task.recurring {
-                    HStack {
-                        label("Every")
-                        Picker("", selection: Binding(
-                            get: { task.cadenceSeconds ?? 86400 },
-                            set: { val in store.updateTask(id: task.id) { $0.cadenceSeconds = val } }
-                        )) {
-                            ForEach(cadenceOptions, id: \.value) { Text($0.label).tag($0.value) }
-                        }
-                        .pickerStyle(.menu)
-                    }
-
-                    // Cadence variance (randomizes on reset)
-                    HStack {
-                        label("Less (min)")
-                        TextField("0", value: Binding(
-                            get: { Int((task.cadenceLess ?? 0) / 60) },
-                            set: { val in store.updateTask(id: task.id) { $0.cadenceLess = Double(val) * 60 } }
-                        ), format: .number)
-                        .keyboardType(.numberPad)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 60)
-                    }
-                    HStack {
-                        label("More (min)")
-                        TextField("0", value: Binding(
-                            get: { Int((task.cadenceMore ?? 0) / 60) },
-                            set: { val in store.updateTask(id: task.id) { $0.cadenceMore = Double(val) * 60 } }
-                        ), format: .number)
-                        .keyboardType(.numberPad)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 60)
                     }
                 }
+            }
 
-                // Priority
-                HStack {
-                    label("Priority")
-                    Picker("", selection: Binding(
-                        get: { task.priority },
-                        set: { val in store.updateTask(id: task.id) { $0.priority = val } }
-                    )) {
-                        ForEach(TaskPriority.allCases) { Text($0.rawValue).tag($0) }
-                    }
-                    .pickerStyle(.segmented)
-                }
-
-                // Info
-                detailRow("Tags", task.tags.isEmpty ? "\u{2014}" : task.tags.joined(separator: ", "))
-                detailRow("Created", timeAgo(task.createdAt))
-                detailRow("Updated", timeAgo(task.updatedAt))
-                if let due = task.dueDate { detailRow("Due", due.formatted()) }
-
-                if let parentId = task.parentTaskId {
-                    HStack {
-                        label("Parent")
-                        NavigationLink(value: parentId) {
-                            Text("View parent")
-                                .font(.caption)
-                                .foregroundStyle(store.theme.accent)
-                        }
-                    }
-                }
-
-                // Action log
-                actionLog(task)
+            Button(role: .destructive) {
+                store.delete(id: task.id); dismiss()
+            } label: {
+                Text("DELETE").font(WL.mono(11, .bold)).tracking(2)
+                    .frame(maxWidth: .infinity).padding(.vertical, 12)
+                    .foregroundStyle(WL.red).overlay(Rectangle().stroke(WL.red.opacity(0.5), lineWidth: 1))
             }
             .padding(.top, 8)
         }
-        .tint(store.theme.dim)
+        .padding(20)
+        .onAppear { descDraft = task.description }
     }
 
-    // MARK: - Action Log
-
     @ViewBuilder
-    private func actionLog(_ task: FMNTask) -> some View {
+    private func section<C: View>(_ title: String, @ViewBuilder _ content: () -> C) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            sectionTitle("Action Log")
+            Text(title).font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
+            content()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
 
-            if task.actionLog.isEmpty {
-                Text("No actions yet.")
-                    .font(.caption)
-                    .foregroundStyle(store.theme.dim)
-            } else {
-                ForEach(task.actionLog.reversed()) { entry in
-                    HStack(spacing: 8) {
-                        Text(entry.action.rawValue)
-                            .font(.system(size: 10, weight: .semibold))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(logColor(entry.action).opacity(0.15))
-                            .foregroundStyle(logColor(entry.action))
-                            .clipShape(RoundedRectangle(cornerRadius: 4))
-
-                        Text(entry.note.isEmpty ? "\u{2014}" : entry.note)
-                            .font(.caption)
-                            .foregroundStyle(store.theme.text)
-                            .lineLimit(1)
-
-                        Spacer()
-
-                        Text(timeAgo(entry.at))
-                            .font(.system(size: 10))
-                            .foregroundStyle(store.theme.dim)
+    /// Editable tag list of reminder phrases (the rotating nudge prompts).
+    @ViewBuilder
+    private func remindersSection(_ task: TaskDTO) -> some View {
+        section("REMINDERS") {
+            VStack(alignment: .leading, spacing: 10) {
+                if !task.prompts.isEmpty {
+                    FlowLayout(spacing: 6) {
+                        ForEach(Array(task.prompts.enumerated()), id: \.offset) { idx, p in
+                            HStack(spacing: 6) {
+                                Text(p).font(WL.mono(11)).foregroundStyle(WL.text)
+                                Button { store.removeReminder(id: task.id, at: idx) } label: {
+                                    Image(systemName: "xmark").font(.system(size: 9, weight: .bold)).foregroundStyle(WL.muted)
+                                }
+                            }
+                            .padding(.horizontal, 9).padding(.vertical, 6)
+                            .wlPanel(fill: WL.surface, border: WL.border)
+                        }
+                    }
+                }
+                HStack(spacing: 8) {
+                    TextField("add a reminder", text: $reminderDraft)
+                        .font(WL.mono(13)).foregroundStyle(WL.text).tint(WL.accent)
+                        .padding(10).wlPanel(fill: WL.surface, border: WL.border)
+                        .onSubmit { addReminder(task) }
+                    Button { addReminder(task) } label: {
+                        Image(systemName: "plus").font(.system(size: 14, weight: .bold)).foregroundStyle(WL.bg)
+                            .frame(width: 40, height: 40).background(WL.accent)
                     }
                 }
             }
+        }
+    }
 
-            TextField("Add a note...", text: $newNote)
-                .font(.system(size: 13))
-                .textFieldStyle(.roundedBorder)
-                .onSubmit {
-                    let trimmed = newNote.trimmingCharacters(in: .whitespaces)
-                    guard !trimmed.isEmpty else { return }
-                    store.addNote(id: task.id, note: trimmed)
-                    newNote = ""
+    private func addReminder(_ task: TaskDTO) {
+        store.addReminder(id: task.id, reminderDraft)
+        reminderDraft = ""
+    }
+
+    /// Follow-ups are real, non-repeating CHILD tasks. Each row opens that task's own detail
+    /// (configure it, give it its own follow-ups). They stay dormant — tucked away here, off
+    /// the main list — until the chain is launched (right swipe on the list).
+    @ViewBuilder
+    private func followUpsSection(_ task: TaskDTO) -> some View {
+        section("FOLLOW-UPS") {
+            VStack(alignment: .leading, spacing: 10) {
+                ForEach(store.children(of: task.id)) { child in
+                    HStack(spacing: 8) {
+                        Button { open(child.id) } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: followUpIcon(child))
+                                    .font(.system(size: 11, weight: .bold)).foregroundStyle(followUpColor(child))
+                                Text(child.title.capitalized).font(WL.mono(12)).foregroundStyle(WL.text).lineLimit(1)
+                                Spacer(minLength: 6)
+                                if store.isDormantFollowUp(child) {
+                                    Text("· \(CadenceOptions.label(child.baseCadenceSeconds ?? 0))")
+                                        .font(WL.mono(9)).foregroundStyle(WL.muted)
+                                }
+                                Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold)).foregroundStyle(WL.muted)
+                            }
+                            .padding(.horizontal, 10).padding(.vertical, 9).frame(maxWidth: .infinity)
+                            .wlPanel(fill: WL.surface, border: WL.border)
+                        }
+                        .buttonStyle(.plain)
+                        Button { store.delete(id: child.id) } label: {
+                            Image(systemName: "xmark").font(.system(size: 10, weight: .bold)).foregroundStyle(WL.muted)
+                                .frame(width: 30, height: 30).overlay(Rectangle().stroke(WL.border, lineWidth: 1))
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
+
+                HStack(spacing: 8) {
+                    TextField("add a follow-up", text: $fuTitle)
+                        .font(WL.mono(13)).foregroundStyle(WL.text).tint(WL.accent)
+                        .autocorrectionDisabled()
+                        .padding(10).wlPanel(fill: WL.surface, border: WL.border)
+                    Menu {
+                        ForEach(CadenceOptions.all, id: \.value) { opt in
+                            Button(opt.label) { fuCadence = opt.value }
+                        }
+                    } label: {
+                        Text(CadenceOptions.label(fuCadence)).font(WL.mono(11, .bold)).foregroundStyle(WL.accent)
+                            .frame(minWidth: 60).padding(.vertical, 11).padding(.horizontal, 8)
+                            .overlay(Rectangle().stroke(WL.border, lineWidth: 1))
+                    }
+                    Button {
+                        store.addFollowUp(parentId: task.id, title: fuTitle, cadenceSeconds: fuCadence)
+                        fuTitle = ""
+                    } label: {
+                        Image(systemName: "plus").font(.system(size: 14, weight: .bold)).foregroundStyle(WL.bg)
+                            .frame(width: 40, height: 40).background(WL.accent)
+                    }
+                }
+
+                Text("each follow-up is its own non-repeating task — tap to open it (and give it follow-ups). They stay tucked away until you mark this task DONE (right swipe in the list); left swipe just resets the timer without firing them.")
+                    .font(WL.mono(9)).foregroundStyle(WL.muted)
+            }
         }
     }
 
-    // MARK: - Helpers
-
-    private func sectionTitle(_ text: String) -> some View {
-        Text(text)
-            .font(.caption.weight(.semibold))
-            .textCase(.uppercase)
-            .tracking(0.5)
-            .foregroundStyle(store.theme.dim)
+    private func followUpIcon(_ t: TaskDTO) -> String {
+        if t.status == .done { return "checkmark.circle.fill" }
+        return store.isDormantFollowUp(t) ? "circle" : "circle.fill"
+    }
+    private func followUpColor(_ t: TaskDTO) -> Color {
+        if t.status == .done { return WL.green }
+        return store.isDormantFollowUp(t) ? WL.muted : WL.accent
     }
 
-    private func badge(_ text: String, color: Color) -> some View {
-        Text(text)
-            .font(.system(size: 11, weight: .semibold))
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
-            .background(color.opacity(0.15))
-            .foregroundStyle(color)
-            .clipShape(RoundedRectangle(cornerRadius: 6))
-    }
-
-    private func label(_ text: String) -> some View {
-        Text(text)
-            .font(.caption)
-            .foregroundStyle(store.theme.dim)
-            .frame(width: 80, alignment: .leading)
-    }
-
-    private func detailRow(_ lbl: String, _ value: String) -> some View {
-        HStack {
-            label(lbl)
-            Text(value).font(.caption)
-            Spacer()
-        }
-    }
-
-    private func urgencyColor(_ ratio: Double) -> Color {
-        if ratio < 0.75 { return store.theme.green }
-        if ratio < 0.95 { return store.theme.orange }
-        return store.theme.red
-    }
-
-    private func logColor(_ action: ActionType) -> Color {
-        switch action {
-        case .reset: store.theme.accent
-        case .complete: store.theme.green
-        case .note: store.theme.dim
+    private func actionColor(_ a: ActionType) -> Color {
+        switch a {
+        case .reset: WL.accent
+        case .complete, .done: WL.green
+        case .lapsed: WL.red
+        case .note: WL.muted
+        case .skipped: WL.cyan
         }
     }
 }

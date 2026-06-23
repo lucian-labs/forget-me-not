@@ -2,3 +2,9 @@ node_modules
 dist
 .DS_Store
 *.local
+
+# iOS build artifacts
+ios/build/
+ios/*.xcuserstate
+ios/**/*.xcuserstate
+ios/**/xcuserdata/

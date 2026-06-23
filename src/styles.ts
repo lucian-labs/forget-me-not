@@ -243,43 +243,43 @@ button:active { opacity: 0.8; }
 
 /* Streak strip */
 
+/* Bar-chart style strip: bottom-anchored bars whose height encodes
+   rhythm-consistency state. --h is set per-pip from JS as a 0–1 ratio. */
 .fmn-streak {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 0;
   margin-top: 6px;
   flex-wrap: nowrap;
   overflow: hidden;
   width: 100%;
+  height: 16px;
   justify-content: flex-end;
 }
 
 .fmn-streak-pip {
   flex: 0 0 auto;
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: calc(var(--h, 1) * 100%);
+  min-height: 2px;
   border-radius: 0;
   background: var(--dim);
-  opacity: 0.35;
-  transition: opacity 0.15s ease, transform 0.15s ease, border-radius 0.15s ease;
+  opacity: 0.4;
+  transition: opacity 0.15s ease, border-radius 0.15s ease;
 }
 
-/* Only the ends of the visible run keep a rounded corner so the
-   middle reads as one continuous bar. */
+/* Only the outer left/right bars keep a rounded corner so the middle
+   reads as one continuous skyline. */
 .fmn-streak-pip-end-left  { border-top-left-radius: 2px;  border-bottom-left-radius: 2px; }
 .fmn-streak-pip-end-right { border-top-right-radius: 2px; border-bottom-right-radius: 2px; }
 
-/* Brighten everything when the strip is hovered, brighten the
-   hovered pip to full and its neighbors to a midway proximity tier.
-   On hover the pip lifts off the bar — re-round it all the way for
-   a chip-like focus state. */
+/* Strip hover: ambient brighten so the chart "comes alive." */
 .fmn-streak:hover .fmn-streak-pip {
-  opacity: 0.55;
+  opacity: 0.6;
 }
 
 .fmn-streak-pip:hover {
   opacity: 1;
-  transform: scale(1.6);
   border-radius: 2px;
 }
 
@@ -288,16 +288,11 @@ button:active { opacity: 0.8; }
   opacity: 0.85;
 }
 
-/* Latest pip always reads as "you are here" — slightly brighter at rest
-   and keeps its bg-ring + currentColor halo. */
+/* Latest bar = "you are here." Full opacity at rest so it always
+   stands clear of the muted history behind it. No halo — would clip
+   against the strip's overflow:hidden on a narrow bar. */
 .fmn-streak-pip-latest {
-  opacity: 0.7;
-  box-shadow: 0 0 0 1.5px var(--bg), 0 0 0 2.5px currentColor;
-  color: var(--text);
-}
-
-.fmn-streak:hover .fmn-streak-pip-latest {
-  opacity: 0.9;
+  opacity: 1;
 }
 
 .fmn-streak-more {
@@ -306,19 +301,23 @@ button:active { opacity: 0.8; }
   opacity: 0.6;
   font-family: var(--font);
   transition: opacity 0.15s ease;
+  align-self: center;
+  padding-right: 2px;
 }
 
 .fmn-streak:hover .fmn-streak-more {
   opacity: 1;
 }
 
+/* Large variant — detail-view chart. Taller container, wider bars. */
 .fmn-streak-lg {
   margin-top: 0;
+  height: 28px;
 }
 
 .fmn-streak-lg .fmn-streak-pip {
-  width: 10px;
-  height: 10px;
+  width: 7px;
+  min-height: 3px;
 }
 
 .fmn-streak-lg .fmn-streak-pip-end-left  { border-top-left-radius: 3px;  border-bottom-left-radius: 3px; }

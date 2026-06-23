@@ -83,6 +83,16 @@ function pipLabel(p: StreakPip): string {
   return `very late (${pct}%)`
 }
 
+/** Map a pip's state to a 0–1 bar height. Tallest = on-time; lapsed/extreme
+ *  deviations get short bars so the chart reads as rhythm consistency. */
+function pipHeight(p: StreakPip): number {
+  if (p.action === 'lapsed') return 0.2
+  if (p.ratio < 0.5) return 0.5            // significantly early
+  if (p.ratio <= 1.0) return 1.0           // on time / a touch early
+  if (p.ratio <= 1.5) return 0.7           // late
+  return 0.35                              // very late
+}
+
 /** Render a horizontal strip of cycle-history pips.
  *
  *  Right-aligned and full-width. Renders every pip into the DOM, then measures
@@ -105,6 +115,7 @@ export function renderStreakStrip(pips: StreakPip[], large = false): HTMLElement
     const p = pips[i]
     const pip = el('span', { className: 'fmn-streak-pip' })
     pip.style.background = pipColor(p)
+    pip.style.setProperty('--h', String(pipHeight(p)))
     const when = new Date(p.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
     pip.dataset.tip = `${pipLabel(p)} · ${when}`
     // No tipPos — defaults to 'above' so the cursor doesn't cover the tooltip.

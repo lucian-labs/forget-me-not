@@ -2,6 +2,7 @@ import type { Task } from './types'
 import {
   getTasks, getSettings, updateSettings, getUrgencyRatio, getUrgencyColor, getUrgencyClass,
   getRemainingSeconds, resetTask, completeTask, snoozeTask, archiveTask, addActionNote,
+  restartCycle,
   getCycleHistory,
 } from './store'
 import { formatTime, formatCadence, el, renderStreakStrip } from './utils'
@@ -242,6 +243,18 @@ function renderTaskItem(task: Task): HTMLElement {
       meta.appendChild(document.createTextNode(metaText))
       row.appendChild(meta)
     }
+  }
+
+  // Silent restart — rewinds the cycle timer without logging anything in
+  // history. Recurring only (non-recurring tasks have no cycle to restart).
+  if (isRecurring) {
+    const restartBtn = createBtn('↓', 'btn-icon btn-sm', () => {
+      restartCycle(task.id)
+      navigate('panel')
+    })
+    restartBtn.dataset.tip = 'restart timer (no log)'
+    restartBtn.style.marginLeft = 'auto'
+    row.appendChild(restartBtn)
   }
 
   card.appendChild(row)

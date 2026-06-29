@@ -154,6 +154,22 @@ export function resetTask(id: string, note: string): Task | undefined {
   return updated
 }
 
+/** Silent restart — rewinds the cycle timer without logging an action or
+ *  spawning follow-ups. The previous cycle is discarded without showing up in
+ *  cycle history. Used by the down-arrow on the task card when the user just
+ *  wants a clean slate, not to claim the cycle as done. */
+export function restartCycle(id: string): Task | undefined {
+  const task = getTask(id)
+  if (!task || !task.baseCadenceSeconds) return undefined
+  const now = new Date().toISOString()
+  const newInstance: ReminderInstance = {
+    startedAt: now,
+    actualCadenceSeconds: randomizeCadence(task.baseCadenceSeconds, task.cadenceMore, task.cadenceLess),
+    snoozed: false,
+  }
+  return updateTask(id, { instance: newInstance })
+}
+
 export function completeTask(id: string, note: string): Task | undefined {
   const task = getTask(id)
   if (!task) return undefined

@@ -45,7 +45,9 @@ final class SynthEngine {
         box.sampleRate = rate
 
         let box = self.box
-        let node = AVAudioSourceNode(format: format) { _, _, frameCount, audioBuffers in
+        // @Sendable: without it the closure inherits this method's @MainActor isolation and
+        // the runtime SIGTRAPs (dispatch_assert_queue) when the audio thread calls it.
+        let node = AVAudioSourceNode(format: format) { @Sendable _, _, frameCount, audioBuffers in
             box.render(frames: Int(frameCount), into: audioBuffers)
             return noErr
         }

@@ -9,6 +9,10 @@ struct TaskCardView: View {
     let nudge: String?
     let icon: UIImage?
     let symbol: String?
+    // Web-parity card buttons (✓ / zz / ↓) — nil hides them (e.g. compact usages).
+    var onDone: (() -> Void)? = nil
+    var onSnooze: (() -> Void)? = nil
+    var onRestart: (() -> Void)? = nil
 
     private var asleep: Bool { task.status == .blocked }
 
@@ -16,15 +20,12 @@ struct TaskCardView: View {
         HStack(alignment: .center, spacing: 10) {
             iconSlot
             VStack(alignment: .leading, spacing: 10) {
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                HStack(alignment: .center, spacing: 8) {
                     Text(task.title.capitalized)
                         .font(WL.mono(16, .semibold)).tracking(1)
                         .foregroundStyle(WL.text).lineLimit(2)
                     Spacer(minLength: 6)
-                    if !task.domain.isEmpty {
-                        Text(task.domain.uppercased())
-                            .font(WL.mono(9, .bold)).tracking(1).foregroundStyle(WL.muted)
-                    }
+                    actionCluster
                 }
                 if let nudge, !asleep {
                     SpeechBubble(text: nudge).transition(.opacity)
@@ -41,11 +42,18 @@ struct TaskCardView: View {
                                 .foregroundStyle(WL.urgencyColor(Urgency.tier(for: ratio)))
                                 .frame(width: 46, alignment: .trailing)
                         }
-                        if let clock = Urgency.clockLabel(task, now: context.date) {
-                            Text(clock)
-                                .font(WL.mono(8, .semibold)).tracking(1)
-                                .foregroundStyle(WL.muted.opacity(0.75))
-                                .frame(maxWidth: .infinity, alignment: .trailing)
+                        HStack {
+                            if !task.domain.isEmpty {
+                                Text(task.domain.uppercased())
+                                    .font(WL.mono(8, .bold)).tracking(1)
+                                    .foregroundStyle(WL.muted.opacity(0.75))
+                            }
+                            Spacer()
+                            if let clock = Urgency.clockLabel(task, now: context.date) {
+                                Text(clock)
+                                    .font(WL.mono(8, .semibold)).tracking(1)
+                                    .foregroundStyle(WL.muted.opacity(0.75))
+                            }
                         }
                     }
                 }
@@ -56,6 +64,43 @@ struct TaskCardView: View {
         .wlPanel(fill: WL.surface, border: WL.border)
         .opacity(asleep ? 0.6 : 1)
         .animation(.easeInOut(duration: 0.25), value: nudge)
+    }
+
+    /// Web-parity quick actions: ✓ done, zz snooze, ↓ restart quietly (recurring only).
+    @ViewBuilder private var actionCluster: some View {
+        HStack(spacing: 6) {
+            if let onDone {
+                cardButton("checkmark", tint: WL.green, action: onDone)
+                    .accessibilityLabel("Done")
+            }
+            if task.recurring, let onSnooze {
+                cardButton(text: "zz", tint: WL.gold, action: onSnooze)
+                    .accessibilityLabel("Snooze")
+            }
+            if task.recurring, let onRestart {
+                cardButton("arrow.down", tint: WL.muted, action: onRestart)
+                    .accessibilityLabel("Restart timer quietly")
+            }
+        }
+    }
+
+    private func cardButton(_ systemName: String? = nil, text: String? = nil,
+                            tint: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Group {
+                if let systemName {
+                    Image(systemName: systemName).font(.system(size: 11, weight: .bold))
+                } else {
+                    Text(text ?? "").font(WL.mono(10, .bold))
+                }
+            }
+            .foregroundStyle(tint.opacity(0.9))
+            .frame(width: 28, height: 28)
+            .background(WL.bg.opacity(0.5))
+            .wlStroke(WL.line)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     private var iconSlot: some View {

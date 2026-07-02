@@ -143,7 +143,10 @@ struct TaskListView: View {
             TaskCardView(task: task,
                          nudge: coordinator.nudge(for: task.id),
                          icon: icons.image(for: task.id),
-                         symbol: task.iconSymbol)
+                         symbol: task.iconSymbol,
+                         onDone: { markDone(task) },
+                         onSnooze: { store.snooze(id: task.id) },
+                         onRestart: { store.restartCycle(id: task.id) })
         }
         .onTapGesture { detailTask = task }
         .contextMenu {

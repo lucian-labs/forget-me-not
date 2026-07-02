@@ -53,6 +53,14 @@ struct SwipeableCard<Content: View>: View {
             onEnd: { _, v in
                 guard !flying else { return }
                 release(velocity: v)
+            },
+            onCancel: {
+                // A cancelled gesture (context-menu long-press or the scroll view winning
+                // arbitration) is NOT a release — never commit, just go home. Committing
+                // here fired actions while the finger was still down.
+                guard !flying else { return }
+                crossed = false
+                snap(to: 0, velocity: 0)
             }
         ))
     }
@@ -139,7 +147,8 @@ struct SwipeableCard<Content: View>: View {
 /// Also accepts continuous trackpad scrolls, so Catalyst two-finger swipes work.
 private struct HorizontalPan: UIGestureRecognizerRepresentable {
     var onChange: (CGFloat, CGFloat) -> Void   // translation.x, velocity.x
-    var onEnd: (CGFloat, CGFloat) -> Void
+    var onEnd: (CGFloat, CGFloat) -> Void      // finger actually lifted
+    var onCancel: () -> Void                   // system took the gesture — no commit
 
     func makeCoordinator(converter: CoordinateSpaceConverter) -> Coordinator { Coordinator() }
 
@@ -157,7 +166,8 @@ private struct HorizontalPan: UIGestureRecognizerRepresentable {
         let v = recognizer.velocity(in: view).x
         switch recognizer.state {
         case .changed: onChange(t, v)
-        case .ended, .cancelled, .failed: onEnd(t, v)
+        case .ended: onEnd(t, v)
+        case .cancelled, .failed: onCancel()
         default: break
         }
     }

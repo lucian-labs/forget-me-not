@@ -162,8 +162,17 @@ private struct HorizontalPan: UIGestureRecognizerRepresentable {
 
     func handleUIGestureRecognizerAction(_ recognizer: UIPanGestureRecognizer, context: Context) {
         guard let view = recognizer.view else { return }
-        let t = recognizer.translation(in: view).x
-        let v = recognizer.velocity(in: view).x
+        // Scroll-driven pans (Catalyst trackpad two-finger) deliver deltas inverted
+        // relative to touch semantics — flip so "push the card right" always means right.
+        // Detect at .began and remember: numberOfTouches is 0 at .ended for EVERY pan.
+        if recognizer.state == .began {
+            context.coordinator.scrollDriven = recognizer.numberOfTouches == 0
+        }
+        var t = recognizer.translation(in: view).x
+        var v = recognizer.velocity(in: view).x
+        #if targetEnvironment(macCatalyst)
+        if context.coordinator.scrollDriven { t = -t; v = -v }
+        #endif
         switch recognizer.state {
         case .changed: onChange(t, v)
         case .ended: onEnd(t, v)
@@ -173,6 +182,8 @@ private struct HorizontalPan: UIGestureRecognizerRepresentable {
     }
 
     final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        var scrollDriven = false
+
         func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
             guard let pan = gestureRecognizer as? UIPanGestureRecognizer, let view = pan.view else { return false }
             let vel = pan.velocity(in: view)

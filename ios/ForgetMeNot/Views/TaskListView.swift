@@ -8,6 +8,7 @@ struct TaskListView: View {
     @Environment(AppStore.self) private var store
     @Environment(IconStore.self) private var icons
     @Environment(NudgeCoordinator.self) private var coordinator
+    @Environment(AlertSounder.self) private var sounder
     @State private var detailTask: TaskDTO?
     @State private var showLoops = false
     @State private var showCreate = false
@@ -36,6 +37,7 @@ struct TaskListView: View {
             store.load()                       // poll: surface another device's swipe/reset live
             icons.evolve(for: store.sortedActive)   // ...and decode any icons it synced over
             coordinator.evaluate(store.sortedActive, now: Date())
+            sounder.evaluate(store.sortedActive, config: store.soundConfig)   // jingle on tip-over
             // Only re-render the list when the SORT ORDER actually changes — re-rendering
             // every tick collapsed in-progress swipe drawers (a row wouldn't reset).
             let t = Date()
@@ -58,7 +60,7 @@ struct TaskListView: View {
             CreateTaskView().environment(store)
         }
         .sheet(isPresented: $showSettings) {
-            SettingsView().environment(store).environment(icons)
+            SettingsView().environment(store).environment(icons).environment(sounder)
         }
     }
 
@@ -127,6 +129,33 @@ struct TaskListView: View {
                             Label("SKIP", systemImage: "arrow.counterclockwise")
                         }
                         .tint(WL.cyan)
+                        // Web parity (zz): quiet it down for a bit — jumps to 75%, re-alerts soon.
+                        if task.recurring, task.instance != nil {
+                            Button { store.snooze(id: task.id) } label: {
+                                Label("SNOOZE", systemImage: "moon.zzz.fill")
+                            }
+                            .tint(WL.gold)
+                        }
+                    }
+                    .contextMenu {
+                        if task.recurring {
+                            // Web parity (↓): fresh cycle, nothing logged, streaks untouched.
+                            Button {
+                                store.restartCycle(id: task.id)
+                            } label: {
+                                Label("Restart timer quietly", systemImage: "arrow.counterclockwise.circle")
+                            }
+                            Button {
+                                store.snooze(id: task.id)
+                            } label: {
+                                Label("Snooze", systemImage: "moon.zzz")
+                            }
+                        }
+                        Button {
+                            sounder.preview(task, config: store.soundConfig)
+                        } label: {
+                            Label("Hear its sound", systemImage: "speaker.wave.2")
+                        }
                     }
                     .swipeActions(edge: .leading, allowsFullSwipe: true) {
                         // Right swipe = DONE: reset + fire follow-ups (logged "done").

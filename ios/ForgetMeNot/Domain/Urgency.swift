@@ -24,6 +24,23 @@ enum Urgency {
         return .infinity
     }
 
+    /// Card meta text, web parity ("2h 13m left" / "1h 4m over"): compact, uppercase-ready.
+    /// nil when the task has no clock (paused / no due date).
+    static func clockLabel(_ t: TaskDTO, now: Date = Date()) -> String? {
+        let r = remainingSeconds(t, now: now)
+        guard r.isFinite else { return nil }
+        let text = compactDuration(abs(r))
+        return r >= 0 ? "\(text) LEFT" : "\(text) OVER"
+    }
+
+    static func compactDuration(_ seconds: Double) -> String {
+        let s = max(0, Int(seconds))
+        if s >= 86_400 { return "\(s / 86_400)D \((s % 86_400) / 3_600)H" }
+        if s >= 3_600 { return "\(s / 3_600)H \((s % 3_600) / 60)M" }
+        if s >= 60 { return "\(s / 60)M" }
+        return "\(s)S"
+    }
+
     static func tier(for ratio: Double) -> UrgencyTier {
         // Web parity (getUrgencyColor): green <0.75, orange <0.95, red >=0.95; overdue >=1.0.
         switch ratio {

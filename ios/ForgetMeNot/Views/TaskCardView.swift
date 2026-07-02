@@ -33,12 +33,20 @@ struct TaskCardView: View {
                 // were burning CPU continuously for an imperceptible change.
                 TimelineView(.periodic(from: .now, by: 10)) { context in
                     let ratio = Urgency.ratio(task, now: context.date)
-                    HStack(spacing: 10) {
-                        UrgencyBarView(ratio: ratio)
-                        Text("\(Int(min(ratio, 9.99) * 100))%")
-                            .font(WL.mono(11, .bold))
-                            .foregroundStyle(WL.urgencyColor(Urgency.tier(for: ratio)))
-                            .frame(width: 46, alignment: .trailing)
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 10) {
+                            UrgencyBarView(ratio: ratio)
+                            Text("\(Int(min(ratio, 9.99) * 100))%")
+                                .font(WL.mono(11, .bold))
+                                .foregroundStyle(WL.urgencyColor(Urgency.tier(for: ratio)))
+                                .frame(width: 46, alignment: .trailing)
+                        }
+                        if let clock = Urgency.clockLabel(task, now: context.date) {
+                            Text(clock)
+                                .font(WL.mono(8, .semibold)).tracking(1)
+                                .foregroundStyle(WL.muted.opacity(0.75))
+                                .frame(maxWidth: .infinity, alignment: .trailing)
+                        }
                     }
                 }
             }

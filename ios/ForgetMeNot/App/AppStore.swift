@@ -48,9 +48,37 @@ final class AppStore {
         WL.apply(Theme.named(themeName))
         iconStyle = UserDefaults.standard.string(forKey: "fmn.iconStyle") ?? ""
         nudgeStyle = UserDefaults.standard.string(forKey: "fmn.nudgeStyle") ?? ""
+        readSoundPrefs()
         observeCloudChanges()
         observeSyncedPrefs()
     }
+
+    // MARK: - Sound (web parity: src/sounds.ts settings, synced like theme/styles)
+
+    var soundEnabled: Bool = true
+    var soundPreset: Int = 0
+    var soundBpm: Double = 160
+    var soundVolume: Double = 0.4
+    var soundMode: Int = 1
+
+    var soundConfig: SoundConfig {
+        SoundConfig(enabled: soundEnabled, preset: soundPreset, bpm: soundBpm, volume: soundVolume, mode: soundMode)
+    }
+
+    private func readSoundPrefs() {
+        let d = UserDefaults.standard
+        soundEnabled = (d.string(forKey: "fmn.soundEnabled") ?? "1") != "0"
+        soundPreset = Int(d.string(forKey: "fmn.soundPreset") ?? "") ?? 0
+        soundBpm = Double(d.string(forKey: "fmn.soundBpm") ?? "") ?? 160
+        soundVolume = Double(d.string(forKey: "fmn.soundVolume") ?? "") ?? 0.4
+        soundMode = Int(d.string(forKey: "fmn.soundMode") ?? "") ?? 1
+    }
+
+    func setSoundEnabled(_ on: Bool) { soundEnabled = on; SyncedPrefs.set(on ? "1" : "0", forKey: "fmn.soundEnabled") }
+    func setSoundPreset(_ v: Int) { soundPreset = v; SyncedPrefs.set(String(v), forKey: "fmn.soundPreset") }
+    func setSoundBpm(_ v: Double) { soundBpm = v; SyncedPrefs.set(String(v), forKey: "fmn.soundBpm") }
+    func setSoundVolume(_ v: Double) { soundVolume = v; SyncedPrefs.set(String(v), forKey: "fmn.soundVolume") }
+    func setSoundMode(_ v: Int) { soundMode = v; SyncedPrefs.set(String(v), forKey: "fmn.soundMode") }
 
     /// Pull prompt/style/theme edits made on another device (iCloud key-value store) into the
     /// cached, observable copies so the UI reflects them live.
@@ -59,6 +87,7 @@ final class AppStore {
             guard let self else { return }
             self.iconStyle = UserDefaults.standard.string(forKey: "fmn.iconStyle") ?? ""
             self.nudgeStyle = UserDefaults.standard.string(forKey: "fmn.nudgeStyle") ?? ""
+            self.readSoundPrefs()
             let theme = UserDefaults.standard.string(forKey: "fmn.theme") ?? "waveloop"
             if theme != self.themeName { self.themeName = theme; WL.apply(Theme.named(theme)) }
         }
@@ -108,6 +137,26 @@ final class AppStore {
         var rng = SystemRandomNumberGenerator()
         let result = Lifecycle.reset(task, note: "", now: Date(), rng: &rng)
         try? repository.upsert(result.task)
+        load()
+    }
+
+    /// Web parity (zz button): jump the cycle to 75% elapsed — a short reprieve, then it
+    /// re-alerts. No history entry.
+    func snooze(id: String) {
+        guard let task = tasks.first(where: { $0.id == id }) else { return }
+        try? repository.upsert(Lifecycle.snooze(task))
+        load()
+    }
+
+    /// Web parity (↓ button, store.ts restartCycle): rewind the timer to a fresh cycle
+    /// WITHOUT logging anything — the discarded cycle never shows in history or streaks.
+    func restartCycle(id: String) {
+        guard var t = tasks.first(where: { $0.id == id }), let base = t.baseCadenceSeconds else { return }
+        var rng = SystemRandomNumberGenerator()
+        let cadence = Cadence.randomized(base: base, more: t.cadenceMore, less: t.cadenceLess, using: &rng)
+        t.instance = ReminderInstanceDTO(startedAt: Date(), actualCadenceSeconds: cadence, snoozed: false)
+        t.updatedAt = Date()
+        try? repository.upsert(t)
         load()
     }
 

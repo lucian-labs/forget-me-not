@@ -5,6 +5,7 @@ import UserNotifications
 struct SettingsView: View {
     @Environment(AppStore.self) private var store
     @Environment(IconStore.self) private var icons
+    @Environment(AlertSounder.self) private var sounder
     @Environment(\.dismiss) private var dismiss
     @State private var showPromptLab = false
     @State private var notifStatus: UNAuthorizationStatus = .notDetermined
@@ -93,6 +94,9 @@ struct SettingsView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(12).wlPanel(fill: WL.surface, border: WL.border)
 
+                    Text("SOUND").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
+                    soundSection
+
                     Text("THEME").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
 
                     LazyVGrid(columns: columns, spacing: 12) {
@@ -110,6 +114,77 @@ struct SettingsView: View {
             PromptLabView().environment(store).environment(icons)
         }
         .task { notifStatus = await ReminderScheduler.authStatus() }
+    }
+
+    /// Web-parity sound controls (src/sounds.ts): on/off, mood (scale), energy (bpm),
+    /// volume, and a variation number — plus TEST. Each task gets its own little jingle
+    /// when its timer runs out; these shape how all of them sound.
+    private var soundSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Toggle(isOn: Binding(get: { store.soundEnabled }, set: { store.setSoundEnabled($0) })) {
+                Text("PLAY A SOUND WHEN TIME RUNS OUT").font(WL.mono(11, .bold)).tracking(1).foregroundStyle(WL.text)
+            }
+            .tint(WL.accent)
+
+            if store.soundEnabled {
+                HStack {
+                    Text("MOOD").font(WL.mono(10, .bold)).tracking(1).foregroundStyle(WL.muted)
+                    Spacer()
+                    Picker("", selection: Binding(get: { store.soundMode }, set: { store.setSoundMode($0) })) {
+                        Text("Sunny").tag(0); Text("Moody").tag(1); Text("Dreamy").tag(2)
+                        Text("Bright").tag(3); Text("Dark").tag(4); Text("Warm").tag(5)
+                        Text("Weird").tag(6); Text("Bluesy").tag(7)
+                    }
+                    .pickerStyle(.menu).tint(WL.accent)
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("ENERGY").font(WL.mono(10, .bold)).tracking(1).foregroundStyle(WL.muted)
+                        Spacer()
+                        Text("\(Int(store.soundBpm)) BPM").font(WL.mono(10)).foregroundStyle(WL.muted)
+                    }
+                    Slider(value: Binding(get: { store.soundBpm }, set: { store.setSoundBpm($0) }), in: 60...240, step: 10)
+                        .tint(WL.accent)
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("VOLUME").font(WL.mono(10, .bold)).tracking(1).foregroundStyle(WL.muted)
+                        Spacer()
+                        Text("\(Int(store.soundVolume * 100))%").font(WL.mono(10)).foregroundStyle(WL.muted)
+                    }
+                    Slider(value: Binding(get: { store.soundVolume }, set: { store.setSoundVolume($0) }), in: 0.05...1)
+                        .tint(WL.accent)
+                }
+                HStack(spacing: 10) {
+                    Button {
+                        store.setSoundPreset(Int.random(in: 0...9999))
+                        sounder.test(config: store.soundConfig)
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "dice").font(.system(size: 13, weight: .bold))
+                            Text("SHUFFLE ALL SOUNDS").font(WL.mono(11, .bold)).tracking(1)
+                        }
+                        .frame(maxWidth: .infinity).padding(.vertical, 12)
+                        .foregroundStyle(WL.accent)
+                    }
+                    .wlStroke(WL.accent)
+                    Button {
+                        sounder.test(config: store.soundConfig)
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "speaker.wave.2.fill").font(.system(size: 13, weight: .bold))
+                            Text("TEST").font(WL.mono(11, .bold)).tracking(1)
+                        }
+                        .frame(maxWidth: .infinity).padding(.vertical, 12)
+                        .foregroundStyle(WL.bg).background(WL.accent)
+                    }
+                }
+                Text("Every task has its own little tune so you learn what's calling you. Shuffle gives everything new tunes.")
+                    .font(WL.mono(9)).foregroundStyle(WL.muted)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12).wlPanel(fill: WL.surface, border: WL.border)
     }
 
     private var notifStatusText: String {

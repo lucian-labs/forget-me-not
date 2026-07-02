@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0CC93CB5B827B92E996D24D1 /* CreateTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73BDC64A35C3187BE0BDF6B3 /* CreateTaskView.swift */; };
 		0D3344D9ACAA33D765022C20 /* SyncedPrefs.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A21E0AF88D5FA9BAA866F6 /* SyncedPrefs.swift */; };
+		13FC2289CB7A721B392F86C5 /* AlertSounder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5047E013D3CB8DBE69BD12BF /* AlertSounder.swift */; };
 		14D3F1FD3275943DE58345B6 /* WLBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C8B25C31E2067CB6F4A9AED /* WLBackground.swift */; };
 		202A6E8EED15219B8A3FEA93 /* TaskMapperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E662B702E610D1F484C87B /* TaskMapperTests.swift */; };
 		22B65CFD92089134EC1CDA20 /* ReminderScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B551D8D93C476C70D17E18 /* ReminderScheduler.swift */; };
@@ -59,6 +60,7 @@
 		CE8A9FB77DFD84040F9AFA20 /* CadenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0097F1A7BBF79AC1048F9059 /* CadenceTests.swift */; };
 		D2438B5D9FC359973BF2EFAA /* FoundationModelsInsightService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35A2C3454F5129B1ED82C6FD /* FoundationModelsInsightService.swift */; };
 		E0DEC24E32D248B107C5466D /* NotificationActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62C026A85AA67462528F9EAA /* NotificationActions.swift */; };
+		EA98DE34A80ABDC13C9BE5D2 /* SynthEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2706185A637FA2E9198A4583 /* SynthEngine.swift */; };
 		F2B6DF7EB3525A07BF857C22 /* TaskMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20D5AD7B83C5433C9A8D306 /* TaskMapper.swift */; };
 		F4DDD5ED307919EB755D748E /* PromptLabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1995D0E0AB85C8047478968F /* PromptLabView.swift */; };
 		FBEA757AF5BC51E5F0E3CEC9 /* TaskDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFC95A22730610A096937910 /* TaskDetailView.swift */; };
@@ -85,6 +87,7 @@
 		1995D0E0AB85C8047478968F /* PromptLabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptLabView.swift; sourceTree = "<group>"; };
 		1F5B9855F5EFA81AD0CB7D07 /* Prompts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Prompts.swift; sourceTree = "<group>"; };
 		2478B8B2872AB24E4AF78816 /* IconStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconStore.swift; sourceTree = "<group>"; };
+		2706185A637FA2E9198A4583 /* SynthEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SynthEngine.swift; sourceTree = "<group>"; };
 		27CF3ADE60A16F2DA9D6DED3 /* Urgency.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Urgency.swift; sourceTree = "<group>"; };
 		2C8B25C31E2067CB6F4A9AED /* WLBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WLBackground.swift; sourceTree = "<group>"; };
 		2D7C447A0E61DCB930D5309C /* InsightService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightService.swift; sourceTree = "<group>"; };
@@ -100,6 +103,7 @@
 		47F4BFA9B5E9280A0D908AFA /* NudgeCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NudgeCoordinator.swift; sourceTree = "<group>"; };
 		4E78EB50C88FD4B3EAC2CDE8 /* TaskDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskDTO.swift; sourceTree = "<group>"; };
 		4F7F3203B2AB93875DAE670C /* TaskDTOTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskDTOTests.swift; sourceTree = "<group>"; };
+		5047E013D3CB8DBE69BD12BF /* AlertSounder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertSounder.swift; sourceTree = "<group>"; };
 		55BA2454A62C1EFC85A3041A /* BackgroundRemover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundRemover.swift; sourceTree = "<group>"; };
 		572D3CF2FDDB2EDBB15FB063 /* WL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WL.swift; sourceTree = "<group>"; };
 		573B430D27E8801CE055B0B1 /* ExportEnvelopeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportEnvelopeTests.swift; sourceTree = "<group>"; };
@@ -200,6 +204,7 @@
 				03E58746B0D9FD73CC2C3F7C /* Info.plist */,
 				78C6243533E309DA9FDA0422 /* AI */,
 				CC92DFDFA658B3ECCAABEDAA /* App */,
+				B7CC3E1EB8D5BBCF208AD067 /* Audio */,
 				D025456D75FC71E6AFFBB8D3 /* Domain */,
 				2D13DF64B4462D9AC1A49E5D /* Intents */,
 				7F37D2A2B2CD865AD4C3BDF0 /* MCP */,
@@ -265,6 +270,15 @@
 				4E78EB50C88FD4B3EAC2CDE8 /* TaskDTO.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		B7CC3E1EB8D5BBCF208AD067 /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				5047E013D3CB8DBE69BD12BF /* AlertSounder.swift */,
+				2706185A637FA2E9198A4583 /* SynthEngine.swift */,
+			);
+			path = Audio;
 			sourceTree = "<group>";
 		};
 		CBD7AAF8E2C2DCE0EC8AD20F = {
@@ -408,6 +422,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				13FC2289CB7A721B392F86C5 /* AlertSounder.swift in Sources */,
 				97CA89EE1B5C2EFA77224626 /* AllTasksView.swift in Sources */,
 				C3AF43F432E4FE66571575C7 /* AppStore.swift in Sources */,
 				5D978CBED9152C25EF3E365C /* AppVersion.swift in Sources */,
@@ -443,6 +458,7 @@
 				37980F97A71DF8B63369B934 /* SettingsView.swift in Sources */,
 				9A1314364E8EC66AEA82E522 /* SpeechBubble.swift in Sources */,
 				0D3344D9ACAA33D765022C20 /* SyncedPrefs.swift in Sources */,
+				EA98DE34A80ABDC13C9BE5D2 /* SynthEngine.swift in Sources */,
 				54D512FEC57955D2049713C4 /* TaskCardView.swift in Sources */,
 				233F216B7A0F517A69C4E92B /* TaskDTO.swift in Sources */,
 				FBEA757AF5BC51E5F0E3CEC9 /* TaskDetailView.swift in Sources */,

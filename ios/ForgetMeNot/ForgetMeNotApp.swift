@@ -42,6 +42,7 @@ struct ForgetMeNotApp: App {
     @State private var store: AppStore
     @State private var icons = IconStore()
     @State private var coordinator = NudgeCoordinator()
+    @State private var sounder = AlertSounder()
     @State private var mcp: MCPServer?
     @Environment(\.scenePhase) private var scenePhase
     private let scheduler = ReminderScheduler()
@@ -57,6 +58,7 @@ struct ForgetMeNotApp: App {
                 .environment(store)
                 .environment(icons)
                 .environment(coordinator)
+                .environment(sounder)
                 .task {
                     wireIcons()         // persist generated icons onto tasks (so they sync)
                     startMCP()          // expose tools to MCP clients on a local port
@@ -96,6 +98,7 @@ struct ForgetMeNotApp: App {
         let active = store.sortedActive
         icons.evolve(for: active)
         coordinator.evaluate(active, now: Date())
+        sounder.evaluate(active, config: store.soundConfig)
     }
 
     /// One-time repair: early builds stored full-size icon PNGs on the task; at 1.5–1.8MB they

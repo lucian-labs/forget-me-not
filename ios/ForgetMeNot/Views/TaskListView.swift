@@ -54,7 +54,7 @@ struct TaskListView: View {
             LoopsView().environment(store)
         }
         .fullScreenCover(isPresented: $showAllTasks) {
-            AllTasksView().environment(store).environment(icons)
+            AllTasksView().environment(store).environment(icons).environment(sounder)
         }
         .sheet(isPresented: $showCreate) {
             CreateTaskView().environment(store)

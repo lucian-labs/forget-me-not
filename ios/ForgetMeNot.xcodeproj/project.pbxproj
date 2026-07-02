@@ -46,6 +46,7 @@
 		97CA89EE1B5C2EFA77224626 /* AllTasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE238F85ECDB6F8DE3CE70B7 /* AllTasksView.swift */; };
 		99FAFB17C009161826CD77D7 /* TaskListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3727F96923D5A00D56A3F032 /* TaskListView.swift */; };
 		9A1314364E8EC66AEA82E522 /* SpeechBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F5EAA086DEE2999A00A30F /* SpeechBubble.swift */; };
+		A8B5D3373C547BFE237FBDEC /* SwipeableCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AF27AC0468F7F281191AFA3 /* SwipeableCard.swift */; };
 		AC2A5095B67901BBE85EC6A0 /* InsightService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D7C447A0E61DCB930D5309C /* InsightService.swift */; };
 		AD465367B127BD2AC8892180 /* ForgetMeNotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5965153C091A7D123E190CEC /* ForgetMeNotApp.swift */; };
 		AF6685D38B2098AB6D70FD14 /* Lifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EAC044F8F46AB17509EE507 /* Lifecycle.swift */; };
@@ -86,6 +87,7 @@
 		0A6E3039AACAE58A1C598264 /* TaskRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskRepository.swift; sourceTree = "<group>"; };
 		10DCB8D81EF9B60D11C8AA65 /* FMNModelContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FMNModelContainer.swift; sourceTree = "<group>"; };
 		1995D0E0AB85C8047478968F /* PromptLabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptLabView.swift; sourceTree = "<group>"; };
+		1AF27AC0468F7F281191AFA3 /* SwipeableCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeableCard.swift; sourceTree = "<group>"; };
 		1F5B9855F5EFA81AD0CB7D07 /* Prompts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Prompts.swift; sourceTree = "<group>"; };
 		21650FDAFA9DB767028F17BB /* PocketWaveBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PocketWaveBridge.h; sourceTree = "<group>"; };
 		2478B8B2872AB24E4AF78816 /* IconStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconStore.swift; sourceTree = "<group>"; };
@@ -347,6 +349,7 @@
 				1995D0E0AB85C8047478968F /* PromptLabView.swift */,
 				34FF76DC83C7AD47E2E579DE /* SettingsView.swift */,
 				00F5EAA086DEE2999A00A30F /* SpeechBubble.swift */,
+				1AF27AC0468F7F281191AFA3 /* SwipeableCard.swift */,
 				B93B103FE5319889196B1BDF /* TaskCardView.swift */,
 				DFC95A22730610A096937910 /* TaskDetailView.swift */,
 				3727F96923D5A00D56A3F032 /* TaskListView.swift */,
@@ -489,6 +492,7 @@
 				598FC31D6C3EAF422431C23E /* Seed.swift in Sources */,
 				37980F97A71DF8B63369B934 /* SettingsView.swift in Sources */,
 				9A1314364E8EC66AEA82E522 /* SpeechBubble.swift in Sources */,
+				A8B5D3373C547BFE237FBDEC /* SwipeableCard.swift in Sources */,
 				0D3344D9ACAA33D765022C20 /* SyncedPrefs.swift in Sources */,
 				EA98DE34A80ABDC13C9BE5D2 /* SynthEngine.swift in Sources */,
 				54D512FEC57955D2049713C4 /* TaskCardView.swift in Sources */,

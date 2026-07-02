@@ -1,9 +1,9 @@
 import SwiftUI
 
-/// The main panel — waveloop-styled. Swipe a card right to drop a SNACK (reset); tap for
-/// detail; header buttons = new / loops data / settings. (List handles vertical scroll +
-/// swipe natively — a custom drag was stealing the scroll, so the physical pocket is
-/// shelved for a UIKit pass.)
+/// The main panel — waveloop-styled. Cards use SwipeableCard (direct-manipulation pan,
+/// velocity-preserving springs, haptic threshold ticks) instead of List swipe actions —
+/// the UITableView drawer machinery was the jank. Scroll-vs-swipe is arbitrated in UIKit
+/// (horizontal intent only), which is what the old custom drag got wrong.
 struct TaskListView: View {
     @Environment(AppStore.self) private var store
     @Environment(IconStore.self) private var icons
@@ -38,13 +38,13 @@ struct TaskListView: View {
             icons.evolve(for: store.sortedActive)   // ...and decode any icons it synced over
             coordinator.evaluate(store.sortedActive, now: Date())
             sounder.evaluate(store.sortedActive, config: store.soundConfig)   // jingle on tip-over
-            // Only re-render the list when the SORT ORDER actually changes — re-rendering
-            // every tick collapsed in-progress swipe drawers (a row wouldn't reset).
+            // Only bump `now` when the SORT ORDER actually changes; the container's spring
+            // animates the reorder (a tick that re-sorts nothing shouldn't touch the tree).
             let t = Date()
             let key = store.activeSorted(now: t).map(\.id)
             if key != orderKey {
                 orderKey = key
-                withAnimation(.easeInOut(duration: 0.45)) { now = t }
+                now = t
             }
         }
         .fullScreenCover(item: $detailTask) { task in
@@ -111,78 +111,72 @@ struct TaskListView: View {
             }
             .frame(maxWidth: .infinity)
         } else {
-            List {
-                ForEach(active) { task in
-                    Button { detailTask = task } label: {
-                        TaskCardView(task: task,
-                                     nudge: coordinator.nudge(for: task.id),
-                                     icon: icons.image(for: task.id),
-                                     symbol: task.iconSymbol)
-                    }
-                    .buttonStyle(.plain)
-                    .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(WL.bg)
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        // Left swipe = SKIP: restart the timer, no follow-ups (logged "skipped").
-                        Button { skip(task) } label: {
-                            Label("SKIP", systemImage: "arrow.counterclockwise")
-                        }
-                        .tint(WL.cyan)
-                        // Web parity (zz): quiet it down for a bit — jumps to 75%, re-alerts soon.
-                        if task.recurring, task.instance != nil {
-                            Button { store.snooze(id: task.id) } label: {
-                                Label("SNOOZE", systemImage: "moon.zzz.fill")
-                            }
-                            .tint(WL.gold)
-                        }
-                    }
-                    .contextMenu {
-                        if task.recurring {
-                            // Web parity (↓): fresh cycle, nothing logged, streaks untouched.
-                            Button {
-                                store.restartCycle(id: task.id)
-                            } label: {
-                                Label("Restart timer quietly", systemImage: "arrow.counterclockwise.circle")
-                            }
-                            Button {
-                                store.snooze(id: task.id)
-                            } label: {
-                                Label("Snooze", systemImage: "moon.zzz")
-                            }
-                        }
-                        Button {
-                            sounder.preview(task, config: store.soundConfig)
-                        } label: {
-                            Label("Hear its sound", systemImage: "speaker.wave.2")
-                        }
-                    }
-                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                        // Right swipe = DONE: reset + fire follow-ups (logged "done").
-                        Button { markDone(task) } label: {
-                            Label("DONE", systemImage: "checkmark.circle.fill")
-                        }
-                        .tint(WL.green)
+            ScrollView {
+                LazyVStack(spacing: 12) {
+                    ForEach(active) { task in
+                        row(task)
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .move(edge: .top)),
+                                removal: .opacity.combined(with: .scale(scale: 0.92))))
                     }
                 }
+                .padding(.horizontal, 16)
+                .padding(.top, 10)
+                // One tight spring drives reorders, removals, and post-swipe settling.
+                .animation(.spring(response: 0.32, dampingFraction: 0.86), value: active.map(\.id))
             }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
-            .contentMargins(.top, 10, for: .scrollContent)
         }
+    }
+
+    private func row(_ task: TaskDTO) -> some View {
+        SwipeableCard(
+            // Right swipe = DONE: reset + fire follow-ups (logged "done"). One-time tasks
+            // leave the list, so their card flies off; recurring ones stamp + spring home.
+            leading: SwipeAction(label: "DONE", icon: "checkmark.circle.fill", color: WL.green,
+                                 removesRow: !task.recurring,
+                                 handler: { markDone(task) }),
+            // Left swipe = SKIP: restart the timer, no follow-ups (logged "skipped").
+            trailing: SwipeAction(label: "SKIP", icon: "arrow.counterclockwise", color: WL.cyan,
+                                  removesRow: false,
+                                  handler: { skip(task) })
+        ) {
+            TaskCardView(task: task,
+                         nudge: coordinator.nudge(for: task.id),
+                         icon: icons.image(for: task.id),
+                         symbol: task.iconSymbol)
+        }
+        .onTapGesture { detailTask = task }
+        .contextMenu {
+            if task.recurring {
+                // Web parity (zz): quiet it down for a bit — jumps to 75%, re-alerts soon.
+                Button {
+                    store.snooze(id: task.id)
+                } label: {
+                    Label("Snooze", systemImage: "moon.zzz")
+                }
+                // Web parity (↓): fresh cycle, nothing logged, streaks untouched.
+                Button {
+                    store.restartCycle(id: task.id)
+                } label: {
+                    Label("Restart timer quietly", systemImage: "arrow.counterclockwise.circle")
+                }
+            }
+            Button {
+                sounder.preview(task, config: store.soundConfig)
+            } label: {
+                Label("Hear its sound", systemImage: "speaker.wave.2")
+            }
+        }
+        .accessibilityAddTraits(.isButton)
     }
 
     private func skip(_ task: TaskDTO) {
         coordinator.clear(task.id)
-        withAnimation(.easeInOut(duration: 0.4)) {
-            store.skip(id: task.id)
-        }
+        store.skip(id: task.id)
     }
 
     private func markDone(_ task: TaskDTO) {
         coordinator.clear(task.id)
-        withAnimation(.easeInOut(duration: 0.4)) {
-            store.markDone(id: task.id)   // reset (recurring) or complete (one-time) + fire follow-ups
-        }
+        store.markDone(id: task.id)   // reset (recurring) or complete (one-time) + fire follow-ups
     }
 }

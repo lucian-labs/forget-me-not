@@ -4,7 +4,7 @@ import Foundation
 
 /// Everything the synth needs to voice an alert — mirrors the web app's sound settings
 /// (`src/sounds.ts`): the global seed flavors EVERY jingle (web: YamaBruh's constructor
-/// seed), preset picks the FM patch, mode picks the scale, plus bpm + volume.
+/// seed), preset picks the FM patch, mode picks the MOOD (0–9), plus bpm + volume.
 struct SoundConfig: Equatable {
     var enabled: Bool
     var seed: String
@@ -14,10 +14,11 @@ struct SoundConfig: Equatable {
     var mode: Int
 }
 
-/// The real deal: jingles voiced by the vendored PocketWave FM synth ("yama-bruh") — the
-/// same instrument behind the web app's YamaBruh sounds, so the 99 presets line up with
-/// the web's preset numbers. Swift stays the melody brain (seeded walk with real note
-/// lengths + rests); the C synth supplies voices, ADSR envelopes, and release tails.
+/// Jingles voiced by the vendored PocketWave FM synth ("yama-bruh"), with the melody
+/// logic ported LINE-FOR-LINE from the web's yamabruh-notify.js `_generateSequence`:
+/// same djb2 seed hash, same xorshift RNG (same call order), same 38 scales, same 10
+/// moods (curated scale pools, movement tables, beat durations, cadence resolution).
+/// That note brain is why the web's tunes felt right — this is it, not an imitation.
 @MainActor
 final class SynthEngine {
     private let engine = AVAudioEngine()
@@ -26,6 +27,8 @@ final class SynthEngine {
 
     static var presetCount: Int { Int(NUM_PRESETS) }
     static func presetName(_ idx: Int) -> String { String(cString: pw_preset_name(Int32(idx))) }
+    static let moodNames = ["Pretty", "Experimental", "Depressing", "Spooky", "Dreamy",
+                            "Aggressive", "Exotic", "Jazzy", "Ethereal", "Mechanical"]
 
     /// Compose + schedule one jingle. A new play releases the previous one.
     func play(seed: String, config: SoundConfig) {
@@ -58,63 +61,159 @@ final class SynthEngine {
         return true
     }
 
-    // MARK: - melody composition (seeded, deterministic)
+    // MARK: - melody (port of yamabruh-notify.js)
 
-    /// Scale flavors selectable via `mode` (wraps).
-    private static let scales: [[Int]] = [
-        [0, 2, 4, 7, 9],           // major pentatonic
-        [0, 3, 5, 7, 10],          // minor pentatonic
-        [0, 2, 3, 5, 7, 9, 10],    // dorian
-        [0, 2, 4, 6, 7, 9, 11],    // lydian
-        [0, 1, 3, 5, 7, 8, 10],    // phrygian
-        [0, 2, 4, 5, 7, 9, 10],    // mixolydian
-        [0, 2, 4, 6, 8, 10],       // whole tone
-        [0, 3, 5, 6, 7, 10],       // blues
+    /// All scales (semitone intervals within one octave) — web SCALES, same order for
+    /// the "all scales" pool so RNG picks line up.
+    private static let scaleTable: [(String, [Int])] = [
+        ("major", [0, 2, 4, 5, 7, 9, 11]),
+        ("dorian", [0, 2, 3, 5, 7, 9, 10]),
+        ("phrygian", [0, 1, 3, 5, 7, 8, 10]),
+        ("lydian", [0, 2, 4, 6, 7, 9, 11]),
+        ("mixolydian", [0, 2, 4, 5, 7, 9, 10]),
+        ("aeolian", [0, 2, 3, 5, 7, 8, 10]),
+        ("locrian", [0, 1, 3, 5, 6, 8, 10]),
+        ("harmonicMinor", [0, 2, 3, 5, 7, 8, 11]),
+        ("melodicMinor", [0, 2, 3, 5, 7, 9, 11]),
+        ("pentMajor", [0, 2, 4, 7, 9]),
+        ("pentMinor", [0, 3, 5, 7, 10]),
+        ("blues", [0, 3, 5, 6, 7, 10]),
+        ("wholeTone", [0, 2, 4, 6, 8, 10]),
+        ("doubleHarmonic", [0, 1, 4, 5, 7, 8, 11]),
+        ("hungarianMinor", [0, 2, 3, 6, 7, 8, 11]),
+        ("phrygianDom", [0, 1, 4, 5, 7, 8, 10]),
+        ("neapolitanMin", [0, 1, 3, 4, 7, 8, 10]),
+        ("neapolitanMaj", [0, 1, 3, 5, 7, 9, 11]),
+        ("altered", [0, 1, 3, 5, 6, 8, 10]),
+        ("prometheus", [0, 2, 4, 6, 9, 10]),
+        ("kumoi", [0, 2, 3, 7, 8]),
+        ("japanese", [0, 2, 3, 7, 9]),
+        ("hirajoshi", [0, 1, 5, 7, 10]),
+        ("iwato", [0, 1, 3, 7, 8]),
+        ("enigmatic", [0, 1, 3, 6, 7, 9, 10]),
+        ("persian", [0, 1, 4, 6, 8, 10, 11]),
+        ("arabian", [0, 2, 4, 5, 6, 8, 10]),
+        ("pelog", [0, 1, 3, 4, 7, 9, 10]),
+        ("gypsy", [0, 2, 3, 6, 7, 8, 10]),
+        ("flamenco", [0, 1, 4, 5, 7, 8, 11]),
+        ("bebopDom", [0, 2, 4, 5, 7, 9, 10, 11]),
+        ("lydianDom", [0, 2, 4, 6, 7, 9, 10]),
+        ("bluesMajor", [0, 3, 4, 7, 9, 10]),
+        ("dimWH", [0, 2, 3, 5, 6, 8, 9, 11]),
+        ("dimHW", [0, 1, 3, 4, 6, 7, 9, 10]),
+        ("augmented", [0, 4, 6, 7, 11]),
+        ("egyptian", [0, 2, 5, 7, 10]),
+        ("balinese", [0, 1, 5, 7, 8]),
+        ("bebopMinor", [0, 2, 3, 5, 7, 8, 10, 11]),
+    ]
+    private static let scaleByName = Dictionary(uniqueKeysWithValues: scaleTable)
+
+    private struct Mood {
+        let scales: [String]?      // nil = all scales
+        let movements: [Int]       // scale-degree steps, mood-flavored contour
+        let durations: [Double]    // note lengths in beats
+        let maxNotes: Int          // web noteRange[1]; min is always 2 (web minLength)
+        let rootBase: Int
+        let rootSpread: Int
+        let resolve: Bool          // land the last note on root / 3rd / octave
+    }
+
+    /// Web MOODS, indexed 0–9 — pretty, experimental, depressing, spooky, dreamy,
+    /// aggressive, exotic, jazzy, ethereal, mechanical.
+    private static let moods: [Mood] = [
+        Mood(scales: ["pentMajor", "pentMinor", "major", "lydian", "mixolydian"],
+             movements: [1, -1, 2, -2, 1, -1, 2, -2, 0, 3, -3],
+             durations: [0.25, 0.25, 0.5, 0.5, 1.0],
+             maxNotes: 6, rootBase: 60, rootSpread: 3, resolve: true),
+        Mood(scales: nil,
+             movements: [0, 2, -2, 3, -3, 4, -4, 6, -6],
+             durations: [0.125, 0.25, 0.5, 1.0, 2.0],
+             maxNotes: 5, rootBase: 54, rootSpread: 3, resolve: false),
+        Mood(scales: ["aeolian", "harmonicMinor", "phrygian", "pentMinor", "locrian", "neapolitanMin"],
+             movements: [-1, -2, 1, -1, -2, -3, 0, -1, 2],
+             durations: [0.5, 0.5, 1.0, 1.0, 2.0],
+             maxNotes: 5, rootBase: 48, rootSpread: 2, resolve: false),
+        Mood(scales: ["dimWH", "dimHW", "wholeTone", "locrian", "altered", "hungarianMinor", "iwato", "enigmatic"],
+             movements: [1, -1, 3, -3, 6, -6, 4, -4, 0],
+             durations: [0.25, 0.5, 0.5, 1.0, 0.125],
+             maxNotes: 5, rootBase: 48, rootSpread: 4, resolve: false),
+        Mood(scales: ["lydian", "pentMajor", "wholeTone", "major", "mixolydian"],
+             movements: [1, -1, 2, -2, 0, 1, -1, 3, 2],
+             durations: [0.5, 0.5, 1.0, 1.0, 2.0],
+             maxNotes: 6, rootBase: 60, rootSpread: 2, resolve: true),
+        Mood(scales: ["phrygian", "phrygianDom", "blues", "dimHW", "flamenco", "hungarianMinor"],
+             movements: [2, -2, 3, -3, 4, -4, 6, -6, 1],
+             durations: [0.125, 0.125, 0.25, 0.25, 0.5],
+             maxNotes: 6, rootBase: 42, rootSpread: 3, resolve: false),
+        Mood(scales: ["doubleHarmonic", "persian", "arabian", "pelog", "gypsy", "flamenco", "hirajoshi", "kumoi", "japanese", "balinese"],
+             movements: [1, -1, 2, -2, 3, -3, 0, 1, 4],
+             durations: [0.25, 0.25, 0.5, 0.5, 1.0],
+             maxNotes: 5, rootBase: 54, rootSpread: 3, resolve: false),
+        Mood(scales: ["dorian", "mixolydian", "lydianDom", "bebopDom", "bebopMinor", "melodicMinor", "bluesMajor", "blues"],
+             movements: [1, -1, 2, -2, 3, -3, 4, 0, -4],
+             durations: [0.25, 0.25, 0.5, 0.125, 0.5],
+             maxNotes: 6, rootBase: 54, rootSpread: 3, resolve: true),
+        Mood(scales: ["wholeTone", "pentMajor", "lydian", "augmented", "prometheus"],
+             movements: [2, -2, 3, -3, 1, -1, 0, 4, 5],
+             durations: [0.5, 1.0, 1.0, 2.0, 0.5],
+             maxNotes: 5, rootBase: 60, rootSpread: 3, resolve: true),
+        Mood(scales: ["dimWH", "dimHW", "wholeTone", "augmented"],
+             movements: [1, 1, -1, -1, 2, -2, 3, 0, 0],
+             durations: [0.125, 0.25, 0.125, 0.25, 0.5],
+             maxNotes: 8, rootBase: 54, rootSpread: 2, resolve: false),
     ]
 
     private func compose(seed: String, config: SoundConfig, sampleRate: Double) -> [JingleEvent] {
-        // Full jingle identity = global seed | task seed | preset. Same trio, same tune,
-        // forever — and changing the global seed re-rolls the whole soundscape at once.
-        var rng = JingleRNG(seed: "\(config.seed)|\(seed)|\(config.preset)")
-        let scale = Self.scales[((config.mode % Self.scales.count) + Self.scales.count) % Self.scales.count]
+        // Web parity: melody seed = instance seed + ':' + play id → djb2 → xorshift.
+        let melodyRaw = "\(config.seed):\(seed)"
+        let hash = YBRng.djb2(melodyRaw)
+        var rng = YBRng(hash)
+        let mood = Self.moods[min(max(config.mode, 0), Self.moods.count - 1)]
 
-        let bpm = min(max(config.bpm, 50), 260)
-        let eighth = 60.0 / bpm / 2.0
-        let noteCount = 5 + Int(rng.next() % 5)           // 5–9 notes
-        let root = 52 + Int(rng.next() % 17)              // E3..A4 region
+        // Scale pool pick (mood pool, or all), then rotate to a random mode of it.
+        let pool = mood.scales ?? Self.scaleTable.map(\.0)
+        let baseScale = Self.scaleByName[pool[rng.range(pool.count)]] ?? [0, 2, 4, 7, 9]
+        let modeIdx = rng.range(baseScale.count)
+        let root12 = baseScale[modeIdx]
+        var scale = (0..<baseScale.count).map { i -> Int in
+            var semi = baseScale[(modeIdx + i) % baseScale.count] - root12
+            if semi < 0 { semi += 12 }
+            return semi
+        }
+        scale.sort()
 
+        func degToSemitone(_ deg: Int) -> Int {
+            let len = scale.count
+            let oct = Int(floor(Double(deg) / Double(len)))
+            let idx = ((deg % len) + len) % len
+            return oct * 12 + scale[idx]
+        }
+
+        // Note count comes from the RAW HASH (web: `seed % ...`), not the rng stream.
+        let lo = 2, hi = max(mood.maxNotes, 2)
+        let numNotes = lo + Int(hash % UInt32(hi - lo + 1))
+        let rootMidi = mood.rootBase + rng.range(mood.rootSpread) * 12
+        var currentDeg = rng.range(scale.count)
+
+        let beat = 60.0 / min(max(config.bpm, 40), 300)
         var events: [JingleEvent] = []
         var t = 0.0
-        var degree = Int(rng.next() % UInt64(scale.count))
-        var played = 0
-        while played < noteCount, t < 4.0 {
-            // Real note lengths: weighted eighths/quarters/dotted/half + occasional rest.
-            if rng.next() % 6 == 0 { t += eighth; continue }
-            let units = [1, 1, 1, 2, 2, 3, 4][Int(rng.next() % 7)]
-            let isLast = played == noteCount - 1
-            let dur = Double(units) * eighth * (isLast ? 2.0 : 1.0)
-            let gate = dur * (isLast ? 1.2 : 0.55 + Double(rng.next() % 41) / 100.0)  // 55–95%
+        for i in 0..<numNotes {
+            if mood.resolve, i == numNotes - 1 {
+                let targets = [0, 2, scale.count]   // root, 3rd degree, octave — the cadence
+                currentDeg = targets[rng.range(targets.count)]
+            } else {
+                currentDeg += mood.movements[rng.range(mood.movements.count)]
+            }
+            let raw = rootMidi + degToSemitone(currentDeg)
+            let note = Int32(raw < 42 ? raw + 12 : raw > 84 ? raw - 12 : raw)
+            let dur = mood.durations[rng.range(mood.durations.count)] * beat
 
-            let octave = Int(floor(Double(degree) / Double(scale.count)))
-            let idx = ((degree % scale.count) + scale.count) % scale.count
-            let note = Int32(root + octave * 12 + scale[idx])
-            var vel = Int32(70 + rng.next() % 50)
-            if played == 0 { vel = min(127, vel + 15) }   // accent the opening note
-
-            events.append(JingleEvent(frame: Int(t * sampleRate), on: true, note: note, vel: vel))
-            events.append(JingleEvent(frame: Int((t + gate) * sampleRate), on: false, note: note, vel: 0))
-
-            // Walk the scale; occasional octave hop.
-            let hop = rng.next() % 8
-            if hop == 0 { degree += scale.count }
-            else if hop == 1 { degree -= scale.count }
-            else { degree += Int(rng.next() % 5) - 2 }
-            degree = min(max(degree, -scale.count), scale.count * 2)
-
+            events.append(JingleEvent(frame: Int(t * sampleRate), on: true, note: note, vel: 112))
+            events.append(JingleEvent(frame: Int((t + dur) * sampleRate), on: false, note: note, vel: 0))
             t += dur
-            played += 1
         }
-        return events.sorted { $0.frame < $1.frame }
+        return events   // built in time order; release tails ring past the last off
     }
 }
 
@@ -183,21 +282,26 @@ private final class JingleBox: @unchecked Sendable {
     }
 }
 
-/// Deterministic splitmix64 seeded from a string (FNV-1a) — same seed, same jingle.
-struct JingleRNG: RandomNumberGenerator {
-    private var state: UInt64
+/// Web-parity RNG: djb2 string hash + the exact xorshift/rotate step from
+/// yamabruh-notify.js `_rng` — same seed, same tune as the web's note brain.
+struct YBRng {
+    private var s: UInt32
 
-    init(seed: String) {
-        var h: UInt64 = 0xcbf29ce484222325
-        for b in seed.utf8 { h = (h ^ UInt64(b)) &* 0x100000001b3 }
-        state = h == 0 ? 0x9e3779b97f4a7c15 : h
+    init(_ seed: UInt32) { s = seed == 0 ? 1 : seed }
+
+    static func djb2(_ str: String) -> UInt32 {
+        var h: UInt32 = 5381
+        for b in str.utf8 { h = h &* 33 &+ UInt32(b) }
+        return h
     }
 
-    mutating func next() -> UInt64 {
-        state &+= 0x9e3779b97f4a7c15
-        var z = state
-        z = (z ^ (z >> 30)) &* 0xbf58476d1ce4e5b9
-        z = (z ^ (z >> 27)) &* 0x94d049bb133111eb
-        return z ^ (z >> 31)
+    mutating func next() -> UInt32 {
+        s ^= s << 13
+        s = (s >> 17) | (s << 15)   // 32-bit rotate, exactly as the JS does it
+        s ^= s << 5
+        if s == 0 { s = 1 }
+        return s
     }
+
+    mutating func range(_ n: Int) -> Int { n <= 0 ? 0 : Int(next() % UInt32(n)) }
 }

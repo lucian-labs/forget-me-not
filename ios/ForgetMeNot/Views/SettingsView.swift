@@ -145,9 +145,10 @@ struct SettingsView: View {
                     Text("MOOD").font(WL.mono(10, .bold)).tracking(1).foregroundStyle(WL.muted)
                     Spacer()
                     Picker("", selection: Binding(get: { store.soundMode }, set: { store.setSoundMode($0) })) {
-                        Text("Sunny").tag(0); Text("Moody").tag(1); Text("Dreamy").tag(2)
-                        Text("Bright").tag(3); Text("Dark").tag(4); Text("Warm").tag(5)
-                        Text("Weird").tag(6); Text("Bluesy").tag(7)
+                        // The web's 10 YamaBruh moods — each curates scales, contour, rhythm.
+                        ForEach(Array(SynthEngine.moodNames.enumerated()), id: \.offset) { i, name in
+                            Text(name).tag(i)
+                        }
                     }
                     .pickerStyle(.menu).tint(WL.accent)
                 }

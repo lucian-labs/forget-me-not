@@ -292,9 +292,16 @@ final class AppStore {
 
     /// Activate a task's direct dormant children — give each a due date so it surfaces in the
     /// list. Drives both launching a chain (STEPS) and advancing it (on completing a step).
+    /// (Re-)arm the follow-up chain. Every parent-done re-arms its DIRECT non-recurring
+    /// children with a fresh window — dormant, spent (done last cycle), or still-pending
+    /// alike (paused stays paused). Only waking dormant ones made chains one-shot: after
+    /// the first run the children sat status=done and "done on laundry" added nothing.
+    /// Grandchildren re-arm when THEIR parent is done, so the chain cascades every cycle.
     private func activateChildren(of id: String, now: Date = Date()) {
-        for var child in children(of: id) where isDormantFollowUp(child) {
+        for var child in children(of: id) where !child.recurring && child.status != .blocked {
             let offset = child.baseCadenceSeconds ?? 3600
+            child.status = .open
+            child.completedAt = nil
             child.startedAt = now
             child.dueDate = now.addingTimeInterval(offset)
             child.updatedAt = now

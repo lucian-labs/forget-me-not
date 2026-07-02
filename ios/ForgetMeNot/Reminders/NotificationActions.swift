@@ -40,11 +40,15 @@ enum NotificationActions {
         center.removeDeliveredNotifications(withIdentifiers: ids)
     }
 
-    /// Mirror of AppStore.activateChildren for the headless path: launch dormant follow-ups.
+    /// Mirror of AppStore.activateChildren for the headless path: every parent-done re-arms
+    /// the direct non-recurring children (dormant, spent, or pending — paused stays paused);
+    /// dormant-only made chains one-shot after their first run.
     @MainActor private static func activateChildren(of id: String, repo: TaskRepository) {
         let now = Date()
         for var child in ((try? repo.all()) ?? [])
-        where child.parentTaskId == id && !child.recurring && child.dueDate == nil && child.status == .open {
+        where child.parentTaskId == id && !child.recurring && child.status != .blocked {
+            child.status = .open
+            child.completedAt = nil
             child.startedAt = now
             child.dueDate = now.addingTimeInterval(child.baseCadenceSeconds ?? 3600)
             child.updatedAt = now

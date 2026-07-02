@@ -146,8 +146,10 @@ private final class JingleBox: @unchecked Sendable {
     func schedule(events newEvents: [JingleEvent], preset: Int, gain newGain: Float) {
         lock.lock()
         defer { lock.unlock() }
-        // Release anything still ringing from the previous jingle (its offs are dropped).
-        for e in events[min(cursor, events.count)...] where e.on { fm_note_off(synth, e.note) }
+        // Release anything still ringing from the previous jingle: a sounding note is one
+        // whose OFF is still pending — send those offs now, since we're about to drop them.
+        // (Filtering on pending ONs — notes that never started — left sustains ringing forever.)
+        for e in events[min(cursor, events.count)...] where !e.on { fm_note_off(synth, e.note) }
         let count = Int32(NUM_PRESETS)
         synth.pointee.current_preset = ((Int32(preset) % count) + count) % count
         events = newEvents

@@ -2,9 +2,11 @@ import AVFoundation
 import Foundation
 
 /// Everything the synth needs to voice an alert — mirrors the web app's sound settings
-/// (`src/sounds.ts`): preset picks the character, mode picks the scale, plus bpm + volume.
+/// (`src/sounds.ts`): the global seed flavors EVERY jingle (web: YamaBruh's constructor
+/// seed), preset picks the character, mode picks the scale, plus bpm + volume.
 struct SoundConfig: Equatable {
     var enabled: Bool
+    var seed: String
     var preset: Int
     var bpm: Double
     var volume: Double
@@ -58,8 +60,9 @@ final class SynthEngine {
     ]
 
     private func render(seed: String, config: SoundConfig) -> AVAudioPCMBuffer? {
-        // Fold the preset into the seed: same task + same preset = same jingle, forever.
-        var rng = JingleRNG(seed: "\(seed)|\(config.preset)")
+        // Full jingle identity = global seed | task seed | preset. Same trio, same tune,
+        // forever — and changing the global seed re-rolls the whole soundscape at once.
+        var rng = JingleRNG(seed: "\(config.seed)|\(seed)|\(config.preset)")
         let scale = Self.scales[((config.mode % Self.scales.count) + Self.scales.count) % Self.scales.count]
 
         let bpm = min(max(config.bpm, 50), 260)

@@ -48,7 +48,7 @@ struct TaskListView: View {
             }
         }
         .fullScreenCover(item: $detailTask) { task in
-            TaskDetailView(taskId: task.id).environment(store).environment(icons)
+            TaskDetailView(taskId: task.id).environment(store).environment(icons).environment(sounder)
         }
         .fullScreenCover(isPresented: $showLoops) {
             LoopsView().environment(store)

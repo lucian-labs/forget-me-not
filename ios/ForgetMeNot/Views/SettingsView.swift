@@ -127,6 +127,20 @@ struct SettingsView: View {
             .tint(WL.accent)
 
             if store.soundEnabled {
+                HStack(spacing: 8) {
+                    Text("SEED").font(WL.mono(10, .bold)).tracking(1).foregroundStyle(WL.muted)
+                    TextField("forgetmenot", text: Binding(
+                        get: { store.soundSeed },
+                        set: { store.setSoundSeed($0) }
+                    ))
+                    .font(WL.mono(11)).foregroundStyle(WL.text).tint(WL.accent)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .onSubmit { sounder.test(config: store.soundConfig) }
+                    .padding(8).wlPanel(fill: WL.surface, border: WL.border)
+                }
+                Text("The word every tune grows from — change it and the whole soundscape changes.")
+                    .font(WL.mono(9)).foregroundStyle(WL.muted)
                 HStack {
                     Text("MOOD").font(WL.mono(10, .bold)).tracking(1).foregroundStyle(WL.muted)
                     Spacer()

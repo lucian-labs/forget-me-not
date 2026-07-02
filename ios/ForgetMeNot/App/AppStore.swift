@@ -56,18 +56,21 @@ final class AppStore {
     // MARK: - Sound (web parity: src/sounds.ts settings, synced like theme/styles)
 
     var soundEnabled: Bool = true
+    var soundSeed: String = "forgetmenot"
     var soundPreset: Int = 0
     var soundBpm: Double = 160
     var soundVolume: Double = 0.4
     var soundMode: Int = 1
 
     var soundConfig: SoundConfig {
-        SoundConfig(enabled: soundEnabled, preset: soundPreset, bpm: soundBpm, volume: soundVolume, mode: soundMode)
+        SoundConfig(enabled: soundEnabled, seed: soundSeed.isEmpty ? "forgetmenot" : soundSeed,
+                    preset: soundPreset, bpm: soundBpm, volume: soundVolume, mode: soundMode)
     }
 
     private func readSoundPrefs() {
         let d = UserDefaults.standard
         soundEnabled = (d.string(forKey: "fmn.soundEnabled") ?? "1") != "0"
+        soundSeed = d.string(forKey: "fmn.soundSeed") ?? "forgetmenot"
         soundPreset = Int(d.string(forKey: "fmn.soundPreset") ?? "") ?? 0
         soundBpm = Double(d.string(forKey: "fmn.soundBpm") ?? "") ?? 160
         soundVolume = Double(d.string(forKey: "fmn.soundVolume") ?? "") ?? 0.4
@@ -75,6 +78,7 @@ final class AppStore {
     }
 
     func setSoundEnabled(_ on: Bool) { soundEnabled = on; SyncedPrefs.set(on ? "1" : "0", forKey: "fmn.soundEnabled") }
+    func setSoundSeed(_ s: String) { soundSeed = s; SyncedPrefs.set(s, forKey: "fmn.soundSeed") }
     func setSoundPreset(_ v: Int) { soundPreset = v; SyncedPrefs.set(String(v), forKey: "fmn.soundPreset") }
     func setSoundBpm(_ v: Double) { soundBpm = v; SyncedPrefs.set(String(v), forKey: "fmn.soundBpm") }
     func setSoundVolume(_ v: Double) { soundVolume = v; SyncedPrefs.set(String(v), forKey: "fmn.soundVolume") }
@@ -137,6 +141,17 @@ final class AppStore {
         var rng = SystemRandomNumberGenerator()
         let result = Lifecycle.reset(task, note: "", now: Date(), rng: &rng)
         try? repository.upsert(result.task)
+        load()
+    }
+
+    /// Give a task its own ringtone seed (nil/empty = back to its id). The jingle is
+    /// deterministic from global seed + this + preset, so it syncs everywhere.
+    func setTaskSoundSeed(id: String, _ seed: String?) {
+        guard var t = tasks.first(where: { $0.id == id }) else { return }
+        let trimmed = seed?.trimmingCharacters(in: .whitespacesAndNewlines)
+        t.soundSeed = (trimmed?.isEmpty == false) ? trimmed : nil
+        t.updatedAt = Date()
+        try? repository.upsert(t)
         load()
     }
 

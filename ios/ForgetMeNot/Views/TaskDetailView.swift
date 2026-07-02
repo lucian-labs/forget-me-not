@@ -8,9 +8,11 @@ struct TaskDetailView: View {
     let taskId: String
 
     @Environment(AppStore.self) private var store
+    @Environment(AlertSounder.self) private var sounder
     @Environment(\.dismiss) private var dismiss
     @State private var note = ""
     @State private var descDraft = ""
+    @State private var seedDraft = ""
     @State private var insightTask: TaskDTO?
     @State private var fuTitle = ""
     @State private var fuCadence: Double = 3600
@@ -113,6 +115,8 @@ struct TaskDetailView: View {
 
             remindersSection(task)
 
+            soundSection(task)
+
             followUpsSection(task)
 
             // active switch (off = paused; the creature sleeps)
@@ -176,7 +180,10 @@ struct TaskDetailView: View {
             .padding(.top, 8)
         }
         .padding(20)
-        .onAppear { descDraft = task.description }
+        .onAppear {
+            descDraft = task.description
+            seedDraft = task.soundSeed ?? ""
+        }
     }
 
     @ViewBuilder
@@ -186,6 +193,40 @@ struct TaskDetailView: View {
             content()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// This task's generative ringtone: hear it, see the seed it grows from, or plant a
+    /// custom one. Empty seed = the task's id (shown as the placeholder).
+    @ViewBuilder
+    private func soundSection(_ task: TaskDTO) -> some View {
+        section("SOUND") {
+            VStack(alignment: .leading, spacing: 10) {
+                Button {
+                    sounder.preview(task, config: store.soundConfig)
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "speaker.wave.2.fill").font(.system(size: 13, weight: .bold))
+                        Text("HEAR ITS TUNE").font(WL.mono(12, .bold)).tracking(1)
+                    }
+                    .frame(maxWidth: .infinity).padding(.vertical, 12)
+                    .foregroundStyle(WL.bg).background(WL.accent)
+                }
+                HStack(spacing: 8) {
+                    Text("SEED").font(WL.mono(9, .bold)).tracking(1).foregroundStyle(WL.muted)
+                    TextField(task.id, text: $seedDraft)
+                        .font(WL.mono(11)).foregroundStyle(WL.text).tint(WL.accent)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .onSubmit {
+                            store.setTaskSoundSeed(id: task.id, seedDraft)
+                            if let t = store.task(task.id) { sounder.preview(t, config: store.soundConfig) }
+                        }
+                        .padding(8).wlPanel(fill: WL.surface, border: WL.border)
+                }
+                Text("Its tune grows from this seed — type any word to give it a new one, blank uses its id.")
+                    .font(WL.mono(9)).foregroundStyle(WL.muted)
+            }
+        }
     }
 
     /// Editable tag list of reminder phrases (the rotating nudge prompts).

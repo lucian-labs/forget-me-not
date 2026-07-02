@@ -6,6 +6,7 @@ import SwiftUI
 struct AllTasksView: View {
     @Environment(AppStore.self) private var store
     @Environment(IconStore.self) private var icons
+    @Environment(AlertSounder.self) private var sounder
     @Environment(\.dismiss) private var dismiss
     @State private var detailTask: TaskDTO?
     @State private var dropTargeted = false
@@ -67,7 +68,7 @@ struct AllTasksView: View {
         }
         .preferredColorScheme(.dark)
         .fullScreenCover(item: $detailTask) { t in
-            TaskDetailView(taskId: t.id).environment(store).environment(icons)
+            TaskDetailView(taskId: t.id).environment(store).environment(icons).environment(sounder)
         }
     }
 

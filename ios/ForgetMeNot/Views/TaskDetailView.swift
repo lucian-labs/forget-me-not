@@ -202,7 +202,12 @@ struct TaskDetailView: View {
         section("SOUND") {
             VStack(alignment: .leading, spacing: 10) {
                 Button {
-                    sounder.preview(task, config: store.soundConfig)
+                    // Commit the seed draft first — otherwise a typed-but-not-submitted
+                    // seed would replay the old tune (the "seed didn't change it" bug).
+                    store.setTaskSoundSeed(id: task.id, seedDraft)
+                    if let fresh = store.task(task.id) {
+                        sounder.preview(fresh, config: store.soundConfig)
+                    }
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "speaker.wave.2.fill").font(.system(size: 13, weight: .bold))

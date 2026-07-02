@@ -169,9 +169,15 @@ struct SettingsView: View {
                     Slider(value: Binding(get: { store.soundVolume }, set: { store.setSoundVolume($0) }), in: 0.05...1)
                         .tint(WL.accent)
                 }
+                HStack {
+                    Text("INSTRUMENT").font(WL.mono(10, .bold)).tracking(1).foregroundStyle(WL.muted)
+                    Spacer()
+                    Text("#\(store.soundPreset % SynthEngine.presetCount) \(SynthEngine.presetName(store.soundPreset).uppercased())")
+                        .font(WL.mono(10, .bold)).foregroundStyle(WL.accent)
+                }
                 HStack(spacing: 10) {
                     Button {
-                        store.setSoundPreset(Int.random(in: 0...9999))
+                        store.setSoundPreset(Int.random(in: 0..<SynthEngine.presetCount))
                         sounder.test(config: store.soundConfig)
                     } label: {
                         HStack(spacing: 8) {

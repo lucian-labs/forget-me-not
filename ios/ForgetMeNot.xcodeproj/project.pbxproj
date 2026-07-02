@@ -53,6 +53,7 @@
 		B4DA9BD09386F3C3C5AE7D34 /* LifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8869A21F715B3F04FF1EE9B1 /* LifecycleTests.swift */; };
 		B5284D029C054DA2D84F55A9 /* UrgencyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 406F49AB320CA4DBD3D93EBB /* UrgencyTests.swift */; };
 		B71B0EABCC7A2D5B99755701 /* FMNIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = D918676D8F74311463FE58A2 /* FMNIntents.swift */; };
+		BD8F6D9CBD9F9707E7AA7866 /* POCKETWAVE.md in Resources */ = {isa = PBXBuildFile; fileRef = 7E72D69143E48353FFBC39A3 /* POCKETWAVE.md */; };
 		BE4EEBB869087DBA040A8E2C /* IconStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2478B8B2872AB24E4AF78816 /* IconStore.swift */; };
 		C3AF43F432E4FE66571575C7 /* AppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 313C2EA16D371E2A314FF331 /* AppStore.swift */; };
 		C798319CCC36D449AABECB95 /* Cadence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7481CAE26E54820AC56B8DA7 /* Cadence.swift */; };
@@ -86,6 +87,7 @@
 		10DCB8D81EF9B60D11C8AA65 /* FMNModelContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FMNModelContainer.swift; sourceTree = "<group>"; };
 		1995D0E0AB85C8047478968F /* PromptLabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptLabView.swift; sourceTree = "<group>"; };
 		1F5B9855F5EFA81AD0CB7D07 /* Prompts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Prompts.swift; sourceTree = "<group>"; };
+		21650FDAFA9DB767028F17BB /* PocketWaveBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PocketWaveBridge.h; sourceTree = "<group>"; };
 		2478B8B2872AB24E4AF78816 /* IconStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconStore.swift; sourceTree = "<group>"; };
 		2706185A637FA2E9198A4583 /* SynthEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SynthEngine.swift; sourceTree = "<group>"; };
 		27CF3ADE60A16F2DA9D6DED3 /* Urgency.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Urgency.swift; sourceTree = "<group>"; };
@@ -101,6 +103,7 @@
 		406F49AB320CA4DBD3D93EBB /* UrgencyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrgencyTests.swift; sourceTree = "<group>"; };
 		427D5FC64AC66D820D8D2262 /* Entities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Entities.swift; sourceTree = "<group>"; };
 		47F4BFA9B5E9280A0D908AFA /* NudgeCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NudgeCoordinator.swift; sourceTree = "<group>"; };
+		49D814FDBF22906B7E38F086 /* json-helpers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "json-helpers.h"; sourceTree = "<group>"; };
 		4E78EB50C88FD4B3EAC2CDE8 /* TaskDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskDTO.swift; sourceTree = "<group>"; };
 		4F7F3203B2AB93875DAE670C /* TaskDTOTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskDTOTests.swift; sourceTree = "<group>"; };
 		5047E013D3CB8DBE69BD12BF /* AlertSounder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertSounder.swift; sourceTree = "<group>"; };
@@ -113,10 +116,15 @@
 		7108C09FAFBD14D616A00E39 /* MCPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPServer.swift; sourceTree = "<group>"; };
 		73BDC64A35C3187BE0BDF6B3 /* CreateTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTaskView.swift; sourceTree = "<group>"; };
 		7481CAE26E54820AC56B8DA7 /* Cadence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cadence.swift; sourceTree = "<group>"; };
+		75DB25EBAC60C083432D3E2B /* osc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = osc.h; sourceTree = "<group>"; };
+		7E72D69143E48353FFBC39A3 /* POCKETWAVE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = POCKETWAVE.md; sourceTree = "<group>"; };
 		7F9085E1F4B4816D02C800C7 /* RepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryTests.swift; sourceTree = "<group>"; };
+		8031D69619B7525C1837BF58 /* fm-synth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "fm-synth.h"; sourceTree = "<group>"; };
 		8869A21F715B3F04FF1EE9B1 /* LifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleTests.swift; sourceTree = "<group>"; };
+		89149A9E4A4CEC245892A739 /* instruments.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = instruments.h; sourceTree = "<group>"; };
 		8BE2B6314CAF07D71B0D82EC /* LoopsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopsView.swift; sourceTree = "<group>"; };
 		8D0053E36AD58662ABEF0075 /* ExportEnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportEnvelope.swift; sourceTree = "<group>"; };
+		94EE337C9C0ECA39AAC4F3E3 /* presets.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = presets.h; sourceTree = "<group>"; };
 		9BC6880A3D9D91E25BA2296D /* ForgetMeNot.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ForgetMeNot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F0154265D603D1014903D83 /* EntityRoundTripTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntityRoundTripTests.swift; sourceTree = "<group>"; };
 		9F22F404465DA35317AB458D /* CadenceOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceOptions.swift; sourceTree = "<group>"; };
@@ -277,6 +285,7 @@
 			children = (
 				5047E013D3CB8DBE69BD12BF /* AlertSounder.swift */,
 				2706185A637FA2E9198A4583 /* SynthEngine.swift */,
+				E8755906C3B9CB437E844111 /* pocketwave */,
 			);
 			path = Audio;
 			sourceTree = "<group>";
@@ -313,6 +322,20 @@
 			path = Domain;
 			sourceTree = "<group>";
 		};
+		E8755906C3B9CB437E844111 /* pocketwave */ = {
+			isa = PBXGroup;
+			children = (
+				8031D69619B7525C1837BF58 /* fm-synth.h */,
+				89149A9E4A4CEC245892A739 /* instruments.h */,
+				49D814FDBF22906B7E38F086 /* json-helpers.h */,
+				75DB25EBAC60C083432D3E2B /* osc.h */,
+				7E72D69143E48353FFBC39A3 /* POCKETWAVE.md */,
+				21650FDAFA9DB767028F17BB /* PocketWaveBridge.h */,
+				94EE337C9C0ECA39AAC4F3E3 /* presets.h */,
+			);
+			path = pocketwave;
+			sourceTree = "<group>";
+		};
 		FBEECF5EBD39BCBF2ABE48C2 /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -341,6 +364,7 @@
 			buildConfigurationList = CD228EED7019BA5C95227CA4 /* Build configuration list for PBXNativeTarget "ForgetMeNot" */;
 			buildPhases = (
 				14EEC176B2328840EAAF6E7C /* Sources */,
+				93633379228C35BC026617C0 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -412,6 +436,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				84C47A24AB93B0F2F172F66F /* web-export.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		93633379228C35BC026617C0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BD8F6D9CBD9F9707E7AA7866 /* POCKETWAVE.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -534,6 +566,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.lucianlabs.forgetmenot;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = ForgetMeNot/Audio/pocketwave/PocketWaveBridge.h;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -680,6 +713,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.lucianlabs.forgetmenot;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = ForgetMeNot/Audio/pocketwave/PocketWaveBridge.h;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

@@ -18,6 +18,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.lucianlabs.forgetmenot
+        SWIFT_OBJC_BRIDGING_HEADER: ForgetMeNot/Audio/pocketwave/PocketWaveBridge.h
         TARGETED_DEVICE_FAMILY: "1,2"
         SUPPORTS_MACCATALYST: YES
         DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER: NO

@@ -120,8 +120,8 @@ struct ForgetMeNotApp: App {
     /// cartoon icons and regenerate every active task's icon in the new look. Runs once per
     /// device; each device generates its own (last write wins on sync).
     @MainActor private func refreshIconStyleOnce() {
-        guard !UserDefaults.standard.bool(forKey: "fmn.iconStyleGoldV1") else { return }
-        UserDefaults.standard.set(true, forKey: "fmn.iconStyleGoldV1")
+        guard !UserDefaults.standard.bool(forKey: "fmn.iconStyleGoldV3") else { return }
+        UserDefaults.standard.set(true, forKey: "fmn.iconStyleGoldV3")
         icons.regenerateAll(for: store.sortedActive)
     }
 

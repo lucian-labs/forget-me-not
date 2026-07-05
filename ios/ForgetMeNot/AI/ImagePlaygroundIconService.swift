@@ -21,9 +21,10 @@ struct ImagePlaygroundIconService: IconService {
             return nil
         }
         do {
-            // .sketch = line art — the raw material for the gold-ink treatment (GoldInk.treat).
-            // (.animation gave cartoons; the logo look wants strokes, not filled shapes.)
-            for try await image in creator.images(for: [.text(prompt)], style: .sketch, limit: 1) {
+            // .animation is the only style that reliably generates on BOTH iOS and Mac
+            // Catalyst (.sketch yields an empty stream on Catalyst). The rune/line look comes
+            // from GoldInk.treat, which edge-detects this output — so it's platform-independent.
+            for try await image in creator.images(for: [.text(prompt)], style: .animation, limit: 1) {
                 return image.cgImage
             }
             Self.log.error("no image for: \(prompt, privacy: .public)")

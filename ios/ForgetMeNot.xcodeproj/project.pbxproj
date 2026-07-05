@@ -65,6 +65,7 @@
 		EA98DE34A80ABDC13C9BE5D2 /* SynthEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2706185A637FA2E9198A4583 /* SynthEngine.swift */; };
 		F2B6DF7EB3525A07BF857C22 /* TaskMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20D5AD7B83C5433C9A8D306 /* TaskMapper.swift */; };
 		F4DDD5ED307919EB755D748E /* PromptLabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1995D0E0AB85C8047478968F /* PromptLabView.swift */; };
+		F8014D769459EF1D480958D7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DB8AAEFC0D36F8CD0248D34D /* Assets.xcassets */; };
 		FBEA757AF5BC51E5F0E3CEC9 /* TaskDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFC95A22730610A096937910 /* TaskDetailView.swift */; };
 		FFC17AA0690AD753691C817E /* TaskRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6E3039AACAE58A1C598264 /* TaskRepository.swift */; };
 /* End PBXBuildFile section */
@@ -145,6 +146,7 @@
 		C945153F2F3A274EE6CCEBFE /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
 		D3A21E0AF88D5FA9BAA866F6 /* SyncedPrefs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncedPrefs.swift; sourceTree = "<group>"; };
 		D918676D8F74311463FE58A2 /* FMNIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FMNIntents.swift; sourceTree = "<group>"; };
+		DB8AAEFC0D36F8CD0248D34D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DC26CB17EC41CCDE313E4B6F /* ForgetMeNot.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ForgetMeNot.entitlements; sourceTree = "<group>"; };
 		DFC95A22730610A096937910 /* TaskDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskDetailView.swift; sourceTree = "<group>"; };
 		E4B551D8D93C476C70D17E18 /* ReminderScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderScheduler.swift; sourceTree = "<group>"; };
@@ -209,6 +211,7 @@
 		52B7C578FF9F9B7D3F77D3CD /* ForgetMeNot */ = {
 			isa = PBXGroup;
 			children = (
+				DB8AAEFC0D36F8CD0248D34D /* Assets.xcassets */,
 				DC26CB17EC41CCDE313E4B6F /* ForgetMeNot.entitlements */,
 				5965153C091A7D123E190CEC /* ForgetMeNotApp.swift */,
 				03E58746B0D9FD73CC2C3F7C /* Info.plist */,
@@ -446,6 +449,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F8014D769459EF1D480958D7 /* Assets.xcassets in Resources */,
 				BD8F6D9CBD9F9707E7AA7866 /* POCKETWAVE.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

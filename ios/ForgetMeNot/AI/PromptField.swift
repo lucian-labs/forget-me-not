@@ -73,7 +73,7 @@ enum PromptField: String, CaseIterable, Identifiable {
         switch self {
         case .iconTemplate:
             "a {style} icon for \"{task}\" ({details}), {mood}, plain solid background"
-        case .iconDefaultStyle: "cute funny cartoon"
+        case .iconDefaultStyle: "single continuous line, minimal hand-inked rune glyph"
         case .moodCalm: "calm, happy and content"
         case .moodSoon: "a little restless and impatient"
         case .moodDue: "stressed, wide-eyed and frazzled"

@@ -102,9 +102,9 @@ final class IconStore {
         let svc = service
         let data = await withTimeout(25) { () -> Data? in
             guard let cg = await svc.generate(prompt: prompt) else { return nil }
-            // Downscale before encoding: full-size cutouts ran 1.5–1.8MB, over CloudKit's ~1MB
-            // per-record limit, which silently jammed ALL sync. 256px is plenty for the card.
-            return downscaledPNG(BackgroundRemover.cutout(cg), maxDimension: 256)
+            // Recolor the sketch into gold ink on transparency (logo look), then downscale —
+            // full-size ran 1.5–1.8MB, over CloudKit's ~1MB record limit; 256px suits the card.
+            return downscaledPNG(GoldInk.treat(cg), maxDimension: 256)
         }
         guard let data, let img = UIImage(data: data) else { return nil }
         return (img, data)

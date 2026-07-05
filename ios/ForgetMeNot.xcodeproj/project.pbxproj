@@ -56,6 +56,7 @@
 		B71B0EABCC7A2D5B99755701 /* FMNIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = D918676D8F74311463FE58A2 /* FMNIntents.swift */; };
 		BD8F6D9CBD9F9707E7AA7866 /* POCKETWAVE.md in Resources */ = {isa = PBXBuildFile; fileRef = 7E72D69143E48353FFBC39A3 /* POCKETWAVE.md */; };
 		BE4EEBB869087DBA040A8E2C /* IconStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2478B8B2872AB24E4AF78816 /* IconStore.swift */; };
+		BFDF52D19C94545CEA2F711B /* GoldInk.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5D8F37D9E97E60D1EF4657A /* GoldInk.swift */; };
 		C3AF43F432E4FE66571575C7 /* AppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 313C2EA16D371E2A314FF331 /* AppStore.swift */; };
 		C798319CCC36D449AABECB95 /* Cadence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7481CAE26E54820AC56B8DA7 /* Cadence.swift */; };
 		CC37C472C25BCDDD97488DA9 /* ImagePlaygroundIconService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0F47D18D82BB43EC7F102A /* ImagePlaygroundIconService.swift */; };
@@ -151,6 +152,7 @@
 		DFC95A22730610A096937910 /* TaskDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskDetailView.swift; sourceTree = "<group>"; };
 		E4B551D8D93C476C70D17E18 /* ReminderScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderScheduler.swift; sourceTree = "<group>"; };
 		EA0F47D18D82BB43EC7F102A /* ImagePlaygroundIconService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePlaygroundIconService.swift; sourceTree = "<group>"; };
+		F5D8F37D9E97E60D1EF4657A /* GoldInk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoldInk.swift; sourceTree = "<group>"; };
 		FF246E32EB842099D1B8DADA /* UrgencyBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrgencyBarView.swift; sourceTree = "<group>"; };
 		FF64A82423D5FA62C6457507 /* .gitkeep */ = {isa = PBXFileReference; path = .gitkeep; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -245,6 +247,7 @@
 				55BA2454A62C1EFC85A3041A /* BackgroundRemover.swift */,
 				35A2C3454F5129B1ED82C6FD /* FoundationModelsInsightService.swift */,
 				B1A80B0B95FD37E57C8AB49C /* FoundationModelsNudgeService.swift */,
+				F5D8F37D9E97E60D1EF4657A /* GoldInk.swift */,
 				0021810B91DF3D375C4BDB25 /* IconService.swift */,
 				EA0F47D18D82BB43EC7F102A /* ImagePlaygroundIconService.swift */,
 				2D7C447A0E61DCB930D5309C /* InsightService.swift */,
@@ -477,6 +480,7 @@
 				AD465367B127BD2AC8892180 /* ForgetMeNotApp.swift in Sources */,
 				D2438B5D9FC359973BF2EFAA /* FoundationModelsInsightService.swift in Sources */,
 				658422E8A3C989D8997E3BC7 /* FoundationModelsNudgeService.swift in Sources */,
+				BFDF52D19C94545CEA2F711B /* GoldInk.swift in Sources */,
 				862EB068A74D75441B463C1F /* ISO8601.swift in Sources */,
 				22E079C730388244D71B6D97 /* IconService.swift in Sources */,
 				BE4EEBB869087DBA040A8E2C /* IconStore.swift in Sources */,

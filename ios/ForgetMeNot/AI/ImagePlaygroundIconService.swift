@@ -21,7 +21,9 @@ struct ImagePlaygroundIconService: IconService {
             return nil
         }
         do {
-            for try await image in creator.images(for: [.text(prompt)], style: .animation, limit: 1) {
+            // .sketch = line art — the raw material for the gold-ink treatment (GoldInk.treat).
+            // (.animation gave cartoons; the logo look wants strokes, not filled shapes.)
+            for try await image in creator.images(for: [.text(prompt)], style: .sketch, limit: 1) {
                 return image.cgImage
             }
             Self.log.error("no image for: \(prompt, privacy: .public)")

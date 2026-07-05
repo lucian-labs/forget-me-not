@@ -64,6 +64,7 @@ struct ForgetMeNotApp: App {
                     startMCP()          // expose tools to MCP clients on a local port
                     reconcileOnOpen()   // render icons + quotes from current state
                     healIconsOnce()     // drop pre-downscale oversized icons that jammed sync
+                    refreshIconStyleOnce()  // re-render existing icons in the new gold-ink look
                     await scheduler.requestAuthorization()
                     await scheduler.sync(store.sortedActive, characterURL: { iconURL(for: $0) })
                 }
@@ -113,6 +114,15 @@ struct ForgetMeNotApp: App {
             icons.forget(task.id)                  // drop the cached copy → regenerates downscaled
         }
         icons.evolve(for: store.sortedActive)
+    }
+
+    /// One-time: the icon style changed to gold-ink (GoldInk + .sketch), so clear the old
+    /// cartoon icons and regenerate every active task's icon in the new look. Runs once per
+    /// device; each device generates its own (last write wins on sync).
+    @MainActor private func refreshIconStyleOnce() {
+        guard !UserDefaults.standard.bool(forKey: "fmn.iconStyleGoldV1") else { return }
+        UserDefaults.standard.set(true, forKey: "fmn.iconStyleGoldV1")
+        icons.regenerateAll(for: store.sortedActive)
     }
 
     @MainActor private func startMCP() {

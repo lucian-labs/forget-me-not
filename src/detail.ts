@@ -385,10 +385,13 @@ function renderActionLog(container: HTMLElement, task: Task): void {
     }
   }
 
-  if (task.actionLog.length === 0) {
+  // snoozed (zz) + restarted (down-arrow) are telemetry-only: logged for cadence
+  // analysis but kept out of the visible history to preserve the "quiet" feel.
+  const visibleLog = task.actionLog.filter((e) => e.action !== 'snoozed' && e.action !== 'restarted')
+  if (visibleLog.length === 0) {
     section.appendChild(el('div', { style: 'color:var(--dim);font-size:12px;' }, 'No actions yet.'))
   } else {
-    const entries = [...task.actionLog].reverse()
+    const entries = [...visibleLog].reverse()
     let prevKey: string | null = null
     for (const entry of entries) {
       const key = dayKey(entry.at)

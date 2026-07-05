@@ -1,3 +1,5 @@
+import type { ActionType } from './types'
+
 export function formatTime(seconds: number): string {
   const abs = Math.abs(seconds)
   if (abs < 60) return `${Math.round(abs)}s`
@@ -61,7 +63,9 @@ export function timeOfDay(iso: string): string {
 
 interface StreakPip {
   ratio: number
-  action: 'reset' | 'complete' | 'note' | 'lapsed'
+  // ActionType-wide, but getCycleHistory only ever feeds reset/complete/lapsed;
+  // pipColor/pipLabel special-case 'lapsed' and treat everything else by ratio.
+  action: ActionType
   at: string
 }
 

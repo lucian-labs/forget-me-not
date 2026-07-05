@@ -154,20 +154,23 @@ export function resetTask(id: string, note: string): Task | undefined {
   return updated
 }
 
-/** Silent restart — rewinds the cycle timer without logging an action or
- *  spawning follow-ups. The previous cycle is discarded without showing up in
- *  cycle history. Used by the down-arrow on the task card when the user just
- *  wants a clean slate, not to claim the cycle as done. */
+/** Quiet restart — rewinds the cycle timer without spawning follow-ups. The
+ *  previous cycle is discarded and never surfaces in the visible history, but we
+ *  now write a telemetry-only 'restarted' entry (stamped with the urgency ratio
+ *  at press time) so cadence analysis can see how often a loop gets quietly
+ *  restarted. Used by the down-arrow on the task card when the user just wants a
+ *  clean slate, not to claim the cycle as done. */
 export function restartCycle(id: string): Task | undefined {
   const task = getTask(id)
   if (!task || !task.baseCadenceSeconds) return undefined
   const now = new Date().toISOString()
+  const entry = { note: `@${getUrgencyRatio(task).toFixed(2)}`, at: now, action: 'restarted' as const }
   const newInstance: ReminderInstance = {
     startedAt: now,
     actualCadenceSeconds: randomizeCadence(task.baseCadenceSeconds, task.cadenceMore, task.cadenceLess),
     snoozed: false,
   }
-  return updateTask(id, { instance: newInstance })
+  return updateTask(id, { instance: newInstance, actionLog: [...task.actionLog, entry] })
 }
 
 export function completeTask(id: string, note: string): Task | undefined {
@@ -190,8 +193,14 @@ export function completeTask(id: string, note: string): Task | undefined {
 export function snoozeTask(id: string): Task | undefined {
   const task = getTask(id)
   if (!task?.instance) return undefined
+  // Stamp the urgency ratio at snooze time BEFORE rewinding the timer — the raw
+  // signal for cadence tuning. Telemetry-only, hidden from the visible history.
+  const entry = { note: `@${getUrgencyRatio(task).toFixed(2)}`, at: new Date().toISOString(), action: 'snoozed' as const }
   const snoozeTime = new Date(Date.now() - task.instance.actualCadenceSeconds * 750).toISOString()
-  return updateTask(id, { instance: { ...task.instance, startedAt: snoozeTime, snoozed: true } })
+  return updateTask(id, {
+    instance: { ...task.instance, startedAt: snoozeTime, snoozed: true },
+    actionLog: [...task.actionLog, entry],
+  })
 }
 
 /** Auto-reset tasks that have been overdue for 2x their cadence */

@@ -1,6 +1,8 @@
 export type TaskStatus = 'open' | 'in_progress' | 'blocked' | 'done' | 'cancelled' | 'archived'
 export type TaskPriority = 'low' | 'normal' | 'high' | 'critical'
-export type ActionType = 'reset' | 'complete' | 'note' | 'lapsed'
+// 'snoozed' (zz) + 'restarted' (down-arrow) are telemetry-only — logged for
+// cadence analysis but hidden from the visible history (see detail.ts).
+export type ActionType = 'reset' | 'complete' | 'note' | 'lapsed' | 'snoozed' | 'restarted'
 
 export interface FollowUp {
   title: string

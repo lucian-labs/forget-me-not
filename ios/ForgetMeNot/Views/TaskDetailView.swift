@@ -8,6 +8,7 @@ struct TaskDetailView: View {
     let taskId: String
 
     @Environment(AppStore.self) private var store
+    @Environment(IconStore.self) private var icons
     @Environment(AlertSounder.self) private var sounder
     @Environment(\.dismiss) private var dismiss
     @State private var note = ""
@@ -104,6 +105,8 @@ struct TaskDetailView: View {
                     }
                 }
             }
+
+            sigilSection(task)
 
             section("DETAILS") {
                 TextField("what is this? (flavors the icon + nudges)", text: $descDraft, axis: .vertical)
@@ -230,6 +233,46 @@ struct TaskDetailView: View {
                 }
                 Text("Its tune grows from this seed — type any word to give it a new one, blank uses its id.")
                     .font(WL.mono(9)).foregroundStyle(WL.muted)
+            }
+        }
+    }
+
+    /// The task's gold-ink sigil + a regenerate control. Shows the current glyph, a spinner
+    /// while conjuring, or a placeholder; the button re-rolls it (fresh prompt each time).
+    @ViewBuilder
+    private func sigilSection(_ task: TaskDTO) -> some View {
+        section("SIGIL") {
+            VStack(spacing: 12) {
+                ZStack {
+                    if let img = icons.image(for: task.id) {
+                        Image(uiImage: img).resizable().scaledToFit().padding(12)
+                    } else if icons.isGenerating(task.id) {
+                        ProgressView().tint(WL.accent)
+                    } else if icons.didFail(task.id) {
+                        Image(systemName: "exclamationmark.triangle").font(.system(size: 24)).foregroundStyle(WL.muted.opacity(0.5))
+                    } else {
+                        Image(systemName: "sparkles").font(.system(size: 28)).foregroundStyle(WL.muted.opacity(0.35))
+                    }
+                }
+                .frame(height: 150)
+                .frame(maxWidth: .infinity)
+                .wlPanel(fill: WL.surface, border: WL.border)
+
+                if icons.available {
+                    Button {
+                        Task { await icons.generate(for: task) }
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "arrow.triangle.2.circlepath").font(.system(size: 13, weight: .bold))
+                            Text(icons.isGenerating(task.id) ? "CONJURING…" : "REGENERATE SIGIL")
+                                .font(WL.mono(11, .bold)).tracking(1)
+                        }
+                        .frame(maxWidth: .infinity).padding(.vertical, 12)
+                        .foregroundStyle(WL.accent)
+                    }
+                    .wlStroke(WL.accent)
+                    .disabled(icons.isGenerating(task.id))
+                }
             }
         }
     }

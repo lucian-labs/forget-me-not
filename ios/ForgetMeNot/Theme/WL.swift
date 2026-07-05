@@ -20,7 +20,7 @@ final class Palette {
     var red: Color = .red
     var radius: CGFloat = 0
 
-    init() { apply(.waveloop) }
+    init() { apply(.goldleaf) }
 
     func apply(_ t: Theme) {
         bg = Color(hex: t.bg)

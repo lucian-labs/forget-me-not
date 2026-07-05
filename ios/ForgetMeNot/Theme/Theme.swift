@@ -10,6 +10,15 @@ struct Theme: Identifiable, Equatable {
     let radius: CGFloat
     var id: String { name }
 
+    /// Gold-leaf deco — the app's identity look: warm near-black, gilt hairlines, gold
+    /// ink accents. Matches the fmn brushstroke logo + the gold-ink task sigils.
+    static let goldleaf = Theme(
+        name: "goldleaf", label: "Gold Leaf",
+        bg: "#0b0a07", surface: "#16130c", border: "#4a3d20", text: "#f3e8cf", dim: "#a89873",
+        accent: "#e6b73f", green: "#a9b578", orange: "#e39a3c", red: "#d15a3e", cyan: "#6fb9a7",
+        radius: 0
+    )
+
     static let waveloop = Theme(
         name: "waveloop", label: "Waveloop",
         bg: "#0e0e10", surface: "#18181b", border: "#2b2b30", text: "#eaecf2", dim: "#aaafbd",
@@ -18,6 +27,7 @@ struct Theme: Identifiable, Equatable {
     )
 
     static let all: [Theme] = [
+        goldleaf,
         waveloop,
         Theme(name: "midnight", label: "Midnight", bg: "#0a0a0a", surface: "#141414", border: "#2a2a2a", text: "#e0e0e0", dim: "#666666", accent: "#60a5fa", green: "#4ade80", orange: "#fb923c", red: "#ef4444", cyan: "#22d3ee", radius: 6),
         Theme(name: "sunrise", label: "Sunrise", bg: "#fdf6ee", surface: "#ffffff", border: "#e8ddd0", text: "#3d2e1f", dim: "#a08b72", accent: "#d97706", green: "#65a30d", orange: "#ea580c", red: "#dc2626", cyan: "#0891b2", radius: 12),
@@ -32,5 +42,5 @@ struct Theme: Identifiable, Equatable {
         Theme(name: "sakura", label: "Sakura", bg: "#fef5f7", surface: "#ffffff", border: "#f0d4db", text: "#4a2c3a", dim: "#b08a98", accent: "#e8729a", green: "#7bc47f", orange: "#e8a87c", red: "#d94f6b", cyan: "#6cc0c0", radius: 18),
     ]
 
-    static func named(_ n: String) -> Theme { all.first { $0.name == n } ?? waveloop }
+    static func named(_ n: String) -> Theme { all.first { $0.name == n } ?? goldleaf }
 }

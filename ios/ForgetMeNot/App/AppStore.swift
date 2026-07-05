@@ -44,7 +44,14 @@ final class AppStore {
                 load()
             }
         }
-        themeName = UserDefaults.standard.string(forKey: "fmn.theme") ?? "waveloop"
+        // One-time move to the gold-leaf identity theme for installs still on the old
+        // waveloop default (leaves an explicit user choice alone).
+        if !UserDefaults.standard.bool(forKey: "fmn.goldleafMigrated") {
+            UserDefaults.standard.set(true, forKey: "fmn.goldleafMigrated")
+            let current = UserDefaults.standard.string(forKey: "fmn.theme")
+            if current == nil || current == "waveloop" { SyncedPrefs.set("goldleaf", forKey: "fmn.theme") }
+        }
+        themeName = UserDefaults.standard.string(forKey: "fmn.theme") ?? "goldleaf"
         WL.apply(Theme.named(themeName))
         iconStyle = UserDefaults.standard.string(forKey: "fmn.iconStyle") ?? ""
         nudgeStyle = UserDefaults.standard.string(forKey: "fmn.nudgeStyle") ?? ""

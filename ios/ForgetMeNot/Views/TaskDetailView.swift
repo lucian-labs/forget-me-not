@@ -153,9 +153,13 @@ struct TaskDetailView: View {
                 }
             }
 
-            if !task.actionLog.isEmpty {
+            // snoozed (zz) + restarted (↓) are telemetry-only: logged for cadence
+            // analysis but kept out of the user-facing history to preserve the "quiet"
+            // feel of both actions.
+            let visibleLog = task.actionLog.filter { $0.action != .snoozed && $0.action != .restarted }
+            if !visibleLog.isEmpty {
                 section("HISTORY") {
-                    ForEach(Array(task.actionLog.suffix(12).reversed().enumerated()), id: \.offset) { _, entry in
+                    ForEach(Array(visibleLog.suffix(12).reversed().enumerated()), id: \.offset) { _, entry in
                         HStack(alignment: .top, spacing: 8) {
                             Text(entry.action.rawValue.uppercased())
                                 .font(WL.mono(9, .bold)).tracking(1)
@@ -393,6 +397,7 @@ struct TaskDetailView: View {
         case .lapsed: WL.red
         case .note: WL.muted
         case .skipped: WL.cyan
+        case .snoozed, .restarted: WL.muted   // telemetry-only, not rendered
         }
     }
 }

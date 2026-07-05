@@ -30,12 +30,16 @@ enum Lifecycle {
 
     static func snooze(_ t: TaskDTO, now: Date = Date()) -> TaskDTO {
         guard var inst = t.instance else { return t }
+        // Capture how far into the cycle the user hit zz BEFORE we rewind the timer —
+        // the urgency ratio at snooze time is the raw signal for cadence tuning.
+        let ratio = Urgency.ratio(t, now: now)
         // Web parity (store.ts:177): startedAt = now - 0.75*cadence, so ~75% of the
         // cycle has elapsed (ratio 0.75) → a short reprieve before it re-alerts.
         inst.startedAt = now.addingTimeInterval(-0.75 * inst.actualCadenceSeconds)
         inst.snoozed = true
         var task = t
         task.instance = inst
+        task.actionLog.append(ActionLogEntryDTO(note: String(format: "@%.2f", ratio), at: now, action: .snoozed))
         task.updatedAt = now
         return task
     }

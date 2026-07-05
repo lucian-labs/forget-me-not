@@ -169,14 +169,19 @@ final class AppStore {
         load()
     }
 
-    /// Web parity (↓ button, store.ts restartCycle): rewind the timer to a fresh cycle
-    /// WITHOUT logging anything — the discarded cycle never shows in history or streaks.
+    /// Web parity (↓ button, store.ts restartCycle): rewind the timer to a fresh cycle.
+    /// The discarded cycle still never surfaces in the visible history or streaks — but we
+    /// log a telemetry-only `.restarted` entry (stamped with the urgency ratio at press
+    /// time) so future cadence analysis can see how often a loop gets quietly restarted.
     func restartCycle(id: String) {
         guard var t = tasks.first(where: { $0.id == id }), let base = t.baseCadenceSeconds else { return }
+        let now = Date()
+        let ratio = Urgency.ratio(t, now: now)
         var rng = SystemRandomNumberGenerator()
         let cadence = Cadence.randomized(base: base, more: t.cadenceMore, less: t.cadenceLess, using: &rng)
-        t.instance = ReminderInstanceDTO(startedAt: Date(), actualCadenceSeconds: cadence, snoozed: false)
-        t.updatedAt = Date()
+        t.instance = ReminderInstanceDTO(startedAt: now, actualCadenceSeconds: cadence, snoozed: false)
+        t.actionLog.append(ActionLogEntryDTO(note: String(format: "@%.2f", ratio), at: now, action: .restarted))
+        t.updatedAt = now
         try? repository.upsert(t)
         load()
     }

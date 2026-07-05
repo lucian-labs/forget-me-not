@@ -7,7 +7,11 @@ enum TaskPriority: String, Codable, CaseIterable, Sendable {
     case low, normal, high, critical
 }
 enum ActionType: String, Codable, Sendable {
-    case reset, complete, note, lapsed, done, skipped
+    // snoozed (zz) + restarted (↓) are telemetry-only — captured for cadence
+    // analysis but hidden from the visible HISTORY. Web ignores unknown action
+    // strings in its cadence math (store.ts filters to reset/complete/lapsed),
+    // so these are JSON-safe across the sync boundary.
+    case reset, complete, note, lapsed, done, skipped, snoozed, restarted
 }
 
 struct FollowUpDTO: Codable, Equatable, Sendable {

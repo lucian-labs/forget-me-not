@@ -72,8 +72,8 @@ enum PromptField: String, CaseIterable, Identifiable {
     var def: String {
         switch self {
         case .iconTemplate:
-            "a single abstract runic sigil symbolizing \"{task}\" ({details}), {style}, {mood}, one mystical glyph of bold ink strokes, centered, plain solid background"
-        case .iconDefaultStyle: "occult sigil, minimal geometric rune, hand-inked"
+            "a {style} icon for \"{task}\" ({details}), {mood}, plain solid background"
+        case .iconDefaultStyle: "cute funny cartoon"
         case .moodCalm: "calm, happy and content"
         case .moodSoon: "a little restless and impatient"
         case .moodDue: "stressed, wide-eyed and frazzled"

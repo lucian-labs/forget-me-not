@@ -57,10 +57,10 @@ enum Icons {
         let full = prompt(task: task)
         // Fallbacks drop the mood (the most likely guardrail trigger at high urgency), then
         // go bare — described by what the task IS, not a random subject.
-        let noMood = "an abstract runic sigil for \(what), \(look), plain solid background"
-        let minimal = "a sigil for \(what), \(look)".trimmingCharacters(in: .whitespaces)
+        let noMood = "a \(look) icon for \(what), plain solid background"
+        let minimal = "a \(look) icon for \(what)".trimmingCharacters(in: .whitespaces)
         // Final attempt is task-agnostic — a weird title ("waterize") can't leave it blank.
-        let generic = "an abstract mystical sigil, bold ink strokes, plain solid background"
+        let generic = "a \(look) icon, plain solid background"
         var seen = Set<String>(), ladder: [String] = []
         for p in [full, noMood, minimal, generic] where !p.isEmpty && seen.insert(p).inserted { ladder.append(p) }
         return ladder.isEmpty ? ["a simple icon, plain solid background"] : ladder

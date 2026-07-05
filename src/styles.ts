@@ -549,8 +549,13 @@ button:active { opacity: 0.8; }
   border-radius: 2px;
 }
 
-.fmn-log-badge-reset { background: rgba(34, 211, 238, 0.15); color: var(--cyan); }
+/* reset + complete both read "checkpoint" (a completed cycle) → green */
+.fmn-log-badge-reset { background: rgba(74, 222, 128, 0.15); color: var(--green); }
 .fmn-log-badge-complete { background: rgba(74, 222, 128, 0.15); color: var(--green); }
+/* restarted reads "reset" (timer restarted without completing) → cyan */
+.fmn-log-badge-restarted { background: rgba(34, 211, 238, 0.15); color: var(--cyan); }
+/* snoozed reads "sleep" → violet */
+.fmn-log-badge-snoozed { background: rgba(167, 139, 250, 0.15); color: #a78bfa; }
 .fmn-log-badge-note { background: rgba(96, 165, 250, 0.15); color: var(--accent); }
 .fmn-log-badge-lapsed { background: rgba(251, 146, 60, 0.15); color: var(--orange); }
 

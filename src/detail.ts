@@ -1,4 +1,4 @@
-import type { Task, TaskStatus, TaskPriority } from './types'
+import type { Task, TaskStatus, TaskPriority, ActionType } from './types'
 import {
   getTask, getTasks, updateTask, resetTask, completeTask, archiveTask,
   killInstance, restartInstance,
@@ -7,6 +7,18 @@ import {
 import { el, timeAgo, formatCadence, formatTime, dayKey, dayLabel, timeOfDay, renderStreakStrip, CADENCE_OPTIONS, createCadencePicker } from './utils'
 import { navigate } from './app'
 import { appName } from './brand'
+
+// Friendly history-badge labels. The checkmark completes a cycle — a "checkpoint" —
+// logged as 'reset' (recurring) or 'complete' (one-time). The down-arrow quietly
+// restarts the timer WITHOUT completing → "reset". The zz button → "sleep".
+const ACTION_LABELS: Record<ActionType, string> = {
+  reset: 'checkpoint',
+  complete: 'checkpoint',
+  restarted: 'reset',
+  snoozed: 'sleep',
+  lapsed: 'lapsed',
+  note: 'note',
+}
 
 export function renderDetail(container: HTMLElement, taskId: string): void {
   const task = getTask(taskId)
@@ -385,13 +397,10 @@ function renderActionLog(container: HTMLElement, task: Task): void {
     }
   }
 
-  // snoozed (zz) + restarted (down-arrow) are telemetry-only: logged for cadence
-  // analysis but kept out of the visible history to preserve the "quiet" feel.
-  const visibleLog = task.actionLog.filter((e) => e.action !== 'snoozed' && e.action !== 'restarted')
-  if (visibleLog.length === 0) {
+  if (task.actionLog.length === 0) {
     section.appendChild(el('div', { style: 'color:var(--dim);font-size:12px;' }, 'No actions yet.'))
   } else {
-    const entries = [...visibleLog].reverse()
+    const entries = [...task.actionLog].reverse()
     let prevKey: string | null = null
     for (const entry of entries) {
       const key = dayKey(entry.at)
@@ -400,7 +409,7 @@ function renderActionLog(container: HTMLElement, task: Task): void {
         prevKey = key
       }
       const row = el('div', { className: 'fmn-log-entry' })
-      row.appendChild(el('span', { className: `fmn-log-badge fmn-log-badge-${entry.action}` }, entry.action))
+      row.appendChild(el('span', { className: `fmn-log-badge fmn-log-badge-${entry.action}` }, ACTION_LABELS[entry.action] ?? entry.action))
       row.appendChild(el('span', { className: 'fmn-log-note' }, entry.note || '\u2014'))
       row.appendChild(el('span', { className: 'fmn-log-time' }, timeOfDay(entry.at)))
       section.appendChild(row)

@@ -9,3 +9,4 @@ ios/*.xcuserstate
 ios/**/*.xcuserstate
 ios/**/xcuserdata/
 ios/build-rel/
+ios/dist/

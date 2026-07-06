@@ -25,8 +25,13 @@ targets:
         DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER: NO
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: ForgetMeNot/Info.plist
-        CODE_SIGN_ENTITLEMENTS: ForgetMeNot/ForgetMeNot.entitlements
         CODE_SIGN_STYLE: Automatic
+        # Debug uses the development APS entitlement (+ local MCP server); Release ships the
+        # App Store entitlements: production push + Mac App Store sandbox, no local server.
+        CODE_SIGN_ENTITLEMENTS: ForgetMeNot/ForgetMeNot.entitlements
+      configs:
+        Release:
+          CODE_SIGN_ENTITLEMENTS: ForgetMeNot/ForgetMeNot.Release.entitlements
     info:
       path: ForgetMeNot/Info.plist
       properties:
@@ -34,8 +39,11 @@ targets:
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         FMNBuildRev: "$(FMN_BUILD_REV)"
-        UIBackgroundModes: [remote-notification, processing]
-        BGTaskSchedulerPermittedIdentifiers: [com.lucianlabs.forgetmenot.refresh]
+        # remote-notification: CloudKit silent pushes. (processing was declared but never
+        # used — an automatic App Review rejection — so it's gone.)
+        UIBackgroundModes: [remote-notification]
+        LSApplicationCategoryType: public.app-category.productivity
+        ITSAppUsesNonExemptEncryption: false
         UILaunchScreen: {}
     scheme:
       # Silence the os_log firehose. NSPersistentCloudKitContainer logs a flood of "queue

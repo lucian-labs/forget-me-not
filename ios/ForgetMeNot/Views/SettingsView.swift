@@ -62,6 +62,8 @@ struct SettingsView: View {
                     Text("Edit every prompt + injected value the on-device models use.")
                         .font(WL.mono(9)).foregroundStyle(WL.muted)
 
+                    #if DEBUG
+                    // Dev-only: the local MCP server is compiled out of Release builds.
                     Text("MCP SERVER").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
                     VStack(alignment: .leading, spacing: 6) {
                         Text("http://localhost:8473")
@@ -71,6 +73,7 @@ struct SettingsView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(12).wlPanel(fill: WL.surface, border: WL.border)
+                    #endif
 
                     Text("NOTIFICATIONS").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
                     VStack(alignment: .leading, spacing: 8) {

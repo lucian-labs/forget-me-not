@@ -46,6 +46,7 @@
 		97CA89EE1B5C2EFA77224626 /* AllTasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE238F85ECDB6F8DE3CE70B7 /* AllTasksView.swift */; };
 		99FAFB17C009161826CD77D7 /* TaskListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3727F96923D5A00D56A3F032 /* TaskListView.swift */; };
 		9A1314364E8EC66AEA82E522 /* SpeechBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F5EAA086DEE2999A00A30F /* SpeechBubble.swift */; };
+		A215DA40664CA875E62A0991 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A9FC34981FF4FF4DD6FBF987 /* PrivacyInfo.xcprivacy */; };
 		A8B5D3373C547BFE237FBDEC /* SwipeableCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AF27AC0468F7F281191AFA3 /* SwipeableCard.swift */; };
 		AC2A5095B67901BBE85EC6A0 /* InsightService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D7C447A0E61DCB930D5309C /* InsightService.swift */; };
 		AD465367B127BD2AC8892180 /* ForgetMeNotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5965153C091A7D123E190CEC /* ForgetMeNotApp.swift */; };
@@ -134,9 +135,11 @@
 		9F22F404465DA35317AB458D /* CadenceOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceOptions.swift; sourceTree = "<group>"; };
 		A7E662B702E610D1F484C87B /* TaskMapperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskMapperTests.swift; sourceTree = "<group>"; };
 		A8312E5CD645860FE723F0EF /* Seed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seed.swift; sourceTree = "<group>"; };
+		A9FC34981FF4FF4DD6FBF987 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		B1A80B0B95FD37E57C8AB49C /* FoundationModelsNudgeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationModelsNudgeService.swift; sourceTree = "<group>"; };
 		B87B5C6385148F6DABE0F72B /* NudgeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NudgeService.swift; sourceTree = "<group>"; };
 		B93B103FE5319889196B1BDF /* TaskCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskCardView.swift; sourceTree = "<group>"; };
+		BCB6CF37186EF823912A7165 /* ForgetMeNot.Release.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ForgetMeNot.Release.entitlements; sourceTree = "<group>"; };
 		BE238F85ECDB6F8DE3CE70B7 /* AllTasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllTasksView.swift; sourceTree = "<group>"; };
 		C023C17A98C5EA9520D61152 /* PromptField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptField.swift; sourceTree = "<group>"; };
 		C20D5AD7B83C5433C9A8D306 /* TaskMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskMapper.swift; sourceTree = "<group>"; };
@@ -215,8 +218,10 @@
 			children = (
 				DB8AAEFC0D36F8CD0248D34D /* Assets.xcassets */,
 				DC26CB17EC41CCDE313E4B6F /* ForgetMeNot.entitlements */,
+				BCB6CF37186EF823912A7165 /* ForgetMeNot.Release.entitlements */,
 				5965153C091A7D123E190CEC /* ForgetMeNotApp.swift */,
 				03E58746B0D9FD73CC2C3F7C /* Info.plist */,
+				A9FC34981FF4FF4DD6FBF987 /* PrivacyInfo.xcprivacy */,
 				78C6243533E309DA9FDA0422 /* AI */,
 				CC92DFDFA658B3ECCAABEDAA /* App */,
 				B7CC3E1EB8D5BBCF208AD067 /* Audio */,
@@ -454,6 +459,7 @@
 			files = (
 				F8014D769459EF1D480958D7 /* Assets.xcassets in Resources */,
 				BD8F6D9CBD9F9707E7AA7866 /* POCKETWAVE.md in Resources */,
+				A215DA40664CA875E62A0991 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -712,7 +718,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = ForgetMeNot/ForgetMeNot.entitlements;
+				CODE_SIGN_ENTITLEMENTS = ForgetMeNot/ForgetMeNot.Release.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;

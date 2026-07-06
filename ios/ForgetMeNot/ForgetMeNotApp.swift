@@ -43,7 +43,9 @@ struct ForgetMeNotApp: App {
     @State private var icons = IconStore()
     @State private var coordinator = NudgeCoordinator()
     @State private var sounder = AlertSounder()
-    @State private var mcp: MCPServer?
+    #if DEBUG
+    @State private var mcp: MCPServer?   // dev-only: local server is compiled out of Release
+    #endif
     @Environment(\.scenePhase) private var scenePhase
     private let scheduler = ReminderScheduler()
 
@@ -61,7 +63,9 @@ struct ForgetMeNotApp: App {
                 .environment(sounder)
                 .task {
                     wireIcons()         // persist generated icons onto tasks (so they sync)
-                    startMCP()          // expose tools to MCP clients on a local port
+                    #if DEBUG
+                    startMCP()          // dev-only: expose tools to MCP clients on a local port
+                    #endif
                     reconcileOnOpen()   // render icons + quotes from current state
                     healIconsOnce()     // drop pre-downscale oversized icons that jammed sync
                     refreshIconStyleOnce()  // re-render existing icons in the new gold-ink look
@@ -125,10 +129,12 @@ struct ForgetMeNotApp: App {
         icons.regenerateAll(for: store.sortedActive)
     }
 
+    #if DEBUG
     @MainActor private func startMCP() {
         guard mcp == nil else { return }
         let server = MCPServer(store: store, icons: icons)
         server.start()
         mcp = server
     }
+    #endif
 }

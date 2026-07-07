@@ -43,6 +43,7 @@
 		84C47A24AB93B0F2F172F66F /* web-export.json in Resources */ = {isa = PBXBuildFile; fileRef = C6571BC608A3F26F348738AC /* web-export.json */; };
 		862EB068A74D75441B463C1F /* ISO8601.swift in Sources */ = {isa = PBXBuildFile; fileRef = 358F1078CCCA65C534EA4AB1 /* ISO8601.swift */; };
 		874F13E7F3A8517011047C09 /* PromptField.swift in Sources */ = {isa = PBXBuildFile; fileRef = C023C17A98C5EA9520D61152 /* PromptField.swift */; };
+		8FE8D1BBC651D6774275E21E /* NotificationArt.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9774C9DA8444B7F24D8C468 /* NotificationArt.swift */; };
 		97CA89EE1B5C2EFA77224626 /* AllTasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE238F85ECDB6F8DE3CE70B7 /* AllTasksView.swift */; };
 		99FAFB17C009161826CD77D7 /* TaskListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3727F96923D5A00D56A3F032 /* TaskListView.swift */; };
 		9A1314364E8EC66AEA82E522 /* SpeechBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F5EAA086DEE2999A00A30F /* SpeechBubble.swift */; };
@@ -135,6 +136,7 @@
 		9F22F404465DA35317AB458D /* CadenceOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceOptions.swift; sourceTree = "<group>"; };
 		A7E662B702E610D1F484C87B /* TaskMapperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskMapperTests.swift; sourceTree = "<group>"; };
 		A8312E5CD645860FE723F0EF /* Seed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seed.swift; sourceTree = "<group>"; };
+		A9774C9DA8444B7F24D8C468 /* NotificationArt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationArt.swift; sourceTree = "<group>"; };
 		A9FC34981FF4FF4DD6FBF987 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		B1A80B0B95FD37E57C8AB49C /* FoundationModelsNudgeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationModelsNudgeService.swift; sourceTree = "<group>"; };
 		B87B5C6385148F6DABE0F72B /* NudgeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NudgeService.swift; sourceTree = "<group>"; };
@@ -208,6 +210,7 @@
 			isa = PBXGroup;
 			children = (
 				62C026A85AA67462528F9EAA /* NotificationActions.swift */,
+				A9774C9DA8444B7F24D8C468 /* NotificationArt.swift */,
 				E4B551D8D93C476C70D17E18 /* ReminderScheduler.swift */,
 			);
 			path = Reminders;
@@ -497,6 +500,7 @@
 				4428A646EA3B0F2F75434386 /* LoopsView.swift in Sources */,
 				3BB3825FB6EC6A081B8F559E /* MCPServer.swift in Sources */,
 				E0DEC24E32D248B107C5466D /* NotificationActions.swift in Sources */,
+				8FE8D1BBC651D6774275E21E /* NotificationArt.swift in Sources */,
 				5538079EA0D26FADD9E8B5D4 /* NudgeCoordinator.swift in Sources */,
 				4F85F015F8E40D78C3595F10 /* NudgeService.swift in Sources */,
 				874F13E7F3A8517011047C09 /* PromptField.swift in Sources */,

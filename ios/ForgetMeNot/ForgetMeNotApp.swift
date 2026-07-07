@@ -87,12 +87,10 @@ struct ForgetMeNotApp: App {
         icons.onCleared = { [store] id in store.setIconImage(id: id, nil) }
     }
 
-    /// Stage a task's synced icon to a temp PNG for notification attachments.
+    /// The reminder image: the task's gold-ink icon on black, or the app monogram when it has
+    /// none — never blank (NotificationArt handles the compositing + fallback).
     @MainActor private func iconURL(for id: String) -> URL? {
-        guard let data = store.task(id)?.iconImageData else { return nil }
-        let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("fmn-notif-\(id).png")
-        try? data.write(to: tmp)
-        return tmp
+        NotificationArt.file(taskIcon: store.task(id)?.iconImageData, key: id)
     }
 
     /// Both the icon images and the nudge quotes render from each task's current urgency

@@ -42,6 +42,10 @@ final class ReminderScheduler {
         content.sound = .default
         content.categoryIdentifier = "FMN_TASK"
         if let taskId { content.userInfo = ["taskId": taskId] }
+        if let url = NotificationArt.file(taskIcon: nil, key: "test"),
+           let att = try? UNNotificationAttachment(identifier: "test-img", url: url, options: nil) {
+            content.attachments = [att]   // the gold monogram, so the image path is visible too
+        }
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 4, repeats: false)
         try? await center.add(UNNotificationRequest(identifier: "fmn-test", content: content, trigger: trigger))
     }

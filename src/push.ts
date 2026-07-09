@@ -9,9 +9,9 @@ import { getTasks, getSettings } from './store'
 // Public VAPID key (safe to ship). Private key lives only as a Worker secret.
 const VAPID_PUBLIC_KEY = 'BGuVyu-qrtAg-SdnuhPbS_FjsVqDEwBiFIT9UNSLC1QDHY4Uvfncivoj0G5_JdYbG-_vqF8tERHW-U3HcXOXzfw'
 
-// Push backend base URL. Override at runtime for testing:
-//   localStorage.setItem('fmn-push-endpoint', 'http://localhost:8787')
-const DEFAULT_PUSH_API = 'https://fmn-push.lucianlabs.ca'
+// Push backend base URL (fmn-push Node service on the droplet). Override at
+// runtime for testing: localStorage.setItem('fmn-push-endpoint', 'http://localhost:3900')
+const DEFAULT_PUSH_API = 'https://push.lucianlabs.ca'
 const PUSH_FLAG = 'fmn-push-enabled'
 
 function pushApi(): string {

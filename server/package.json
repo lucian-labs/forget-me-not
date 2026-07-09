@@ -1,0 +1,15 @@
+{
+  "name": "fmn-push",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "server.mjs",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "express": "^4.21.2",
+    "web-push": "^3.6.7"
+  }
+}

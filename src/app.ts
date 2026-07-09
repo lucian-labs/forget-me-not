@@ -7,6 +7,7 @@ import { renderSettings } from './settings'
 import { renderCreate } from './create'
 import { renderShare } from './share'
 import { initSound, requestNotificationPermission, playAlert, clearAlert, syncAlertsToSW } from './sounds'
+import { syncPushSchedule, isPushEnabled } from './push'
 import { applyTheme, getAllThemes, importThemeJson, THEMES } from './themes'
 import { updateSettings, isFirstRun } from './store'
 import { checkImportFromUrl } from './transfer'
@@ -134,6 +135,8 @@ function checkAlerts(): void {
     syncAlertsToSW(tasks)
   }
   lastSyncCount = tasks.length
+  // Push backend: self-debounced + only re-sends when a next-due time changes.
+  syncPushSchedule(tasks)
 }
 
 function startRenderLoop(): void {
@@ -330,6 +333,9 @@ async function init(): Promise<void> {
     })
     navigator.serviceWorker.ready.then((reg) => {
       reg.active?.postMessage({ type: 'get-version' })
+      // Re-register the current schedule with the push backend on startup, in
+      // case tasks changed on another device or the subscription rotated.
+      if (isPushEnabled()) syncPushSchedule(getTasks())
     })
   }
 

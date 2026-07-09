@@ -1,6 +1,7 @@
 import { getSettings, updateSettings, exportAll, exportTasks, importAll, clearAll } from './store'
 import { el, downloadJson } from './utils'
 import { refreshSound, playTest } from './sounds'
+import { isPushSupported, isPushEnabled, enablePush, disablePush } from './push'
 import { getAllThemes, applyTheme, resolveTheme, exportTheme, themeToShareUrl, importThemeJson } from './themes'
 import { navigate } from './app'
 import { appName } from './brand'
@@ -309,6 +310,30 @@ export function renderSettings(container: HTMLElement): void {
   })
   soundCard.appendChild(soundAdvanced)
   container.appendChild(soundCard)
+
+  // Notifications (Web Push — reminders even when the app is closed)
+  const pushCard = el('div', { className: 'fmn-card' })
+  pushCard.appendChild(sectionLabel('Notifications'))
+  const pushRow = el('div', { style: 'display:flex;align-items:center;gap:10px;' })
+  if (!isPushSupported()) {
+    pushRow.appendChild(el('div', { style: 'font-size:12px;color:var(--dim);' },
+      'Push notifications aren’t supported on this browser. On iPhone, add the app to your Home Screen first.'))
+  } else {
+    pushRow.appendChild(toggle(isPushEnabled(), async (v) => {
+      if (v) {
+        const ok = await enablePush()
+        if (!ok) alert('Couldn’t turn on notifications. Check that you allowed them for this site.')
+      } else {
+        await disablePush()
+      }
+      navigate('settings')
+    }))
+    pushRow.appendChild(el('span', { style: 'font-size:13px;' }, 'Remind me even when the app is closed'))
+  }
+  pushCard.appendChild(pushRow)
+  pushCard.appendChild(el('div', { style: 'font-size:11px;color:var(--dim);margin-top:6px;' },
+    'Sends a notification the moment a task comes due, via the cloud — no need to keep the tab open.'))
+  container.appendChild(pushCard)
 
   // Sync
   const syncCard = el('div', { className: 'fmn-card' })

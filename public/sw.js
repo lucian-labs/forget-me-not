@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fmn-v29'
+const CACHE_NAME = 'fmn-v30'
 const PRECACHE = [
   '/',
   '/index.html',
@@ -134,6 +134,29 @@ function fireAlert(task) {
     vibrate: [200, 100, 200],
   })
 }
+
+// Web Push from the fmn-push worker (fires even when the app is fully closed).
+// Payload: { title, body, taskId }
+self.addEventListener('push', (event) => {
+  let data = {}
+  try {
+    data = event.data ? event.data.json() : {}
+  } catch (e) {
+    data = { body: event.data ? event.data.text() : '' }
+  }
+  const title = data.title || 'forget me not'
+  const body = data.body || 'A task needs you'
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon: '/icon.svg',
+      tag: data.taskId ? 'fmn-' + data.taskId : 'fmn-push',
+      renotify: true,
+      vibrate: [200, 100, 200],
+      data: { taskId: data.taskId || null },
+    })
+  )
+})
 
 // Clicking a notification focuses the app
 self.addEventListener('notificationclick', (event) => {

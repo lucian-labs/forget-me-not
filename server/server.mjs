@@ -6,6 +6,7 @@
 //            --POST /schedule---> mirrors each active task's next-due + title
 //   every 60s: find tasks due & not-yet-fired -> encrypt (VAPID) -> Web Push
 
+import 'dotenv/config'
 import express from 'express'
 import Database from 'better-sqlite3'
 import webpush from 'web-push'

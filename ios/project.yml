@@ -45,6 +45,17 @@ targets:
         LSApplicationCategoryType: public.app-category.productivity
         ITSAppUsesNonExemptEncryption: false
         UILaunchScreen: {}
+        # Required by App Store validation. iPad lists all four (iPad multitasking
+        # demands it for non-fullscreen apps); iPhone skips upside-down portrait.
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
         # Bundled web-theme fonts (latin subsets, OFL) — see ForgetMeNot/Fonts/.
         UIAppFonts:
           - FMNBebasNeue-Regular.ttf

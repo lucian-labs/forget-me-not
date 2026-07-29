@@ -117,7 +117,15 @@ final class AppStore {
     func setTheme(_ name: String) {
         themeName = name
         SyncedPrefs.set(name, forKey: "fmn.theme")
-        WL.apply(Theme.named(name))
+        let theme = Theme.named(name)
+        WL.apply(theme)
+        // Web parity: switching themes sets that theme's matching sound defaults.
+        if let s = theme.sound {
+            setSoundPreset(s.preset)
+            setSoundBpm(Double(s.bpm))
+            setSoundVolume(s.volume)
+            setSoundMode(s.mode)
+        }
     }
 
     func setIconStyle(_ style: String) {

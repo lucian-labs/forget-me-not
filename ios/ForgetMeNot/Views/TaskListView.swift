@@ -66,8 +66,8 @@ struct TaskListView: View {
 
     private var header: some View {
         HStack {
-            Text("FORGET ME NOT")
-                .font(WL.mono(17, .bold)).tracking(3).foregroundStyle(WL.text)
+            Text(WL.t("Forget Me Not"))
+                .font(WL.header(17, .bold)).tracking(WL.trk(3)).foregroundStyle(WL.text)
             Spacer()
             HStack(spacing: 18) {
                 Button { showCreate = true } label: {
@@ -94,7 +94,7 @@ struct TaskListView: View {
 
     private var footer: some View {
         Text(AppVersion.footer)
-            .font(WL.mono(9)).tracking(1)
+            .font(WL.mono(9)).tracking(WL.trk(1))
             .foregroundStyle(WL.muted.opacity(0.55))
             .frame(maxWidth: .infinity)
             .padding(.top, 4).padding(.bottom, 6)
@@ -105,14 +105,14 @@ struct TaskListView: View {
         if active.isEmpty {
             VStack {
                 Spacer()
-                Text("ALL CLEAR")
-                    .font(WL.mono(14, .bold)).tracking(2).foregroundStyle(WL.muted)
+                Text(WL.t("All Clear"))
+                    .font(WL.header(14, .bold)).tracking(WL.trk(2)).foregroundStyle(WL.muted)
                 Spacer()
             }
             .frame(maxWidth: .infinity)
         } else {
             ScrollView {
-                LazyVStack(spacing: 12) {
+                LazyVStack(spacing: WL.pad(12)) {
                     ForEach(active) { task in
                         row(task)
                             .transition(.asymmetric(
@@ -132,11 +132,11 @@ struct TaskListView: View {
         SwipeableCard(
             // Right swipe = DONE: reset + fire follow-ups (logged "done"). One-time tasks
             // leave the list, so their card flies off; recurring ones stamp + spring home.
-            leading: SwipeAction(label: "DONE", icon: "checkmark.circle.fill", color: WL.green,
+            leading: SwipeAction(label: "Done", icon: "checkmark.circle.fill", color: WL.green,
                                  removesRow: !task.recurring,
                                  handler: { markDone(task) }),
             // Left swipe = SKIP: restart the timer, no follow-ups (logged "skipped").
-            trailing: SwipeAction(label: "SKIP", icon: "arrow.counterclockwise", color: WL.cyan,
+            trailing: SwipeAction(label: "Skip", icon: "arrow.counterclockwise", color: WL.cyan,
                                   removesRow: false,
                                   handler: { skip(task) })
         ) {

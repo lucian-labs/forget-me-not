@@ -16,9 +16,9 @@ struct LoopsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
                     header
-                    section("URGENCY — WHERE EACH LOOP STANDS") { urgencyChart }
-                    section("ACTIVITY — LAST 14 DAYS") { activityChart }
-                    section("BY AREA") { areaChart }
+                    section("Urgency — where each loop stands") { urgencyChart }
+                    section("Activity — last 14 days") { activityChart }
+                    section("By Area") { areaChart }
                     if let overview { overviewBlock(overview) }
                 }
                 .padding(20)
@@ -30,7 +30,7 @@ struct LoopsView: View {
 
     private var header: some View {
         HStack {
-            Text("ALL LOOPS").font(WL.mono(17, .bold)).tracking(3).foregroundStyle(WL.text)
+            Text(WL.t("All Loops")).font(WL.header(17, .bold)).tracking(WL.trk(3)).foregroundStyle(WL.text)
             Spacer()
             Button { dismiss() } label: {
                 Image(systemName: "xmark").font(.system(size: 15, weight: .bold)).foregroundStyle(WL.muted)
@@ -70,7 +70,7 @@ struct LoopsView: View {
         .frame(height: 150)
         .overlay {
             if activityData.allSatisfy({ $0.count == 0 }) {
-                Text("no completions logged yet").font(WL.mono(10)).foregroundStyle(WL.muted)
+                Text("no completions logged yet").font(WL.body(10)).foregroundStyle(WL.muted)
             }
         }
     }
@@ -90,28 +90,28 @@ struct LoopsView: View {
 
     private func overviewBlock(_ r: InsightResult) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("READ").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
-            Text(r.summary).font(WL.mono(14, .semibold)).foregroundStyle(WL.text)
+            Text(WL.t("Read")).font(WL.header(10, .bold)).tracking(WL.trk(2)).foregroundStyle(WL.muted)
+            Text(r.summary).font(WL.body(14, .semibold)).foregroundStyle(WL.text)
                 .fixedSize(horizontal: false, vertical: true)
             ForEach(r.observations, id: \.self) { o in
                 HStack(alignment: .top, spacing: 8) {
-                    Text("·").font(WL.mono(13, .bold)).foregroundStyle(WL.accent)
-                    Text(o).font(WL.mono(13)).foregroundStyle(WL.muted).fixedSize(horizontal: false, vertical: true)
+                    Text("·").font(WL.body(13, .bold)).foregroundStyle(WL.accent)
+                    Text(o).font(WL.body(13)).foregroundStyle(WL.muted).fixedSize(horizontal: false, vertical: true)
                 }
             }
             HStack(alignment: .top, spacing: 8) {
-                Text("▸").font(WL.mono(13, .bold)).foregroundStyle(WL.accent)
-                Text(r.suggestion).font(WL.mono(13)).foregroundStyle(WL.cyan).fixedSize(horizontal: false, vertical: true)
+                Text("▸").font(WL.body(13, .bold)).foregroundStyle(WL.accent)
+                Text(r.suggestion).font(WL.body(13)).foregroundStyle(WL.cyan).fixedSize(horizontal: false, vertical: true)
             }
         }
     }
 
     @ViewBuilder private func section<C: View>(_ title: String, @ViewBuilder _ content: () -> C) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(title).font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
+            Text(WL.t(title)).font(WL.header(10, .bold)).tracking(WL.trk(2)).foregroundStyle(WL.muted)
             content()
         }
-        .padding(14)
+        .padding(WL.pad(14))
         .frame(maxWidth: .infinity, alignment: .leading)
         .wlPanel(fill: WL.surface, border: WL.border)
     }
@@ -120,7 +120,7 @@ struct LoopsView: View {
         AxisMarks {
             AxisGridLine().foregroundStyle(WL.line.opacity(0.4))
             AxisTick().foregroundStyle(WL.line)
-            AxisValueLabel().foregroundStyle(WL.muted).font(WL.mono(8))
+            AxisValueLabel().foregroundStyle(WL.muted).font(WL.body(8))
         }
     }
 

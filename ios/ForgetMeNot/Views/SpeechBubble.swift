@@ -27,7 +27,7 @@ struct SpeechBubble: View {
 
     var body: some View {
         Text(text)
-            .font(WL.mono(12))
+            .font(WL.body(12))
             .foregroundStyle(Color.black.opacity(0.85))
             .padding(.leading, 15)
             .padding(.trailing, 11)

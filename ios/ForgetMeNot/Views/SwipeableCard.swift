@@ -133,8 +133,8 @@ struct SwipeableCard<Content: View>: View {
         VStack(spacing: 4) {
             Image(systemName: action.icon)
                 .font(.system(size: 20, weight: .bold))
-            Text(action.label)
-                .font(WL.mono(9, .bold)).tracking(2)
+            Text(WL.t(action.label))
+                .font(WL.header(9, .bold)).tracking(WL.trk(2))
         }
         .foregroundStyle(action.color)
         .scaleEffect(shown ? 0.7 + 0.45 * progress : 0.7)

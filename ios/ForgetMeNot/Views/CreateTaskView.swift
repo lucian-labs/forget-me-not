@@ -29,7 +29,7 @@ struct CreateTaskView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
                     HStack {
-                        Text("NEW TASK").font(WL.mono(15, .bold)).tracking(3).foregroundStyle(WL.text)
+                        Text(WL.t("New Task")).font(WL.header(15, .bold)).tracking(WL.trk(3)).foregroundStyle(WL.text)
                         Spacer()
                         Button { dismiss() } label: {
                             Image(systemName: "xmark").font(.system(size: 15, weight: .bold)).foregroundStyle(WL.muted)
@@ -51,7 +51,7 @@ struct CreateTaskView: View {
                         field("EVERY") {
                             HStack(spacing: 10) {
                                 stepperButton("minus") { amount = max(1, amount - 1) }
-                                Text("\(amount)").font(WL.mono(18, .bold)).foregroundStyle(WL.text)
+                                Text("\(amount)").font(WL.body(18, .bold)).foregroundStyle(WL.text)
                                     .frame(minWidth: 36)
                                 stepperButton("plus") { amount += 1 }
                                 Spacer(minLength: 12)
@@ -66,7 +66,7 @@ struct CreateTaskView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             ForEach(prompts, id: \.self) { p in
                                 HStack {
-                                    Text("· \(p)").font(WL.mono(12)).foregroundStyle(WL.muted)
+                                    Text("· \(p)").font(WL.body(12)).foregroundStyle(WL.muted)
                                     Spacer()
                                     Button { prompts.removeAll { $0 == p } } label: {
                                         Image(systemName: "xmark").font(.system(size: 10)).foregroundStyle(WL.muted)
@@ -90,11 +90,11 @@ struct CreateTaskView: View {
                     Button {
                         store.create(makeTask()); dismiss()
                     } label: {
-                        Text("CREATE").font(WL.mono(14, .bold)).tracking(2)
+                        Text(WL.t("Create")).font(WL.header(14, .bold)).tracking(WL.trk(2))
                             .frame(maxWidth: .infinity).padding(.vertical, 14)
                             .foregroundStyle(canSave ? WL.bg : WL.muted)
                             .background(canSave ? WL.accent : WL.surface)
-                            .overlay(Rectangle().stroke(WL.border, lineWidth: 1))
+                            .wlStroke(WL.border)
                     }
                     .disabled(!canSave)
                 }
@@ -122,31 +122,31 @@ struct CreateTaskView: View {
 
     @ViewBuilder private func field<C: View>(_ label: String, @ViewBuilder _ content: () -> C) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(label).font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
+            Text(label).font(WL.body(10, .bold)).tracking(WL.trk(2)).foregroundStyle(WL.muted)
             content()
         }
     }
 
     private func textField(_ placeholder: String, _ text: Binding<String>) -> some View {
         TextField(placeholder, text: text)
-            .font(WL.mono(14)).foregroundStyle(WL.text).tint(WL.accent)
+            .font(WL.body(14)).foregroundStyle(WL.text).tint(WL.accent)
             .padding(12).wlPanel(fill: WL.surface, border: WL.border)
     }
 
     private func segment(_ label: String, on: Bool, _ action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(label).font(WL.mono(11, .bold)).tracking(1)
+            Text(label).font(WL.body(11, .bold)).tracking(WL.trk(1))
                 .padding(.horizontal, 12).padding(.vertical, 10)
                 .foregroundStyle(on ? WL.bg : WL.muted)
                 .background(on ? WL.accent : WL.surface)
-                .overlay(Rectangle().stroke(WL.border, lineWidth: 1))
+                .wlStroke(WL.border)
         }
     }
 
     private func stepperButton(_ icon: String, _ action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: icon).font(.system(size: 13, weight: .bold)).foregroundStyle(WL.accent)
-                .frame(width: 36, height: 36).overlay(Rectangle().stroke(WL.border, lineWidth: 1))
+                .frame(width: 36, height: 36).wlStroke(WL.border)
         }
     }
 }

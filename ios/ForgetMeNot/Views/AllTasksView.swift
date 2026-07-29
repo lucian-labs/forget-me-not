@@ -30,9 +30,9 @@ struct AllTasksView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     HStack {
-                        Text("ALL TASKS").font(WL.mono(15, .bold)).tracking(3).foregroundStyle(WL.text)
+                        Text(WL.t("All Tasks")).font(WL.header(15, .bold)).tracking(WL.trk(3)).foregroundStyle(WL.text)
                         Spacer()
-                        Text("\(store.tasks.count)").font(WL.mono(12, .bold)).foregroundStyle(WL.muted)
+                        Text("\(store.tasks.count)").font(WL.body(12, .bold)).foregroundStyle(WL.muted)
                         Button { dismiss() } label: {
                             Image(systemName: "xmark").font(.system(size: 15, weight: .bold)).foregroundStyle(WL.muted)
                         }
@@ -40,10 +40,10 @@ struct AllTasksView: View {
 
                     // ACTIVE — the drop target. Drag inactive/dormant rows here to activate.
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("ACTIVE").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.accent)
+                        Text(WL.t("Active")).font(WL.header(10, .bold)).tracking(WL.trk(2)).foregroundStyle(WL.accent)
                         if active.isEmpty {
                             Text("drop a task here to activate it")
-                                .font(WL.mono(9)).foregroundStyle(WL.muted)
+                                .font(WL.body(9)).foregroundStyle(WL.muted)
                                 .frame(maxWidth: .infinity).padding(.vertical, 16)
                         } else {
                             ForEach(active) { row($0) }
@@ -51,7 +51,7 @@ struct AllTasksView: View {
                     }
                     .padding(8)
                     .background(dropTargeted ? WL.accent.opacity(0.12) : Color.clear)
-                    .overlay(Rectangle().stroke(dropTargeted ? WL.accent : Color.clear, lineWidth: 1))
+                    .wlStroke(dropTargeted ? WL.accent : Color.clear)
                     .dropDestination(for: String.self) { ids, _ in
                         ids.forEach { store.reactivate(id: $0) }
                         return !ids.isEmpty
@@ -61,7 +61,7 @@ struct AllTasksView: View {
                     if !inactive.isEmpty { group("INACTIVE", inactive) }
 
                     Text("drag a task up into ACTIVE to put it back in action")
-                        .font(WL.mono(9)).foregroundStyle(WL.muted)
+                        .font(WL.body(9)).foregroundStyle(WL.muted)
                 }
                 .padding(20)
             }
@@ -75,7 +75,7 @@ struct AllTasksView: View {
     /// A draggable group (dormant + inactive rows can be dragged into ACTIVE).
     @ViewBuilder private func group(_ title: String, _ tasks: [TaskDTO]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(title).font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
+            Text(title).font(WL.body(10, .bold)).tracking(WL.trk(2)).foregroundStyle(WL.muted)
             ForEach(tasks) { task in
                 row(task).draggable(task.id)
             }
@@ -89,9 +89,9 @@ struct AllTasksView: View {
                     .font(.system(size: 12, weight: .bold)).foregroundStyle(leadingColor(task))
                     .frame(width: 18)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(task.title.capitalized).font(WL.mono(13, .semibold)).foregroundStyle(WL.text).lineLimit(1)
+                    Text(task.title.capitalized).font(WL.header(13, .semibold)).foregroundStyle(WL.text).lineLimit(1)
                     if !task.domain.isEmpty {
-                        Text(task.domain.uppercased()).font(WL.mono(8, .bold)).tracking(1).foregroundStyle(WL.muted)
+                        Text(WL.t(task.domain)).font(WL.body(8, .bold)).tracking(WL.trk(1)).foregroundStyle(WL.muted)
                     }
                 }
                 Spacer(minLength: 6)

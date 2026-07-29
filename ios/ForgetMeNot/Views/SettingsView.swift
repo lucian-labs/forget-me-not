@@ -9,6 +9,9 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showPromptLab = false
     @State private var notifStatus: UNAuthorizationStatus = .notDetermined
+    @State private var themeJson = ""
+    @State private var themeImportFailed = false
+    @State private var userThemes: [Theme] = UserThemes.load()
 
     private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
@@ -18,39 +21,39 @@ struct SettingsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     HStack {
-                        Text("SETTINGS").font(WL.mono(15, .bold)).tracking(3).foregroundStyle(WL.text)
+                        Text(WL.t("Settings")).font(WL.header(15, .bold)).tracking(WL.trk(3)).foregroundStyle(WL.text)
                         Spacer()
                         Button { dismiss() } label: {
                             Image(systemName: "xmark").font(.system(size: 15, weight: .bold)).foregroundStyle(WL.muted)
                         }
                     }
 
-                    Text("ICON STYLE").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
+                    Text(WL.t("Icon Style")).font(WL.header(10, .bold)).tracking(WL.trk(2)).foregroundStyle(WL.muted)
                     TextField("e.g. 90s claymation, neon sticker, crayon doodle", text: Binding(
                         get: { store.iconStyle },
                         set: { store.setIconStyle($0) }
                     ))
-                    .font(WL.mono(13)).foregroundStyle(WL.text).tint(WL.accent)
+                    .font(WL.body(13)).foregroundStyle(WL.text).tint(WL.accent)
                     .autocorrectionDisabled()
                     .padding(12).wlPanel(fill: WL.surface, border: WL.border)
                     Text("Woven into every icon. Blank = the default style below.")
-                        .font(WL.mono(9)).foregroundStyle(WL.muted)
+                        .font(WL.body(9)).foregroundStyle(WL.muted)
 
-                    Text("PROMPT STYLE").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
+                    Text(WL.t("Prompt Style")).font(WL.header(10, .bold)).tracking(WL.trk(2)).foregroundStyle(WL.muted)
                     TextField("e.g. drill sergeant, gentle friend, pirate", text: Binding(
                         get: { store.nudgeStyle },
                         set: { store.setNudgeStyle($0) }
                     ))
-                    .font(WL.mono(13)).foregroundStyle(WL.text).tint(WL.accent)
+                    .font(WL.body(13)).foregroundStyle(WL.text).tint(WL.accent)
                     .autocorrectionDisabled()
                     .padding(12).wlPanel(fill: WL.surface, border: WL.border)
                     Text("The voice your nudges are written in. Blank = calm coach.")
-                        .font(WL.mono(9)).foregroundStyle(WL.muted)
+                        .font(WL.body(9)).foregroundStyle(WL.muted)
 
                     Button { showPromptLab = true } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "wand.and.stars").font(.system(size: 13, weight: .bold))
-                            Text("PROMPT LAB").font(WL.mono(12, .bold)).tracking(1)
+                            Text(WL.t("Prompt Lab")).font(WL.header(12, .bold)).tracking(WL.trk(1))
                             Spacer()
                             Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold))
                         }
@@ -60,24 +63,24 @@ struct SettingsView: View {
                         .wlPanel(fill: WL.surface, border: WL.border)
                     }
                     Text("Edit every prompt + injected value the on-device models use.")
-                        .font(WL.mono(9)).foregroundStyle(WL.muted)
+                        .font(WL.body(9)).foregroundStyle(WL.muted)
 
                     #if DEBUG
                     // Dev-only: the local MCP server is compiled out of Release builds.
-                    Text("MCP SERVER").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
+                    Text(WL.t("MCP Server")).font(WL.header(10, .bold)).tracking(WL.trk(2)).foregroundStyle(WL.muted)
                     VStack(alignment: .leading, spacing: 6) {
                         Text("http://localhost:8473")
-                            .font(WL.mono(13, .bold)).foregroundStyle(WL.accent).textSelection(.enabled)
+                            .font(WL.body(13, .bold)).foregroundStyle(WL.accent).textSelection(.enabled)
                         Text("While the app is open it serves your tasks as MCP tools (list, add, reset, complete, log, set icon, pause, delete). Add the URL to an MCP client to drive it.")
-                            .font(WL.mono(9)).foregroundStyle(WL.muted)
+                            .font(WL.body(9)).foregroundStyle(WL.muted)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(12).wlPanel(fill: WL.surface, border: WL.border)
                     #endif
 
-                    Text("NOTIFICATIONS").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
+                    Text(WL.t("Notifications")).font(WL.header(10, .bold)).tracking(WL.trk(2)).foregroundStyle(WL.muted)
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(notifStatusText).font(WL.mono(11, .bold)).foregroundStyle(notifStatusColor)
+                        Text(notifStatusText).font(WL.body(11, .bold)).foregroundStyle(notifStatusColor)
                         Button {
                             Task {
                                 await ReminderScheduler.sendTest(taskId: store.sortedActive.first?.id)
@@ -86,27 +89,62 @@ struct SettingsView: View {
                         } label: {
                             HStack(spacing: 8) {
                                 Image(systemName: "bell.badge").font(.system(size: 13, weight: .bold))
-                                Text("SEND TEST (4s)").font(WL.mono(12, .bold)).tracking(1)
+                                Text("SEND TEST (4s)").font(WL.body(12, .bold)).tracking(WL.trk(1))
                             }
                             .frame(maxWidth: .infinity).padding(.vertical, 12)
                             .foregroundStyle(WL.bg).background(WL.accent)
                         }
                         Text("Fires a reminder in 4 seconds. If nothing appears, enable it in System Settings › Notifications › Forget Me Not (banners on).")
-                            .font(WL.mono(9)).foregroundStyle(WL.muted)
+                            .font(WL.body(9)).foregroundStyle(WL.muted)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(12).wlPanel(fill: WL.surface, border: WL.border)
 
-                    Text("SOUND").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
+                    Text(WL.t("Sound")).font(WL.header(10, .bold)).tracking(WL.trk(2)).foregroundStyle(WL.muted)
                     soundSection
 
-                    Text("THEME").font(WL.mono(10, .bold)).tracking(2).foregroundStyle(WL.muted)
+                    Text(WL.t("Theme")).font(WL.header(10, .bold)).tracking(WL.trk(2)).foregroundStyle(WL.muted)
 
                     LazyVGrid(columns: columns, spacing: 12) {
-                        ForEach(Theme.all) { theme in
+                        ForEach(Theme.all + userThemes) { theme in
                             swatch(theme, selected: store.themeName == theme.name)
                                 .onTapGesture { store.setTheme(theme.name) }
+                                .onLongPressGesture {
+                                    // Long-press removes an imported theme (built-ins stay).
+                                    guard userThemes.contains(where: { $0.name == theme.name }) else { return }
+                                    UserThemes.remove(theme.name)
+                                    userThemes = UserThemes.load()
+                                    if store.themeName == theme.name { store.setTheme("goldleaf") }
+                                }
                         }
+                    }
+
+                    // Import a theme made on the web (Settings -> Theme -> Copy JSON there,
+                    // paste here). Accepts the same ThemeStyle JSON the web shares.
+                    HStack(spacing: 8) {
+                        TextField("Paste a theme from the web...", text: $themeJson)
+                            .font(WL.body(12)).foregroundStyle(WL.text).tint(WL.accent)
+                            .autocorrectionDisabled()
+                            .padding(10).wlPanel(fill: WL.surface, border: WL.border)
+                        Button {
+                            guard let theme = UserThemes.importWebJson(themeJson) else {
+                                themeImportFailed = true
+                                return
+                            }
+                            themeImportFailed = false
+                            themeJson = ""
+                            userThemes = UserThemes.load()
+                            store.setTheme(theme.name)
+                        } label: {
+                            Text(WL.t("Add")).font(WL.header(11, .bold)).tracking(WL.trk(1))
+                                .foregroundStyle(WL.bg)
+                                .padding(.horizontal, 14).padding(.vertical, 12)
+                                .background(WL.accent).wlClip()
+                        }
+                    }
+                    if themeImportFailed {
+                        Text("That didn't look like a theme — copy the JSON from the web app's theme settings.")
+                            .font(WL.body(10)).foregroundStyle(WL.red)
                     }
                 }
                 .padding(20)
@@ -125,27 +163,27 @@ struct SettingsView: View {
     private var soundSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             Toggle(isOn: Binding(get: { store.soundEnabled }, set: { store.setSoundEnabled($0) })) {
-                Text("PLAY A SOUND WHEN TIME RUNS OUT").font(WL.mono(11, .bold)).tracking(1).foregroundStyle(WL.text)
+                Text(WL.t("Play a sound when time runs out")).font(WL.header(11, .bold)).tracking(WL.trk(1)).foregroundStyle(WL.text)
             }
             .tint(WL.accent)
 
             if store.soundEnabled {
                 HStack(spacing: 8) {
-                    Text("SEED").font(WL.mono(10, .bold)).tracking(1).foregroundStyle(WL.muted)
+                    Text(WL.t("Seed")).font(WL.header(10, .bold)).tracking(WL.trk(1)).foregroundStyle(WL.muted)
                     TextField("forgetmenot", text: Binding(
                         get: { store.soundSeed },
                         set: { store.setSoundSeed($0) }
                     ))
-                    .font(WL.mono(11)).foregroundStyle(WL.text).tint(WL.accent)
+                    .font(WL.body(11)).foregroundStyle(WL.text).tint(WL.accent)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
                     .onSubmit { sounder.test(config: store.soundConfig) }
                     .padding(8).wlPanel(fill: WL.surface, border: WL.border)
                 }
                 Text("The word every tune grows from — change it and the whole soundscape changes.")
-                    .font(WL.mono(9)).foregroundStyle(WL.muted)
+                    .font(WL.body(9)).foregroundStyle(WL.muted)
                 HStack {
-                    Text("MOOD").font(WL.mono(10, .bold)).tracking(1).foregroundStyle(WL.muted)
+                    Text(WL.t("Mood")).font(WL.header(10, .bold)).tracking(WL.trk(1)).foregroundStyle(WL.muted)
                     Spacer()
                     Picker("", selection: Binding(get: { store.soundMode }, set: { store.setSoundMode($0) })) {
                         // The web's 10 YamaBruh moods — each curates scales, contour, rhythm.
@@ -157,7 +195,7 @@ struct SettingsView: View {
                 }
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
-                        Text("ENERGY").font(WL.mono(10, .bold)).tracking(1).foregroundStyle(WL.muted)
+                        Text(WL.t("Energy")).font(WL.header(10, .bold)).tracking(WL.trk(1)).foregroundStyle(WL.muted)
                         Spacer()
                         Text("\(Int(store.soundBpm)) BPM").font(WL.mono(10)).foregroundStyle(WL.muted)
                     }
@@ -166,7 +204,7 @@ struct SettingsView: View {
                 }
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
-                        Text("VOLUME").font(WL.mono(10, .bold)).tracking(1).foregroundStyle(WL.muted)
+                        Text(WL.t("Volume")).font(WL.header(10, .bold)).tracking(WL.trk(1)).foregroundStyle(WL.muted)
                         Spacer()
                         Text("\(Int(store.soundVolume * 100))%").font(WL.mono(10)).foregroundStyle(WL.muted)
                     }
@@ -174,10 +212,10 @@ struct SettingsView: View {
                         .tint(WL.accent)
                 }
                 HStack {
-                    Text("INSTRUMENT").font(WL.mono(10, .bold)).tracking(1).foregroundStyle(WL.muted)
+                    Text(WL.t("Instrument")).font(WL.header(10, .bold)).tracking(WL.trk(1)).foregroundStyle(WL.muted)
                     Spacer()
-                    Text("#\(store.soundPreset % SynthEngine.presetCount) \(SynthEngine.presetName(store.soundPreset).uppercased())")
-                        .font(WL.mono(10, .bold)).foregroundStyle(WL.accent)
+                    Text("#\(store.soundPreset % SynthEngine.presetCount) \(WL.t(SynthEngine.presetName(store.soundPreset)))")
+                        .font(WL.body(10, .bold)).foregroundStyle(WL.accent)
                 }
                 HStack(spacing: 10) {
                     Button {
@@ -186,7 +224,7 @@ struct SettingsView: View {
                     } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "dice").font(.system(size: 13, weight: .bold))
-                            Text("SHUFFLE ALL SOUNDS").font(WL.mono(11, .bold)).tracking(1)
+                            Text(WL.t("Shuffle All Sounds")).font(WL.header(11, .bold)).tracking(WL.trk(1))
                         }
                         .frame(maxWidth: .infinity).padding(.vertical, 12)
                         .foregroundStyle(WL.accent)
@@ -197,14 +235,14 @@ struct SettingsView: View {
                     } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "speaker.wave.2.fill").font(.system(size: 13, weight: .bold))
-                            Text("TEST").font(WL.mono(11, .bold)).tracking(1)
+                            Text(WL.t("Test")).font(WL.header(11, .bold)).tracking(WL.trk(1))
                         }
                         .frame(maxWidth: .infinity).padding(.vertical, 12)
                         .foregroundStyle(WL.bg).background(WL.accent)
                     }
                 }
                 Text("Every task has its own little tune so you learn what's calling you. Shuffle gives everything new tunes.")
-                    .font(WL.mono(9)).foregroundStyle(WL.muted)
+                    .font(WL.body(9)).foregroundStyle(WL.muted)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -229,8 +267,8 @@ struct SettingsView: View {
     private func swatch(_ theme: Theme, selected: Bool) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(theme.label.uppercased())
-                    .font(WL.mono(11, .bold)).tracking(1)
+                Text(WL.t(theme.label))
+                    .font(WL.body(11, .bold)).tracking(WL.trk(1))
                     .foregroundStyle(Color(hex: theme.text))
                 Spacer()
                 if selected {

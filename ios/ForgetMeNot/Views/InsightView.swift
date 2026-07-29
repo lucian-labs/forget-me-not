@@ -14,26 +14,26 @@ struct InsightView: View {
             WL.bg.ignoresSafeArea()
             VStack(alignment: .leading, spacing: 18) {
                 Text(title.capitalized)
-                    .font(WL.mono(12, .bold)).tracking(2).foregroundStyle(WL.muted)
+                    .font(WL.body(12, .bold)).tracking(WL.trk(2)).foregroundStyle(WL.muted)
 
                 if let r = result {
                     Text(r.summary)
-                        .font(WL.mono(17, .semibold)).foregroundStyle(WL.text)
+                        .font(WL.body(17, .semibold)).foregroundStyle(WL.text)
                         .fixedSize(horizontal: false, vertical: true)
 
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(r.observations, id: \.self) { o in
                             HStack(alignment: .top, spacing: 8) {
-                                Text("·").font(WL.mono(13, .bold)).foregroundStyle(WL.accent)
-                                Text(o).font(WL.mono(13)).foregroundStyle(WL.muted)
+                                Text("·").font(WL.body(13, .bold)).foregroundStyle(WL.accent)
+                                Text(o).font(WL.body(13)).foregroundStyle(WL.muted)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                         }
                     }
 
                     HStack(alignment: .top, spacing: 8) {
-                        Text("▸").font(WL.mono(13, .bold)).foregroundStyle(WL.accent)
-                        Text(r.suggestion).font(WL.mono(13)).foregroundStyle(WL.cyan)
+                        Text("▸").font(WL.body(13, .bold)).foregroundStyle(WL.accent)
+                        Text(r.suggestion).font(WL.body(13)).foregroundStyle(WL.cyan)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer()
@@ -44,11 +44,11 @@ struct InsightView: View {
                 }
 
                 Button { dismiss() } label: {
-                    Text("CLOSE").font(WL.mono(13, .bold)).tracking(2)
+                    Text(WL.t("Close")).font(WL.header(13, .bold)).tracking(WL.trk(2))
                         .frame(maxWidth: .infinity).padding(.vertical, 12)
                 }
                 .background(WL.surface)
-                .overlay(Rectangle().stroke(WL.border, lineWidth: 1))
+                .wlStroke(WL.border)
                 .foregroundStyle(WL.text)
             }
             .padding(22)

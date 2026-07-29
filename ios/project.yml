@@ -45,6 +45,45 @@ targets:
         LSApplicationCategoryType: public.app-category.productivity
         ITSAppUsesNonExemptEncryption: false
         UILaunchScreen: {}
+        # Bundled web-theme fonts (latin subsets, OFL) — see ForgetMeNot/Fonts/.
+        UIAppFonts:
+          - FMNBebasNeue-Regular.ttf
+          - FMNCormorantGaramond-Bold.ttf
+          - FMNCormorantGaramond-Regular.ttf
+          - FMNFiraCode-Bold.ttf
+          - FMNFiraCode-Regular.ttf
+          - FMNIBMPlexMono-Bold.ttf
+          - FMNIBMPlexMono-Regular.ttf
+          - FMNInter-Bold.ttf
+          - FMNInter-Regular.ttf
+          - FMNJetBrainsMono-Bold.ttf
+          - FMNJetBrainsMono-Regular.ttf
+          - FMNJosefinSans-Bold.ttf
+          - FMNJosefinSans-Regular.ttf
+          - FMNKaiseiTokumin-Bold.ttf
+          - FMNKaiseiTokumin-Regular.ttf
+          - FMNLora-Bold.ttf
+          - FMNLora-Regular.ttf
+          - FMNNotoSansJp-Bold.ttf
+          - FMNNotoSansJp-Regular.ttf
+          - FMNNunito-Bold.ttf
+          - FMNNunito-Regular.ttf
+          - FMNOpenSans-Bold.ttf
+          - FMNOpenSans-Regular.ttf
+          - FMNOrbitron-Bold.ttf
+          - FMNOrbitron-Regular.ttf
+          - FMNPlayfairDisplay-Bold.ttf
+          - FMNPlayfairDisplay-Regular.ttf
+          - FMNPoppins-Bold.ttf
+          - FMNPoppins-Regular.ttf
+          - FMNQuicksand-Bold.ttf
+          - FMNQuicksand-Regular.ttf
+          - FMNRaleway-Bold.ttf
+          - FMNRaleway-Regular.ttf
+          - FMNSourceSerif4-Bold.ttf
+          - FMNSourceSerif4-Regular.ttf
+          - FMNSpaceMono-Bold.ttf
+          - FMNSpaceMono-Regular.ttf
     scheme:
       # Silence the os_log firehose. NSPersistentCloudKitContainer logs a flood of "queue
       # operation" mirroring chatter to the Xcode console once sync is active — Apple's own

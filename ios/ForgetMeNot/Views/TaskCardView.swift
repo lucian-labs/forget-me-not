@@ -22,7 +22,7 @@ struct TaskCardView: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .center, spacing: 8) {
                     Text(task.title.capitalized)
-                        .font(WL.mono(16, .semibold)).tracking(1)
+                        .font(WL.header(16, .semibold)).tracking(WL.trk(1))
                         .foregroundStyle(WL.text).lineLimit(2)
                     Spacer(minLength: 6)
                     actionCluster
@@ -44,14 +44,14 @@ struct TaskCardView: View {
                         }
                         HStack {
                             if !task.domain.isEmpty {
-                                Text(task.domain.uppercased())
-                                    .font(WL.mono(8, .bold)).tracking(1)
+                                Text(WL.t(task.domain))
+                                    .font(WL.body(8, .bold)).tracking(WL.trk(1))
                                     .foregroundStyle(WL.muted.opacity(0.75))
                             }
                             Spacer()
                             if let clock = Urgency.clockLabel(task, now: context.date) {
                                 Text(clock)
-                                    .font(WL.mono(8, .semibold)).tracking(1)
+                                    .font(WL.body(8, .semibold)).tracking(WL.trk(1))
                                     .foregroundStyle(WL.muted.opacity(0.75))
                             }
                         }
@@ -59,7 +59,7 @@ struct TaskCardView: View {
                 }
             }
         }
-        .padding(14)
+        .padding(WL.pad(14))
         .frame(maxWidth: .infinity, alignment: .leading)
         .wlPanel(fill: WL.surface, border: WL.border)
         .opacity(asleep ? 0.6 : 1)
@@ -91,7 +91,7 @@ struct TaskCardView: View {
                 if let systemName {
                     Image(systemName: systemName).font(.system(size: 11, weight: .bold))
                 } else {
-                    Text(text ?? "").font(WL.mono(10, .bold))
+                    Text(text ?? "").font(WL.body(10, .bold))
                 }
             }
             .foregroundStyle(tint.opacity(0.9))

@@ -1,9 +1,11 @@
 import SwiftUI
 import Observation
 
-/// Live palette. Same `WL.bg` / `WL.mono(...)` / `WL.urgencyColor(...)` API the views
-/// already use, but observable — applying a Theme re-themes the whole app instantly.
-/// Structure (monospaced, square, LED meters) is constant; only colors change.
+/// Live theme. Same `WL.bg` / `WL.header(...)` / `WL.urgencyColor(...)` API everywhere;
+/// applying a Theme re-themes the whole app instantly — colors, corner radius,
+/// typography (bundled web fonts), letter case, tracking, and spacing scale.
+/// `techno` themes (goldleaf/waveloop) keep the synth-panel identity: system mono,
+/// UPPERCASE, tracked. Web-ported themes render their own fonts in natural case.
 @MainActor
 @Observable
 final class Palette {
@@ -20,6 +22,13 @@ final class Palette {
     var red: Color = .red
     var radius: CGFloat = 0
 
+    // Typography + layout personality (web parity).
+    var headerBase: String? = nil    // FontMap base ("FMNPlayfairDisplay"), nil = system mono
+    var bodyBase: String? = nil
+    var fontScale: CGFloat = 1       // theme fontSize / 14
+    var techno: Bool = true          // UPPERCASE + tracking + mono identity
+    var spacingScale: CGFloat = 1    // compact 0.85 / normal 1 / relaxed 1.2
+
     init() { apply(.goldleaf) }
 
     func apply(_ t: Theme) {
@@ -35,11 +44,48 @@ final class Palette {
         green = Color(hex: t.green)
         red = Color(hex: t.red)
         radius = t.radius
+        headerBase = t.headerFont.flatMap { FontMap.families[$0] }
+        bodyBase = t.bodyFont.flatMap { FontMap.families[$0] }
+        fontScale = t.fontSize / 14
+        techno = t.techno
+        spacingScale = t.spacing == "compact" ? 0.85 : t.spacing == "relaxed" ? 1.2 : 1
     }
 
-    func mono(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
-        .system(size: size, weight: weight, design: .monospaced)
+    // MARK: - Fonts
+
+    /// Theme header font (titles, section labels, buttons). Falls back to system mono.
+    func header(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
+        custom(headerBase, size: size, weight: weight)
     }
+
+    /// Theme body font (content, notes, values). Falls back to system mono.
+    func body(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
+        custom(bodyBase, size: size, weight: weight)
+    }
+
+    /// Always-monospaced — for meters, timers, version strings, numeric readouts.
+    func mono(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
+        .system(size: size * fontScale, weight: weight, design: .monospaced)
+    }
+
+    private func custom(_ base: String?, size: CGFloat, weight: Font.Weight) -> Font {
+        let scaled = size * fontScale
+        guard let base else { return .system(size: scaled, weight: weight, design: .monospaced) }
+        let bold = weight == .bold || weight == .semibold || weight == .heavy || weight == .black
+        let name = bold && !FontMap.boldless.contains(base) ? "\(base)-Bold" : "\(base)-Regular"
+        return .custom(name, size: scaled)
+    }
+
+    // MARK: - Case / tracking / spacing
+
+    /// Display transform: UPPERCASE on techno themes, natural case otherwise.
+    func t(_ s: String) -> String { techno ? s.uppercased() : s }
+
+    /// Letter-spacing: full tracking on techno themes, none otherwise.
+    func trk(_ base: CGFloat) -> CGFloat { techno ? base : 0 }
+
+    /// Spacing/padding scaled by the theme's density (compact/normal/relaxed).
+    func pad(_ v: CGFloat) -> CGFloat { (v * spacingScale).rounded() }
 
     func urgencyColor(_ tier: UrgencyTier) -> Color {
         switch tier {

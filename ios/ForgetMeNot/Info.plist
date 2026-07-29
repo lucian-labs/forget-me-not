@@ -26,6 +26,46 @@
 	<false/>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.productivity</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>FMNBebasNeue-Regular.ttf</string>
+		<string>FMNCormorantGaramond-Bold.ttf</string>
+		<string>FMNCormorantGaramond-Regular.ttf</string>
+		<string>FMNFiraCode-Bold.ttf</string>
+		<string>FMNFiraCode-Regular.ttf</string>
+		<string>FMNIBMPlexMono-Bold.ttf</string>
+		<string>FMNIBMPlexMono-Regular.ttf</string>
+		<string>FMNInter-Bold.ttf</string>
+		<string>FMNInter-Regular.ttf</string>
+		<string>FMNJetBrainsMono-Bold.ttf</string>
+		<string>FMNJetBrainsMono-Regular.ttf</string>
+		<string>FMNJosefinSans-Bold.ttf</string>
+		<string>FMNJosefinSans-Regular.ttf</string>
+		<string>FMNKaiseiTokumin-Bold.ttf</string>
+		<string>FMNKaiseiTokumin-Regular.ttf</string>
+		<string>FMNLora-Bold.ttf</string>
+		<string>FMNLora-Regular.ttf</string>
+		<string>FMNNotoSansJp-Bold.ttf</string>
+		<string>FMNNotoSansJp-Regular.ttf</string>
+		<string>FMNNunito-Bold.ttf</string>
+		<string>FMNNunito-Regular.ttf</string>
+		<string>FMNOpenSans-Bold.ttf</string>
+		<string>FMNOpenSans-Regular.ttf</string>
+		<string>FMNOrbitron-Bold.ttf</string>
+		<string>FMNOrbitron-Regular.ttf</string>
+		<string>FMNPlayfairDisplay-Bold.ttf</string>
+		<string>FMNPlayfairDisplay-Regular.ttf</string>
+		<string>FMNPoppins-Bold.ttf</string>
+		<string>FMNPoppins-Regular.ttf</string>
+		<string>FMNQuicksand-Bold.ttf</string>
+		<string>FMNQuicksand-Regular.ttf</string>
+		<string>FMNRaleway-Bold.ttf</string>
+		<string>FMNRaleway-Regular.ttf</string>
+		<string>FMNSourceSerif4-Bold.ttf</string>
+		<string>FMNSourceSerif4-Regular.ttf</string>
+		<string>FMNSpaceMono-Bold.ttf</string>
+		<string>FMNSpaceMono-Regular.ttf</string>
+	</array>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

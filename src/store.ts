@@ -2,6 +2,7 @@ import type { Task, ReminderInstance, Settings, FollowUp, ActionType } from './t
 
 const TASKS_KEY = 'fmn-tasks'
 const SETTINGS_KEY = 'fmn-settings'
+const SEEDED_KEY = 'fmn-seeded'
 
 const DEFAULT_SETTINGS: Settings = {
   soundEnabled: true,
@@ -307,6 +308,14 @@ export function isFirstRun(): boolean {
   return localStorage.getItem(SETTINGS_KEY) === null
 }
 
+export function hasSeeded(): boolean {
+  return localStorage.getItem(SEEDED_KEY) !== null
+}
+
+export function markSeeded(): void {
+  localStorage.setItem(SEEDED_KEY, new Date().toISOString())
+}
+
 export function importAll(json: string): { tasks: number } {
   const data = JSON.parse(json)
   if (data.tasks && Array.isArray(data.tasks)) {
@@ -321,6 +330,7 @@ export function importAll(json: string): { tasks: number } {
 export function clearAll(): void {
   localStorage.removeItem(TASKS_KEY)
   localStorage.removeItem(SETTINGS_KEY)
+  localStorage.removeItem(SEEDED_KEY)
 }
 
 // --- Urgency ---

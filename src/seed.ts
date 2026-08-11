@@ -1,5 +1,5 @@
 import type { Task } from './types'
-import { createTask, getTasks } from './store'
+import { createTask, getTasks, hasSeeded, markSeeded } from './store'
 
 interface SeedTask {
   title: string
@@ -39,7 +39,15 @@ export function loadSeedTasks(): number {
 }
 
 export function loadSeedIfEmpty(): boolean {
+  markSeeded()
   if (getTasks().length > 0) return false
   loadSeedTasks()
   return true
+}
+
+// First ever visit with nothing stored: start from the default set.
+// Only fires once — clearing your list later won't bring them back.
+export function seedFirstRun(): boolean {
+  if (hasSeeded()) return false
+  return loadSeedIfEmpty()
 }

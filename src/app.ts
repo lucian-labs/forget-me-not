@@ -14,7 +14,7 @@ import { checkImportFromUrl } from './transfer'
 import { applyIcon } from './icon'
 import { renderVibe } from './taskyeet'
 import { renderLoops } from './loops'
-import { loadSeedIfEmpty } from './seed'
+import { loadSeedIfEmpty, seedFirstRun } from './seed'
 
 let currentView: View = 'panel'
 let currentTaskId: string | null = null
@@ -212,6 +212,8 @@ async function init(): Promise<void> {
   if (params.has('seeded')) {
     loadSeedIfEmpty()
     history.replaceState(null, '', location.pathname)
+  } else {
+    seedFirstRun()
   }
 
   const route = pathToRoute()

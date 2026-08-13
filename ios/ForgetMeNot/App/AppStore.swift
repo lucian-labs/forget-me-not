@@ -67,10 +67,13 @@ final class AppStore {
     var soundBpm: Double = 160
     var soundVolume: Double = 0.4
     var soundMode: Int = 1
+    /// Octave transpose for the jingles (-2...+2). Mac defaults an octave down.
+    var soundOctave: Int = SoundConfig.defaultOctave
 
     var soundConfig: SoundConfig {
         SoundConfig(enabled: soundEnabled, seed: soundSeed.isEmpty ? "forgetmenot" : soundSeed,
-                    preset: soundPreset, bpm: soundBpm, volume: soundVolume, mode: soundMode)
+                    preset: soundPreset, bpm: soundBpm, volume: soundVolume, mode: soundMode,
+                    octave: soundOctave)
     }
 
     private func readSoundPrefs() {
@@ -81,7 +84,16 @@ final class AppStore {
         soundBpm = Double(d.string(forKey: "fmn.soundBpm") ?? "") ?? 160
         soundVolume = Double(d.string(forKey: "fmn.soundVolume") ?? "") ?? 0.4
         soundMode = Int(d.string(forKey: "fmn.soundMode") ?? "") ?? 1
+        // Per-platform default (Mac an octave down) until the user picks one; the stored
+        // key is platform-scoped so a Mac choice doesn't follow the iPhone over iCloud.
+        soundOctave = Int(d.string(forKey: Self.octaveKey) ?? "") ?? SoundConfig.defaultOctave
     }
+
+    #if targetEnvironment(macCatalyst)
+    static let octaveKey = "fmn.soundOctave.mac"
+    #else
+    static let octaveKey = "fmn.soundOctave"
+    #endif
 
     func setSoundEnabled(_ on: Bool) { soundEnabled = on; SyncedPrefs.set(on ? "1" : "0", forKey: "fmn.soundEnabled") }
     func setSoundSeed(_ s: String) { soundSeed = s; SyncedPrefs.set(s, forKey: "fmn.soundSeed") }
@@ -89,6 +101,11 @@ final class AppStore {
     func setSoundBpm(_ v: Double) { soundBpm = v; SyncedPrefs.set(String(v), forKey: "fmn.soundBpm") }
     func setSoundVolume(_ v: Double) { soundVolume = v; SyncedPrefs.set(String(v), forKey: "fmn.soundVolume") }
     func setSoundMode(_ v: Int) { soundMode = v; SyncedPrefs.set(String(v), forKey: "fmn.soundMode") }
+    /// Not synced: pitch is a per-device choice (laptop speakers vs. phone).
+    func setSoundOctave(_ v: Int) {
+        soundOctave = min(max(v, -2), 2)
+        UserDefaults.standard.set(String(soundOctave), forKey: Self.octaveKey)
+    }
 
     /// Pull prompt/style/theme edits made on another device (iCloud key-value store) into the
     /// cached, observable copies so the UI reflects them live.

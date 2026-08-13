@@ -12,6 +12,17 @@ struct SoundConfig: Equatable {
     var bpm: Double
     var volume: Double
     var mode: Int
+    /// Whole-octave transpose applied to every note. Defaults to -1 on the Mac, where
+    /// laptop speakers make the iPhone-pitched jingles read as shrill; 0 on iOS.
+    var octave: Int = SoundConfig.defaultOctave
+
+    static var defaultOctave: Int {
+        #if targetEnvironment(macCatalyst)
+        return -1
+        #else
+        return 0
+        #endif
+    }
 }
 
 /// Jingles voiced by the vendored PocketWave FM synth ("yama-bruh"), with the melody
@@ -206,7 +217,10 @@ final class SynthEngine {
                 currentDeg += mood.movements[rng.range(mood.movements.count)]
             }
             let raw = rootMidi + degToSemitone(currentDeg)
-            let note = Int32(raw < 42 ? raw + 12 : raw > 84 ? raw - 12 : raw)
+            // Fold into the web's 42...84 window FIRST so the tune is note-for-note the
+            // web's, then transpose — otherwise the fold would pick different notes.
+            let folded = raw < 42 ? raw + 12 : raw > 84 ? raw - 12 : raw
+            let note = Int32(min(max(folded + config.octave * 12, 12), 108))
             let dur = mood.durations[rng.range(mood.durations.count)] * beat
 
             events.append(JingleEvent(frame: Int(t * sampleRate), on: true, note: note, vel: 112))

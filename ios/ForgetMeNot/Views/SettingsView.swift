@@ -212,6 +212,21 @@ struct SettingsView: View {
                         .tint(WL.accent)
                 }
                 HStack {
+                    Text(WL.t("Pitch")).font(WL.header(10, .bold)).tracking(WL.trk(1)).foregroundStyle(WL.muted)
+                    Spacer()
+                    Picker("", selection: Binding(
+                        get: { store.soundOctave },
+                        set: { store.setSoundOctave($0); sounder.test(config: store.soundConfig) }
+                    )) {
+                        Text("Two octaves down").tag(-2)
+                        Text("An octave down").tag(-1)
+                        Text("Normal").tag(0)
+                        Text("An octave up").tag(1)
+                        Text("Two octaves up").tag(2)
+                    }
+                    .pickerStyle(.menu).tint(WL.accent)
+                }
+                HStack {
                     Text(WL.t("Instrument")).font(WL.header(10, .bold)).tracking(WL.trk(1)).foregroundStyle(WL.muted)
                     Spacer()
                     Text("#\(store.soundPreset % SynthEngine.presetCount) \(WL.t(SynthEngine.presetName(store.soundPreset)))")

@@ -335,6 +335,16 @@ export function renderSettings(container: HTMLElement): void {
     'Sends a notification the moment a task comes due, via the cloud — no need to keep the tab open.'))
   container.appendChild(pushCard)
 
+  // Setups (admin panel) — build/share a starting configuration
+  const setupsCard = el('div', { className: 'fmn-card' })
+  setupsCard.appendChild(sectionLabel('Setups'))
+  const setupsBtn = el('button', { className: 'btn-ghost', style: 'width:100%;padding:12px;font-size:14px;' }, 'Build & share a setup') as HTMLButtonElement
+  setupsBtn.onclick = () => navigate('admin')
+  setupsCard.appendChild(setupsBtn)
+  setupsCard.appendChild(el('div', { style: 'font-size:11px;color:var(--dim);margin-top:6px;' },
+    'Bundle your look, sounds, categories and starter loops into something you can hand to someone else.'))
+  container.appendChild(setupsCard)
+
   // Sync
   const syncCard = el('div', { className: 'fmn-card' })
   syncCard.appendChild(sectionLabel('Sync'))

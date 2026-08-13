@@ -15,7 +15,7 @@ async function loadQRLib(): Promise<any> {
   })
 }
 
-async function compress(data: string): Promise<string> {
+export async function compress(data: string): Promise<string> {
   try {
     if ('CompressionStream' in window) {
       const stream = new Blob([data]).stream().pipeThrough(new CompressionStream('deflate'))
@@ -30,7 +30,7 @@ async function compress(data: string): Promise<string> {
   return 'r:' + btoa(unescape(encodeURIComponent(data))) // r: prefix = raw
 }
 
-async function decompress(encoded: string): Promise<string> {
+export async function decompress(encoded: string): Promise<string> {
   if (encoded.startsWith('z:')) {
     const b64 = encoded.slice(2)
     const binary = atob(b64)

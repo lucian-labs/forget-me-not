@@ -11,6 +11,7 @@ import { syncPushSchedule, isPushEnabled } from './push'
 import { applyTheme, getAllThemes, importThemeJson, THEMES } from './themes'
 import { updateSettings, isFirstRun } from './store'
 import { checkImportFromUrl } from './transfer'
+import { renderAdmin, checkSetupFromUrl } from './admin'
 import { applyIcon } from './icon'
 import { renderVibe } from './taskyeet'
 import { renderLoops } from './loops'
@@ -29,6 +30,7 @@ function viewToPath(view: View, taskId?: string | null): string {
     case 'detail': return `/task/${taskId}`
     case 'taskyeet': return '/vibe'
     case 'loops': return '/loops'
+    case 'admin': return '/settings/setups'
   }
 }
 
@@ -37,6 +39,7 @@ function pathToRoute(): { view: View; taskId: string | null } {
   if (path === '/vibe') return { view: 'taskyeet', taskId: null }
   if (path === '/loops') return { view: 'loops', taskId: null }
   if (path === '/settings/share') return { view: 'share', taskId: null }
+  if (path === '/settings/setups') return { view: 'admin', taskId: null }
   if (path === '/settings') return { view: 'settings', taskId: null }
   if (path === '/new') return { view: 'create', taskId: null }
   if (path.startsWith('/task/')) return { view: 'detail', taskId: path.slice(6) }
@@ -108,6 +111,9 @@ function render(): void {
       break
     case 'loops':
       renderLoops(content)
+      break
+    case 'admin':
+      renderAdmin(content)
       break
   }
 }
@@ -206,6 +212,10 @@ async function init(): Promise<void> {
 
   const imported = await checkImportFromUrl()
   if (imported) return
+
+  // A shared setup link ("#setup=") — offer to apply it before any seeding.
+  const fromSetup = await checkSetupFromUrl()
+  if (fromSetup) return
 
   // ?seeded — load helper tasks if none exist
   const params = new URLSearchParams(location.search)

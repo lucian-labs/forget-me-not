@@ -1,5 +1,6 @@
 import type { Task } from './types'
 import { createTask, getTasks, hasSeeded, markSeeded } from './store'
+import { getDefaultSetup, applySetup } from './config'
 
 interface SeedTask {
   title: string
@@ -41,6 +42,13 @@ export function loadSeedTasks(): number {
 export function loadSeedIfEmpty(): boolean {
   markSeeded()
   if (getTasks().length > 0) return false
+  // If a setup is marked "start here" in the admin panel, a fresh install begins
+  // from that instead of the built-in list.
+  const setup = getDefaultSetup()
+  if (setup) {
+    applySetup(setup)
+    return true
+  }
   loadSeedTasks()
   return true
 }

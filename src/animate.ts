@@ -31,6 +31,16 @@ export function animateOut(element: HTMLElement): Promise<void> {
   })
 }
 
+/// Put a card that's animating out back the way it was. Used when you start typing
+/// mid-flight — the task should come back and wait for you, not vanish.
+/// (The animateOut promise still resolves; the caller ignores it once aborted.)
+export function cancelAnimateOut(element: HTMLElement): void {
+  for (const cls of Array.from(element.classList)) {
+    if (cls.startsWith('fmn-anim-') || cls === 'fmn-collapsing') element.classList.remove(cls)
+  }
+  element.style.maxHeight = ''
+}
+
 export function animateIn(element: HTMLElement): void {
   const style = getAnimStyle()
   element.classList.add(`fmn-anim-enter-${style}`)

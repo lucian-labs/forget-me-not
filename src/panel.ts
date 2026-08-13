@@ -7,11 +7,16 @@ import {
 } from './store'
 import { formatTime, formatCadence, el, renderStreakStrip } from './utils'
 import { navigate } from './app'
-import { animateOut } from './animate'
+import { animateOut, cancelAnimateOut } from './animate'
 import { appName } from './brand'
 import { renderHeaderIcon } from './icon'
 
-type CaptureState = { timer: number | null; mode: 'check' | 'note'; card: HTMLElement | null; startedAt: number }
+// `typed` flips the moment you put a character in the box. Before that, the 2s
+// countdown runs (tap ✓ and walk away). After it, the countdown is off for good and
+// the task waits for Enter — nothing should yank it away mid-thought.
+// `draft` survives re-renders — the panel rebuilds cards on a tick, and without it
+// whatever you'd typed would be wiped the moment the input lost focus.
+type CaptureState = { timer: number | null; mode: 'check' | 'note'; card: HTMLElement | null; startedAt: number; typed: boolean; draft: string }
 
 const captures = new Map<string, CaptureState>()
 let groupByCategory = localStorage.getItem('fmn-categorize') === 'true'
@@ -280,12 +285,19 @@ function renderTaskItem(task: Task): HTMLElement {
     const input = el('input', {
       className: 'fmn-capture',
       type: 'text',
-      placeholder: cap.mode === 'note' ? 'what did you do?' : 'quick note (auto-submits in 2s)...',
+      placeholder: cap.mode === 'note' ? 'what did you do?' : 'quick note, then enter...',
     }) as HTMLInputElement
+    input.value = cap.draft
     card.appendChild(input)
-    requestAnimationFrame(() => input.focus())
+    requestAnimationFrame(() => {
+      input.focus()
+      // Put the caret after the restored text, not at the start.
+      input.setSelectionRange(input.value.length, input.value.length)
+      keepInView(card)
+    })
 
     if (cap.mode === 'note') {
+      input.addEventListener('input', () => { markTyped(task.id, input.value); keepInView(card) })
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && input.value.trim()) {
           addActionNote(task.id, input.value.trim())
@@ -295,7 +307,12 @@ function renderTaskItem(task: Task): HTMLElement {
         if (e.key === 'Escape') { captures.delete(task.id); navigate('panel') }
       })
     } else {
-      input.addEventListener('input', () => resetCaptureTimer(task, input))
+      input.addEventListener('input', () => {
+        // Typing cancels the countdown outright — from here it's Enter that commits.
+        markTyped(task.id, input.value)
+        if (!captures.get(task.id)?.typed) resetCaptureTimer(task, input)
+        keepInView(card)
+      })
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') executeCapture(task, input.value)
         if (e.key === 'Escape') { captures.delete(task.id); navigate('panel') }
@@ -315,14 +332,32 @@ function startCapture(taskId: string, mode: 'check' | 'note'): void {
     captures.delete(taskId)
   } else {
     if (existing?.timer) clearTimeout(existing.timer)
-    captures.set(taskId, { timer: null, mode, card: null, startedAt: Date.now() })
+    captures.set(taskId, { timer: null, mode, card: null, startedAt: Date.now(), typed: false, draft: '' })
   }
   navigate('panel')
 }
 
+/// Once anything is in the box, kill the countdown for good — the task now sits
+/// still until Enter. Clearing the box back out does NOT re-arm it; having typed
+/// once means you're composing, and a re-armed timer would be a trap.
+function markTyped(taskId: string, value: string): void {
+  const cap = captures.get(taskId)
+  if (!cap) return
+  cap.draft = value
+  if (cap.typed || !value.length) return
+  cap.typed = true
+  if (cap.timer) { clearTimeout(cap.timer); cap.timer = null }
+}
+
+/// Hold the card on screen while you're writing — the list re-sorts by urgency and
+/// cards animate, either of which can otherwise slide it out from under you.
+function keepInView(card: HTMLElement): void {
+  card.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+}
+
 function startCaptureTimer(task: Task, input: HTMLInputElement): void {
   const cap = captures.get(task.id)
-  if (cap) {
+  if (cap && !cap.typed) {
     if (cap.timer) clearTimeout(cap.timer)
     const elapsed = Date.now() - cap.startedAt
     const remaining = Math.max(2000 - elapsed, 0)
@@ -332,7 +367,7 @@ function startCaptureTimer(task: Task, input: HTMLInputElement): void {
 
 function resetCaptureTimer(task: Task, input: HTMLInputElement): void {
   const cap = captures.get(task.id)
-  if (cap) {
+  if (cap && !cap.typed) {
     if (cap.timer) clearTimeout(cap.timer)
     cap.startedAt = Date.now()
     cap.timer = window.setTimeout(() => executeCapture(task, input.value), 2000)
@@ -355,7 +390,27 @@ function executeCapture(task: Task, note: string): void {
   }
 
   if (cardEl) {
-    animateOut(cardEl).then(finish)
+    // If you start typing while the card is on its way out, catch it: stop the
+    // animation, reopen the capture (marked typed, so nothing auto-commits again)
+    // and let it sit there until Enter.
+    const input = cardEl.querySelector('.fmn-capture') as HTMLInputElement | null
+    let aborted = false
+    const onType = () => {
+      if (!input?.value.length || aborted) return
+      aborted = true
+      cancelAnimateOut(cardEl)
+      captures.set(task.id, {
+        timer: null, mode: cap?.mode ?? 'check', card: cardEl, startedAt: Date.now(), typed: true,
+        draft: input.value,
+      })
+      keepInView(cardEl)
+      input.focus()
+    }
+    input?.addEventListener('input', onType)
+    animateOut(cardEl).then(() => {
+      input?.removeEventListener('input', onType)
+      if (!aborted) finish()
+    })
   } else {
     finish()
   }

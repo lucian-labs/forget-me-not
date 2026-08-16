@@ -150,7 +150,7 @@ struct SettingsView: View {
                 .padding(20)
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(WL.isLight ? .light : .dark)
         .sheet(isPresented: $showPromptLab) {
             PromptLabView().environment(store).environment(icons)
         }

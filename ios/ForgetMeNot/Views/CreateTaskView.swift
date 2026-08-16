@@ -101,7 +101,7 @@ struct CreateTaskView: View {
                 .padding(20)
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(WL.isLight ? .light : .dark)
     }
 
     private func makeTask() -> TaskDTO {

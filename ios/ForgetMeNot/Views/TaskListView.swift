@@ -32,7 +32,7 @@ struct TaskListView: View {
                 footer
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(WL.isLight ? .light : .dark)
         .onReceive(ticker) { _ in
             store.load()                       // poll: surface another device's swipe/reset live
             icons.evolve(for: store.sortedActive)   // ...and decode any icons it synced over

@@ -1,0 +1,1903 @@
+[
+  {
+    "typeName": "ForgetMeNot.TaskItemEntity",
+    "mangledTypeName": "11ForgetMeNot14TaskItemEntityV",
+    "kind": "struct",
+    "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+    "line": 33,
+    "conformances": [
+      "AppIntents.AppEntity",
+      "AppIntents.AppValue",
+      "AppIntents.DisplayRepresentable",
+      "Swift.Identifiable",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents.TypeDisplayRepresentable",
+      "AppIntents._IntentValue",
+      "Swift.Sendable",
+      "AppIntents.InstanceDisplayRepresentable",
+      "Swift.SendableMetatype",
+      "Foundation.CustomLocalizedStringResourceConvertible"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "AppIntents.AppEntity",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "AppIntents.AppValue",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "AppIntents.DisplayRepresentable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Swift.Identifiable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "AppIntents.TypeDisplayRepresentable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "AppIntents._IntentValue",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "AppIntents.InstanceDisplayRepresentable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Foundation.CustomLocalizedStringResourceConvertible",
+        "conformanceDefiningModule": "ForgetMeNot"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "DefaultQuery",
+        "substitutedTypeName": "ForgetMeNot.TaskItemQuery",
+        "substitutedMangledTypeName": "11ForgetMeNot13TaskItemQueryV"
+      },
+      {
+        "typeAliasName": "ID",
+        "substitutedTypeName": "Swift.String",
+        "substitutedMangledTypeName": "SS"
+      },
+      {
+        "typeAliasName": "ValueType",
+        "substitutedTypeName": "ForgetMeNot.TaskItemEntity",
+        "substitutedMangledTypeName": "11ForgetMeNot14TaskItemEntityV"
+      },
+      {
+        "typeAliasName": "UnwrappedType",
+        "substitutedTypeName": "ForgetMeNot.TaskItemEntity",
+        "substitutedMangledTypeName": "11ForgetMeNot14TaskItemEntityV"
+      },
+      {
+        "typeAliasName": "Specification",
+        "substitutedTypeName": "AppIntents.EmptyResolverSpecification<ForgetMeNot.TaskItemEntity>",
+        "substitutedMangledTypeName": "10AppIntents26EmptyResolverSpecificationVy11ForgetMeNot14TaskItemEntityVG"
+      }
+    ],
+    "properties": [
+      {
+        "label": "id",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 37,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "title",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 38,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "area",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 39,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "typeDisplayRepresentation",
+        "type": "AppIntents.TypeDisplayRepresentation",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 34,
+        "valueKind": "RawLiteral",
+        "value": "Task"
+      },
+      {
+        "label": "defaultQuery",
+        "type": "ForgetMeNot.TaskItemQuery",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 35,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "ForgetMeNot.TaskItemQuery",
+          "arguments": []
+        }
+      },
+      {
+        "label": "displayRepresentation",
+        "type": "AppIntents.DisplayRepresentation",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 41,
+        "valueKind": "Runtime"
+      }
+    ]
+  },
+  {
+    "typeName": "ForgetMeNot.TaskItemQuery",
+    "mangledTypeName": "11ForgetMeNot13TaskItemQueryV",
+    "kind": "struct",
+    "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+    "line": 50,
+    "conformances": [
+      "AppIntents.EntityStringQuery",
+      "AppIntents.EntityQuery",
+      "AppIntents.DynamicOptionsProvider",
+      "AppIntents.PersistentlyIdentifiable",
+      "Swift.Sendable",
+      "AppIntents._SupportsAppDependencies",
+      "Swift.SendableMetatype",
+      "Swift.BitwiseCopyable"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "AppIntents.EntityStringQuery",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "AppIntents.EntityQuery",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "AppIntents.DynamicOptionsProvider",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "AppIntents._SupportsAppDependencies",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Swift.BitwiseCopyable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "Entity",
+        "substitutedTypeName": "ForgetMeNot.TaskItemEntity",
+        "substitutedMangledTypeName": "11ForgetMeNot14TaskItemEntityV"
+      },
+      {
+        "typeAliasName": "Result",
+        "substitutedTypeName": "Swift.Array<ForgetMeNot.TaskItemEntity>",
+        "substitutedMangledTypeName": "Say11ForgetMeNot14TaskItemEntityVG"
+      },
+      {
+        "typeAliasName": "Result",
+        "substitutedTypeName": "Swift.Array<ForgetMeNot.TaskItemEntity>",
+        "substitutedMangledTypeName": "Say11ForgetMeNot14TaskItemEntityVG"
+      },
+      {
+        "typeAliasName": "DefaultValue",
+        "substitutedTypeName": "ForgetMeNot.TaskItemEntity",
+        "substitutedMangledTypeName": "11ForgetMeNot14TaskItemEntityV"
+      }
+    ],
+    "properties": []
+  },
+  {
+    "typeName": "ForgetMeNot.ResetLoopIntent",
+    "mangledTypeName": "11ForgetMeNot15ResetLoopIntentV",
+    "kind": "struct",
+    "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+    "line": 70,
+    "conformances": [
+      "AppIntents.AppIntent",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents._SupportsAppDependencies",
+      "Swift.Sendable",
+      "Swift.SendableMetatype"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "AppIntents.AppIntent",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "AppIntents._SupportsAppDependencies",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "ForgetMeNot"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "PerformResult",
+        "substitutedTypeName": "some AppIntents.ProvidesDialog",
+        "substitutedMangledTypeName": "11ForgetMeNot15ResetLoopIntentV7performQryYaKFQOy_Qo_",
+        "opaqueTypeProtocolRequirements": [
+          "AppIntents.ProvidesDialog"
+        ],
+        "opaqueTypeSameTypeRequirements": []
+      },
+      {
+        "typeAliasName": "SummaryContent",
+        "substitutedTypeName": "some AppIntents.ParameterSummary",
+        "substitutedMangledTypeName": "10AppIntents0A6IntentPAAE16parameterSummaryQrvpZQOy11ForgetMeNot09ResetLoopC0V_Qo_",
+        "opaqueTypeProtocolRequirements": [
+          "AppIntents.ParameterSummary"
+        ],
+        "opaqueTypeSameTypeRequirements": []
+      }
+    ],
+    "properties": [
+      {
+        "label": "_task",
+        "type": "AppIntents.IntentParameter<ForgetMeNot.TaskItemEntity>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 75,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "AppIntents.IntentParameter<ForgetMeNot.TaskItemEntity>",
+          "arguments": [
+            {
+              "label": "title",
+              "type": "Foundation.LocalizedStringResource",
+              "valueKind": "RawLiteral",
+              "value": "Task"
+            },
+            {
+              "label": "description",
+              "type": "Swift.Optional<Foundation.LocalizedStringResource>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "default",
+              "type": "Swift.Optional<ForgetMeNot.TaskItemEntity>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "requestValueDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "Which task did you do?"
+            },
+            {
+              "label": "requestDisambiguationDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "inputConnectionBehavior",
+              "type": "AppIntents.InputConnectionBehavior",
+              "valueKind": "Runtime"
+            }
+          ]
+        }
+      },
+      {
+        "label": "title",
+        "type": "Foundation.LocalizedStringResource",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 71,
+        "valueKind": "RawLiteral",
+        "value": "Reset a Task"
+      },
+      {
+        "label": "description",
+        "type": "AppIntents.IntentDescription",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 72,
+        "valueKind": "RawLiteral",
+        "value": "Mark a recurring task as just done, restarting its timer."
+      },
+      {
+        "label": "task",
+        "type": "ForgetMeNot.TaskItemEntity",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 75,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "AppIntents.IntentParameter<ForgetMeNot.TaskItemEntity>",
+          "arguments": [
+            {
+              "label": "title",
+              "type": "Foundation.LocalizedStringResource",
+              "valueKind": "RawLiteral",
+              "value": "Task"
+            },
+            {
+              "label": "description",
+              "type": "Swift.Optional<Foundation.LocalizedStringResource>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "default",
+              "type": "Swift.Optional<ForgetMeNot.TaskItemEntity>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "requestValueDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "Which task did you do?"
+            },
+            {
+              "label": "requestDisambiguationDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "inputConnectionBehavior",
+              "type": "AppIntents.InputConnectionBehavior",
+              "valueKind": "Runtime"
+            }
+          ]
+        },
+        "propertyWrappers": [
+          {
+            "type": "AppIntents.IntentParameter",
+            "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+            "line": 74,
+            "arguments": [
+              {
+                "label": "title",
+                "type": "Foundation.LocalizedStringResource",
+                "valueKind": "RawLiteral",
+                "value": "Task"
+              },
+              {
+                "label": "requestValueDialog",
+                "type": "Swift.Optional<AppIntents.IntentDialog>",
+                "valueKind": "RawLiteral",
+                "value": "Which task did you do?"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "$task",
+        "type": "AppIntents.IntentParameter<ForgetMeNot.TaskItemEntity>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 75,
+        "valueKind": "Runtime"
+      }
+    ]
+  },
+  {
+    "typeName": "ForgetMeNot.CompleteTaskIntent",
+    "mangledTypeName": "11ForgetMeNot18CompleteTaskIntentV",
+    "kind": "struct",
+    "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+    "line": 90,
+    "conformances": [
+      "AppIntents.AppIntent",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents._SupportsAppDependencies",
+      "Swift.Sendable",
+      "Swift.SendableMetatype"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "AppIntents.AppIntent",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "AppIntents._SupportsAppDependencies",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "ForgetMeNot"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "PerformResult",
+        "substitutedTypeName": "some AppIntents.ProvidesDialog",
+        "substitutedMangledTypeName": "11ForgetMeNot18CompleteTaskIntentV7performQryYaKFQOy_Qo_",
+        "opaqueTypeProtocolRequirements": [
+          "AppIntents.ProvidesDialog"
+        ],
+        "opaqueTypeSameTypeRequirements": []
+      },
+      {
+        "typeAliasName": "SummaryContent",
+        "substitutedTypeName": "some AppIntents.ParameterSummary",
+        "substitutedMangledTypeName": "10AppIntents0A6IntentPAAE16parameterSummaryQrvpZQOy11ForgetMeNot012CompleteTaskC0V_Qo_",
+        "opaqueTypeProtocolRequirements": [
+          "AppIntents.ParameterSummary"
+        ],
+        "opaqueTypeSameTypeRequirements": []
+      }
+    ],
+    "properties": [
+      {
+        "label": "_task",
+        "type": "AppIntents.IntentParameter<ForgetMeNot.TaskItemEntity>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 95,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "AppIntents.IntentParameter<ForgetMeNot.TaskItemEntity>",
+          "arguments": [
+            {
+              "label": "title",
+              "type": "Foundation.LocalizedStringResource",
+              "valueKind": "RawLiteral",
+              "value": "Task"
+            },
+            {
+              "label": "description",
+              "type": "Swift.Optional<Foundation.LocalizedStringResource>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "default",
+              "type": "Swift.Optional<ForgetMeNot.TaskItemEntity>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "requestValueDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "Which task is done?"
+            },
+            {
+              "label": "requestDisambiguationDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "inputConnectionBehavior",
+              "type": "AppIntents.InputConnectionBehavior",
+              "valueKind": "Runtime"
+            }
+          ]
+        }
+      },
+      {
+        "label": "title",
+        "type": "Foundation.LocalizedStringResource",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 91,
+        "valueKind": "RawLiteral",
+        "value": "Complete a Task"
+      },
+      {
+        "label": "description",
+        "type": "AppIntents.IntentDescription",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 92,
+        "valueKind": "RawLiteral",
+        "value": "Mark a task as done."
+      },
+      {
+        "label": "task",
+        "type": "ForgetMeNot.TaskItemEntity",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 95,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "AppIntents.IntentParameter<ForgetMeNot.TaskItemEntity>",
+          "arguments": [
+            {
+              "label": "title",
+              "type": "Foundation.LocalizedStringResource",
+              "valueKind": "RawLiteral",
+              "value": "Task"
+            },
+            {
+              "label": "description",
+              "type": "Swift.Optional<Foundation.LocalizedStringResource>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "default",
+              "type": "Swift.Optional<ForgetMeNot.TaskItemEntity>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "requestValueDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "Which task is done?"
+            },
+            {
+              "label": "requestDisambiguationDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "inputConnectionBehavior",
+              "type": "AppIntents.InputConnectionBehavior",
+              "valueKind": "Runtime"
+            }
+          ]
+        },
+        "propertyWrappers": [
+          {
+            "type": "AppIntents.IntentParameter",
+            "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+            "line": 94,
+            "arguments": [
+              {
+                "label": "title",
+                "type": "Foundation.LocalizedStringResource",
+                "valueKind": "RawLiteral",
+                "value": "Task"
+              },
+              {
+                "label": "requestValueDialog",
+                "type": "Swift.Optional<AppIntents.IntentDialog>",
+                "valueKind": "RawLiteral",
+                "value": "Which task is done?"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "$task",
+        "type": "AppIntents.IntentParameter<ForgetMeNot.TaskItemEntity>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 95,
+        "valueKind": "Runtime"
+      }
+    ]
+  },
+  {
+    "typeName": "ForgetMeNot.LogNoteIntent",
+    "mangledTypeName": "11ForgetMeNot13LogNoteIntentV",
+    "kind": "struct",
+    "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+    "line": 109,
+    "conformances": [
+      "AppIntents.AppIntent",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents._SupportsAppDependencies",
+      "Swift.Sendable",
+      "Swift.SendableMetatype"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "AppIntents.AppIntent",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "AppIntents._SupportsAppDependencies",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "ForgetMeNot"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "PerformResult",
+        "substitutedTypeName": "some AppIntents.ProvidesDialog",
+        "substitutedMangledTypeName": "11ForgetMeNot13LogNoteIntentV7performQryYaKFQOy_Qo_",
+        "opaqueTypeProtocolRequirements": [
+          "AppIntents.ProvidesDialog"
+        ],
+        "opaqueTypeSameTypeRequirements": []
+      },
+      {
+        "typeAliasName": "SummaryContent",
+        "substitutedTypeName": "some AppIntents.ParameterSummary",
+        "substitutedMangledTypeName": "10AppIntents0A6IntentPAAE16parameterSummaryQrvpZQOy11ForgetMeNot07LogNoteC0V_Qo_",
+        "opaqueTypeProtocolRequirements": [
+          "AppIntents.ParameterSummary"
+        ],
+        "opaqueTypeSameTypeRequirements": []
+      }
+    ],
+    "properties": [
+      {
+        "label": "_task",
+        "type": "AppIntents.IntentParameter<ForgetMeNot.TaskItemEntity>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 114,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "AppIntents.IntentParameter<ForgetMeNot.TaskItemEntity>",
+          "arguments": [
+            {
+              "label": "title",
+              "type": "Foundation.LocalizedStringResource",
+              "valueKind": "RawLiteral",
+              "value": "Task"
+            },
+            {
+              "label": "description",
+              "type": "Swift.Optional<Foundation.LocalizedStringResource>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "default",
+              "type": "Swift.Optional<ForgetMeNot.TaskItemEntity>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "requestValueDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "Which task?"
+            },
+            {
+              "label": "requestDisambiguationDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "inputConnectionBehavior",
+              "type": "AppIntents.InputConnectionBehavior",
+              "valueKind": "Runtime"
+            }
+          ]
+        }
+      },
+      {
+        "label": "_note",
+        "type": "AppIntents.IntentParameter<Swift.String>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 116,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "AppIntents.IntentParameter<Swift.String>",
+          "arguments": [
+            {
+              "label": "title",
+              "type": "Foundation.LocalizedStringResource",
+              "valueKind": "RawLiteral",
+              "value": "Note"
+            },
+            {
+              "label": "description",
+              "type": "Swift.Optional<Foundation.LocalizedStringResource>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "default",
+              "type": "Swift.Optional<Swift.String>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "inputOptions",
+              "type": "Swift.Optional<Swift.String.IntentInputOptions>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "requestValueDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "What do you want to note?"
+            },
+            {
+              "label": "inputConnectionBehavior",
+              "type": "AppIntents.InputConnectionBehavior",
+              "valueKind": "Runtime"
+            }
+          ]
+        }
+      },
+      {
+        "label": "title",
+        "type": "Foundation.LocalizedStringResource",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 110,
+        "valueKind": "RawLiteral",
+        "value": "Log a Note"
+      },
+      {
+        "label": "description",
+        "type": "AppIntents.IntentDescription",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 111,
+        "valueKind": "RawLiteral",
+        "value": "Add a note to a task's history."
+      },
+      {
+        "label": "task",
+        "type": "ForgetMeNot.TaskItemEntity",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 114,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "AppIntents.IntentParameter<ForgetMeNot.TaskItemEntity>",
+          "arguments": [
+            {
+              "label": "title",
+              "type": "Foundation.LocalizedStringResource",
+              "valueKind": "RawLiteral",
+              "value": "Task"
+            },
+            {
+              "label": "description",
+              "type": "Swift.Optional<Foundation.LocalizedStringResource>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "default",
+              "type": "Swift.Optional<ForgetMeNot.TaskItemEntity>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "requestValueDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "Which task?"
+            },
+            {
+              "label": "requestDisambiguationDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "inputConnectionBehavior",
+              "type": "AppIntents.InputConnectionBehavior",
+              "valueKind": "Runtime"
+            }
+          ]
+        },
+        "propertyWrappers": [
+          {
+            "type": "AppIntents.IntentParameter",
+            "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+            "line": 113,
+            "arguments": [
+              {
+                "label": "title",
+                "type": "Foundation.LocalizedStringResource",
+                "valueKind": "RawLiteral",
+                "value": "Task"
+              },
+              {
+                "label": "requestValueDialog",
+                "type": "Swift.Optional<AppIntents.IntentDialog>",
+                "valueKind": "RawLiteral",
+                "value": "Which task?"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "$task",
+        "type": "AppIntents.IntentParameter<ForgetMeNot.TaskItemEntity>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 114,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "note",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 116,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "AppIntents.IntentParameter<Swift.String>",
+          "arguments": [
+            {
+              "label": "title",
+              "type": "Foundation.LocalizedStringResource",
+              "valueKind": "RawLiteral",
+              "value": "Note"
+            },
+            {
+              "label": "description",
+              "type": "Swift.Optional<Foundation.LocalizedStringResource>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "default",
+              "type": "Swift.Optional<Swift.String>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "inputOptions",
+              "type": "Swift.Optional<Swift.String.IntentInputOptions>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "requestValueDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "What do you want to note?"
+            },
+            {
+              "label": "inputConnectionBehavior",
+              "type": "AppIntents.InputConnectionBehavior",
+              "valueKind": "Runtime"
+            }
+          ]
+        },
+        "propertyWrappers": [
+          {
+            "type": "AppIntents.IntentParameter",
+            "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+            "line": 115,
+            "arguments": [
+              {
+                "label": "title",
+                "type": "Foundation.LocalizedStringResource",
+                "valueKind": "RawLiteral",
+                "value": "Note"
+              },
+              {
+                "label": "requestValueDialog",
+                "type": "Swift.Optional<AppIntents.IntentDialog>",
+                "valueKind": "RawLiteral",
+                "value": "What do you want to note?"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "$note",
+        "type": "AppIntents.IntentParameter<Swift.String>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 116,
+        "valueKind": "Runtime"
+      }
+    ]
+  },
+  {
+    "typeName": "ForgetMeNot.AddTaskIntent",
+    "mangledTypeName": "11ForgetMeNot13AddTaskIntentV",
+    "kind": "struct",
+    "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+    "line": 128,
+    "conformances": [
+      "AppIntents.AppIntent",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents._SupportsAppDependencies",
+      "Swift.Sendable",
+      "Swift.SendableMetatype"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "AppIntents.AppIntent",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "AppIntents._SupportsAppDependencies",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "ForgetMeNot"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "PerformResult",
+        "substitutedTypeName": "some AppIntents.ProvidesDialog",
+        "substitutedMangledTypeName": "11ForgetMeNot13AddTaskIntentV7performQryYaKFQOy_Qo_",
+        "opaqueTypeProtocolRequirements": [
+          "AppIntents.ProvidesDialog"
+        ],
+        "opaqueTypeSameTypeRequirements": []
+      },
+      {
+        "typeAliasName": "SummaryContent",
+        "substitutedTypeName": "some AppIntents.ParameterSummary",
+        "substitutedMangledTypeName": "10AppIntents0A6IntentPAAE16parameterSummaryQrvpZQOy11ForgetMeNot07AddTaskC0V_Qo_",
+        "opaqueTypeProtocolRequirements": [
+          "AppIntents.ParameterSummary"
+        ],
+        "opaqueTypeSameTypeRequirements": []
+      }
+    ],
+    "properties": [
+      {
+        "label": "_title",
+        "type": "AppIntents.IntentParameter<Swift.String>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 133,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "AppIntents.IntentParameter<Swift.String>",
+          "arguments": [
+            {
+              "label": "title",
+              "type": "Foundation.LocalizedStringResource",
+              "valueKind": "RawLiteral",
+              "value": "Title"
+            },
+            {
+              "label": "description",
+              "type": "Swift.Optional<Foundation.LocalizedStringResource>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "default",
+              "type": "Swift.Optional<Swift.String>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "inputOptions",
+              "type": "Swift.Optional<Swift.String.IntentInputOptions>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "requestValueDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "What should I remember?"
+            },
+            {
+              "label": "inputConnectionBehavior",
+              "type": "AppIntents.InputConnectionBehavior",
+              "valueKind": "Runtime"
+            }
+          ]
+        }
+      },
+      {
+        "label": "_area",
+        "type": "AppIntents.IntentParameter<Swift.Optional<Swift.String>>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 135,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "AppIntents.IntentParameter<Swift.Optional<Swift.String>>",
+          "arguments": [
+            {
+              "label": "title",
+              "type": "Foundation.LocalizedStringResource",
+              "valueKind": "RawLiteral",
+              "value": "Area"
+            },
+            {
+              "label": "description",
+              "type": "Swift.Optional<Foundation.LocalizedStringResource>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "default",
+              "type": "Swift.Optional<Swift.String>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "inputOptions",
+              "type": "Swift.Optional<Swift.String.IntentInputOptions>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "requestValueDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "inputConnectionBehavior",
+              "type": "AppIntents.InputConnectionBehavior",
+              "valueKind": "Runtime"
+            }
+          ]
+        }
+      },
+      {
+        "label": "title",
+        "type": "Foundation.LocalizedStringResource",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 129,
+        "valueKind": "RawLiteral",
+        "value": "Add a Task"
+      },
+      {
+        "label": "description",
+        "type": "AppIntents.IntentDescription",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 130,
+        "valueKind": "RawLiteral",
+        "value": "Add a new thing to remember."
+      },
+      {
+        "label": "title",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 133,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "AppIntents.IntentParameter<Swift.String>",
+          "arguments": [
+            {
+              "label": "title",
+              "type": "Foundation.LocalizedStringResource",
+              "valueKind": "RawLiteral",
+              "value": "Title"
+            },
+            {
+              "label": "description",
+              "type": "Swift.Optional<Foundation.LocalizedStringResource>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "default",
+              "type": "Swift.Optional<Swift.String>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "inputOptions",
+              "type": "Swift.Optional<Swift.String.IntentInputOptions>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "requestValueDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "What should I remember?"
+            },
+            {
+              "label": "inputConnectionBehavior",
+              "type": "AppIntents.InputConnectionBehavior",
+              "valueKind": "Runtime"
+            }
+          ]
+        },
+        "propertyWrappers": [
+          {
+            "type": "AppIntents.IntentParameter",
+            "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+            "line": 132,
+            "arguments": [
+              {
+                "label": "title",
+                "type": "Foundation.LocalizedStringResource",
+                "valueKind": "RawLiteral",
+                "value": "Title"
+              },
+              {
+                "label": "requestValueDialog",
+                "type": "Swift.Optional<AppIntents.IntentDialog>",
+                "valueKind": "RawLiteral",
+                "value": "What should I remember?"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "$title",
+        "type": "AppIntents.IntentParameter<Swift.String>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 133,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "area",
+        "type": "Swift.Optional<Swift.String>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 135,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "AppIntents.IntentParameter<Swift.Optional<Swift.String>>",
+          "arguments": [
+            {
+              "label": "title",
+              "type": "Foundation.LocalizedStringResource",
+              "valueKind": "RawLiteral",
+              "value": "Area"
+            },
+            {
+              "label": "description",
+              "type": "Swift.Optional<Foundation.LocalizedStringResource>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "default",
+              "type": "Swift.Optional<Swift.String>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "inputOptions",
+              "type": "Swift.Optional<Swift.String.IntentInputOptions>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "requestValueDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "inputConnectionBehavior",
+              "type": "AppIntents.InputConnectionBehavior",
+              "valueKind": "Runtime"
+            }
+          ]
+        },
+        "propertyWrappers": [
+          {
+            "type": "AppIntents.IntentParameter",
+            "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+            "line": 134,
+            "arguments": [
+              {
+                "label": "title",
+                "type": "Foundation.LocalizedStringResource",
+                "valueKind": "RawLiteral",
+                "value": "Area"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "$area",
+        "type": "AppIntents.IntentParameter<Swift.Optional<Swift.String>>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 135,
+        "valueKind": "Runtime"
+      }
+    ]
+  },
+  {
+    "typeName": "ForgetMeNot.OverdueIntent",
+    "mangledTypeName": "11ForgetMeNot13OverdueIntentV",
+    "kind": "struct",
+    "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+    "line": 154,
+    "conformances": [
+      "AppIntents.AppIntent",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents._SupportsAppDependencies",
+      "Swift.Sendable",
+      "Swift.SendableMetatype",
+      "Swift.BitwiseCopyable"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "AppIntents.AppIntent",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "AppIntents._SupportsAppDependencies",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Swift.BitwiseCopyable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "PerformResult",
+        "substitutedTypeName": "some AppIntents.ProvidesDialog & AppIntents.ReturnsValue<Swift.Array<ForgetMeNot.TaskItemEntity>>",
+        "substitutedMangledTypeName": "11ForgetMeNot13OverdueIntentV7performQryYaKFQOy_Qo_",
+        "opaqueTypeProtocolRequirements": [
+          "AppIntents.ProvidesDialog",
+          "AppIntents.ReturnsValue"
+        ],
+        "opaqueTypeSameTypeRequirements": [
+          {
+            "typeAliasName": "AppIntents.IntentResult.Value",
+            "substitutedTypeName": "Swift.Array<ForgetMeNot.TaskItemEntity>",
+            "substitutedMangledTypeName": "Say11ForgetMeNot14TaskItemEntityVG"
+          }
+        ]
+      },
+      {
+        "typeAliasName": "SummaryContent",
+        "substitutedTypeName": "some AppIntents.ParameterSummary",
+        "substitutedMangledTypeName": "10AppIntents0A6IntentPAAE16parameterSummaryQrvpZQOy11ForgetMeNot07OverdueC0V_Qo_",
+        "opaqueTypeProtocolRequirements": [
+          "AppIntents.ParameterSummary"
+        ],
+        "opaqueTypeSameTypeRequirements": []
+      }
+    ],
+    "properties": [
+      {
+        "label": "title",
+        "type": "Foundation.LocalizedStringResource",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 155,
+        "valueKind": "RawLiteral",
+        "value": "What Am I Forgetting"
+      },
+      {
+        "label": "description",
+        "type": "AppIntents.IntentDescription",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 156,
+        "valueKind": "RawLiteral",
+        "value": "List the tasks that are due or overdue."
+      }
+    ]
+  },
+  {
+    "typeName": "ForgetMeNot.FMNShortcuts",
+    "mangledTypeName": "11ForgetMeNot12FMNShortcutsV",
+    "kind": "struct",
+    "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+    "line": 173,
+    "conformances": [
+      "AppIntents.AppShortcutsProvider",
+      "Swift.Sendable",
+      "Swift.SendableMetatype",
+      "Swift.BitwiseCopyable"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "AppIntents.AppShortcutsProvider",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "ForgetMeNot"
+      },
+      {
+        "protocolName": "Swift.BitwiseCopyable",
+        "conformanceDefiningModule": "ForgetMeNot"
+      }
+    ],
+    "associatedTypeAliases": [],
+    "properties": [
+      {
+        "label": "appShortcuts",
+        "type": "Swift.Array<AppIntents.AppShortcut>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "true",
+        "file": "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Intents/FMNIntents.swift",
+        "line": 174,
+        "valueKind": "Builder",
+        "value": {
+          "type": "AppIntents.AppShortcutsBuilder",
+          "members": [
+            {
+              "kind": "buildExpression",
+              "element": {
+                "valueKind": "InitCall",
+                "value": {
+                  "type": "AppIntents.AppShortcut",
+                  "arguments": [
+                    {
+                      "label": "intent",
+                      "type": "ForgetMeNot.ResetLoopIntent",
+                      "valueKind": "InitCall",
+                      "value": {
+                        "type": "ForgetMeNot.ResetLoopIntent",
+                        "arguments": []
+                      }
+                    },
+                    {
+                      "label": "phrases",
+                      "type": "Swift.Array<AppIntents.AppShortcutPhrase<ForgetMeNot.ResetLoopIntent>>",
+                      "valueKind": "Array",
+                      "value": [
+                        {
+                          "valueKind": "InterpolatedStringLiteral",
+                          "value": {
+                            "segments": [
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": "I did a task in "
+                              },
+                              {
+                                "valueKind": "Enum",
+                                "value": {
+                                  "name": "applicationName"
+                                }
+                              },
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": ""
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "valueKind": "InterpolatedStringLiteral",
+                          "value": {
+                            "segments": [
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": "Reset a task in "
+                              },
+                              {
+                                "valueKind": "Enum",
+                                "value": {
+                                  "name": "applicationName"
+                                }
+                              },
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": ""
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "valueKind": "InterpolatedStringLiteral",
+                          "value": {
+                            "segments": [
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": "Reset my "
+                              },
+                              {
+                                "valueKind": "Enum",
+                                "value": {
+                                  "name": "applicationName"
+                                }
+                              },
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": " task"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "label": "shortTitle",
+                      "type": "Foundation.LocalizedStringResource",
+                      "valueKind": "RawLiteral",
+                      "value": "Reset Task"
+                    },
+                    {
+                      "label": "systemImageName",
+                      "type": "Swift.String",
+                      "valueKind": "RawLiteral",
+                      "value": "arrow.counterclockwise"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "kind": "buildExpression",
+              "element": {
+                "valueKind": "InitCall",
+                "value": {
+                  "type": "AppIntents.AppShortcut",
+                  "arguments": [
+                    {
+                      "label": "intent",
+                      "type": "ForgetMeNot.OverdueIntent",
+                      "valueKind": "InitCall",
+                      "value": {
+                        "type": "ForgetMeNot.OverdueIntent",
+                        "arguments": []
+                      }
+                    },
+                    {
+                      "label": "phrases",
+                      "type": "Swift.Array<AppIntents.AppShortcutPhrase<ForgetMeNot.OverdueIntent>>",
+                      "valueKind": "Array",
+                      "value": [
+                        {
+                          "valueKind": "InterpolatedStringLiteral",
+                          "value": {
+                            "segments": [
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": "What am I forgetting in "
+                              },
+                              {
+                                "valueKind": "Enum",
+                                "value": {
+                                  "name": "applicationName"
+                                }
+                              },
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": ""
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "valueKind": "InterpolatedStringLiteral",
+                          "value": {
+                            "segments": [
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": "What's overdue in "
+                              },
+                              {
+                                "valueKind": "Enum",
+                                "value": {
+                                  "name": "applicationName"
+                                }
+                              },
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": ""
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "valueKind": "InterpolatedStringLiteral",
+                          "value": {
+                            "segments": [
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": "What's due in "
+                              },
+                              {
+                                "valueKind": "Enum",
+                                "value": {
+                                  "name": "applicationName"
+                                }
+                              },
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": ""
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "label": "shortTitle",
+                      "type": "Foundation.LocalizedStringResource",
+                      "valueKind": "RawLiteral",
+                      "value": "What's Overdue"
+                    },
+                    {
+                      "label": "systemImageName",
+                      "type": "Swift.String",
+                      "valueKind": "RawLiteral",
+                      "value": "exclamationmark.triangle"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "kind": "buildExpression",
+              "element": {
+                "valueKind": "InitCall",
+                "value": {
+                  "type": "AppIntents.AppShortcut",
+                  "arguments": [
+                    {
+                      "label": "intent",
+                      "type": "ForgetMeNot.CompleteTaskIntent",
+                      "valueKind": "InitCall",
+                      "value": {
+                        "type": "ForgetMeNot.CompleteTaskIntent",
+                        "arguments": []
+                      }
+                    },
+                    {
+                      "label": "phrases",
+                      "type": "Swift.Array<AppIntents.AppShortcutPhrase<ForgetMeNot.CompleteTaskIntent>>",
+                      "valueKind": "Array",
+                      "value": [
+                        {
+                          "valueKind": "InterpolatedStringLiteral",
+                          "value": {
+                            "segments": [
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": "Complete a task in "
+                              },
+                              {
+                                "valueKind": "Enum",
+                                "value": {
+                                  "name": "applicationName"
+                                }
+                              },
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": ""
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "valueKind": "InterpolatedStringLiteral",
+                          "value": {
+                            "segments": [
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": "Finish a task in "
+                              },
+                              {
+                                "valueKind": "Enum",
+                                "value": {
+                                  "name": "applicationName"
+                                }
+                              },
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": ""
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "label": "shortTitle",
+                      "type": "Foundation.LocalizedStringResource",
+                      "valueKind": "RawLiteral",
+                      "value": "Complete Task"
+                    },
+                    {
+                      "label": "systemImageName",
+                      "type": "Swift.String",
+                      "valueKind": "RawLiteral",
+                      "value": "checkmark"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "kind": "buildExpression",
+              "element": {
+                "valueKind": "InitCall",
+                "value": {
+                  "type": "AppIntents.AppShortcut",
+                  "arguments": [
+                    {
+                      "label": "intent",
+                      "type": "ForgetMeNot.AddTaskIntent",
+                      "valueKind": "InitCall",
+                      "value": {
+                        "type": "ForgetMeNot.AddTaskIntent",
+                        "arguments": []
+                      }
+                    },
+                    {
+                      "label": "phrases",
+                      "type": "Swift.Array<AppIntents.AppShortcutPhrase<ForgetMeNot.AddTaskIntent>>",
+                      "valueKind": "Array",
+                      "value": [
+                        {
+                          "valueKind": "InterpolatedStringLiteral",
+                          "value": {
+                            "segments": [
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": "Add a task in "
+                              },
+                              {
+                                "valueKind": "Enum",
+                                "value": {
+                                  "name": "applicationName"
+                                }
+                              },
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": ""
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "valueKind": "InterpolatedStringLiteral",
+                          "value": {
+                            "segments": [
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": "Remember something with "
+                              },
+                              {
+                                "valueKind": "Enum",
+                                "value": {
+                                  "name": "applicationName"
+                                }
+                              },
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": ""
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "label": "shortTitle",
+                      "type": "Foundation.LocalizedStringResource",
+                      "valueKind": "RawLiteral",
+                      "value": "Add Task"
+                    },
+                    {
+                      "label": "systemImageName",
+                      "type": "Swift.String",
+                      "valueKind": "RawLiteral",
+                      "value": "plus"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "kind": "buildExpression",
+              "element": {
+                "valueKind": "InitCall",
+                "value": {
+                  "type": "AppIntents.AppShortcut",
+                  "arguments": [
+                    {
+                      "label": "intent",
+                      "type": "ForgetMeNot.LogNoteIntent",
+                      "valueKind": "InitCall",
+                      "value": {
+                        "type": "ForgetMeNot.LogNoteIntent",
+                        "arguments": []
+                      }
+                    },
+                    {
+                      "label": "phrases",
+                      "type": "Swift.Array<AppIntents.AppShortcutPhrase<ForgetMeNot.LogNoteIntent>>",
+                      "valueKind": "Array",
+                      "value": [
+                        {
+                          "valueKind": "InterpolatedStringLiteral",
+                          "value": {
+                            "segments": [
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": "Log a note in "
+                              },
+                              {
+                                "valueKind": "Enum",
+                                "value": {
+                                  "name": "applicationName"
+                                }
+                              },
+                              {
+                                "valueKind": "RawLiteral",
+                                "value": ""
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "label": "shortTitle",
+                      "type": "Foundation.LocalizedStringResource",
+                      "valueKind": "RawLiteral",
+                      "value": "Log Note"
+                    },
+                    {
+                      "label": "systemImageName",
+                      "type": "Swift.String",
+                      "valueKind": "RawLiteral",
+                      "value": "square.and.pencil"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,63 @@
+{
+  "buildCommand" : {
+    "command" : "build",
+    "skipDependencies" : false,
+    "style" : "buildOnly"
+  },
+  "configuredTargets" : [
+    {
+      "guid" : "f46ed8b5be2153461f068ebf91e3c34e6e322623b5a435ce7f24f09578aafe39"
+    }
+  ],
+  "containerPath" : "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot.xcodeproj",
+  "continueBuildingAfterErrors" : false,
+  "dependencyScope" : "workspace",
+  "enableIndexBuildArena" : false,
+  "hideShellScriptEnvironment" : false,
+  "parameters" : {
+    "action" : "build",
+    "activeArchitecture" : "undefined_arch",
+    "activeRunDestination" : {
+      "disableOnlyActiveArch" : true,
+      "platform" : "iphonesimulator",
+      "sdk" : "iphonesimulator26.2",
+      "sdkVariant" : "iphonesimulator",
+      "supportedArchitectures" : [
+        "i386",
+        "x86_64"
+      ],
+      "targetArchitecture" : "undefined_arch"
+    },
+    "arenaInfo" : {
+      "buildIntermediatesPath" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex",
+      "buildProductsPath" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Products",
+      "derivedDataPath" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim",
+      "indexDataStoreFolderPath" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Index.noindex/DataStore",
+      "indexEnableDataStore" : true,
+      "indexPCHPath" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Index.noindex/PrecompiledHeaders",
+      "pchPath" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/PrecompiledHeaders"
+    },
+    "configurationName" : "Debug",
+    "overrides" : {
+      "commandLine" : {
+        "table" : {
+          "CODE_SIGNING_ALLOWED" : "NO"
+        }
+      },
+      "synthesized" : {
+        "table" : {
+          "ACTION" : "build",
+          "ENABLE_PREVIEWS" : "NO",
+          "ENABLE_XOJIT_PREVIEWS" : "YES",
+          "TOOLCHAINS" : "com.apple.dt.toolchain.Metal.32023.864 $(inherited)"
+        }
+      }
+    }
+  },
+  "schemeCommand" : "launch",
+  "showNonLoggedProgress" : true,
+  "useDryRun" : false,
+  "useImplicitDependencies" : true,
+  "useLegacyBuildLocations" : false,
+  "useParallelTargets" : true
+}

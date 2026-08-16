@@ -1,0 +1,64 @@
+{
+  "tables" : {
+    "AppShortcuts" : [
+      {
+        "key" : "I did a task in ${applicationName}",
+        "values" : [
+          "I did a task in ${applicationName}",
+          "Reset a task in ${applicationName}",
+          "Reset my ${applicationName} task"
+        ],
+        "location" : {
+          "startingColumn" : 0,
+          "startingLine" : 174
+        }
+      },
+      {
+        "key" : "What am I forgetting in ${applicationName}",
+        "values" : [
+          "What am I forgetting in ${applicationName}",
+          "What's overdue in ${applicationName}",
+          "What's due in ${applicationName}"
+        ],
+        "location" : {
+          "startingColumn" : 0,
+          "startingLine" : 174
+        }
+      },
+      {
+        "key" : "Complete a task in ${applicationName}",
+        "values" : [
+          "Complete a task in ${applicationName}",
+          "Finish a task in ${applicationName}"
+        ],
+        "location" : {
+          "startingColumn" : 0,
+          "startingLine" : 174
+        }
+      },
+      {
+        "key" : "Add a task in ${applicationName}",
+        "values" : [
+          "Add a task in ${applicationName}",
+          "Remember something with ${applicationName}"
+        ],
+        "location" : {
+          "startingColumn" : 0,
+          "startingLine" : 174
+        }
+      },
+      {
+        "key" : "Log a note in ${applicationName}",
+        "values" : [
+          "Log a note in ${applicationName}"
+        ],
+        "location" : {
+          "startingColumn" : 0,
+          "startingLine" : 174
+        }
+      }
+    ]
+  },
+  "source" : "\/Users\/elijahlucian\/repos\/forget-me-not\/ios\/ForgetMeNot\/Intents\/FMNIntents.swift",
+  "version" : 1
+}

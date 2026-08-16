@@ -1,0 +1,44 @@
+{
+  "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/App/Seed.swift" : {
+    "const-values" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/Seed.swiftconstvalues",
+    "dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/Seed.d",
+    "diagnostics" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/Seed.dia",
+    "object" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/Seed.o",
+    "swift-dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/Seed.swiftdeps"
+  },
+  "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/App/SyncedPrefs.swift" : {
+    "const-values" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SyncedPrefs.swiftconstvalues",
+    "dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SyncedPrefs.d",
+    "diagnostics" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SyncedPrefs.dia",
+    "object" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SyncedPrefs.o",
+    "swift-dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SyncedPrefs.swiftdeps"
+  },
+  "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Audio/SynthEngine.swift" : {
+    "const-values" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SynthEngine.swiftconstvalues",
+    "dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SynthEngine.d",
+    "diagnostics" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SynthEngine.dia",
+    "object" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SynthEngine.o",
+    "swift-dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SynthEngine.swiftdeps"
+  },
+  "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Views/SettingsView.swift" : {
+    "const-values" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SettingsView.swiftconstvalues",
+    "dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SettingsView.d",
+    "diagnostics" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SettingsView.dia",
+    "object" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SettingsView.o",
+    "swift-dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SettingsView.swiftdeps"
+  },
+  "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Views/SpeechBubble.swift" : {
+    "const-values" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SpeechBubble.swiftconstvalues",
+    "dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SpeechBubble.d",
+    "diagnostics" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SpeechBubble.dia",
+    "object" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SpeechBubble.o",
+    "swift-dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SpeechBubble.swiftdeps"
+  },
+  "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Views/SwipeableCard.swift" : {
+    "const-values" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SwipeableCard.swiftconstvalues",
+    "dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SwipeableCard.d",
+    "diagnostics" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SwipeableCard.dia",
+    "object" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SwipeableCard.o",
+    "swift-dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/SwipeableCard.swiftdeps"
+  }
+}

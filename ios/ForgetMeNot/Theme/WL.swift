@@ -28,6 +28,10 @@ final class Palette {
     var fontScale: CGFloat = 1       // theme fontSize / 14
     var techno: Bool = true          // UPPERCASE + tracking + mono identity
     var spacingScale: CGFloat = 1    // compact 0.85 / normal 1 / relaxed 1.2
+    /// True when the theme's background is bright (sakura, cloud, matcha, sunrise).
+    /// Drives `.preferredColorScheme` — otherwise the status bar keeps drawing white
+    /// text on a near-white background and reads as broken.
+    var isLight: Bool = false
 
     init() { apply(.goldleaf) }
 
@@ -49,6 +53,19 @@ final class Palette {
         fontScale = t.fontSize / 14
         techno = t.techno
         spacingScale = t.spacing == "compact" ? 0.85 : t.spacing == "relaxed" ? 1.2 : 1
+        isLight = Palette.luminance(of: t.bg) > 0.55
+    }
+
+    /// Perceived brightness (0...1) of a `#RRGGBB` string, Rec. 601 weighting.
+    static func luminance(of hex: String) -> Double {
+        var s = hex.trimmingCharacters(in: CharacterSet(charactersIn: "# "))
+        if s.count == 3 { s = s.map { "\($0)\($0)" }.joined() }
+        var v: UInt64 = 0
+        Scanner(string: s).scanHexInt64(&v)
+        let r = Double((v >> 16) & 0xff) / 255
+        let g = Double((v >> 8) & 0xff) / 255
+        let b = Double(v & 0xff) / 255
+        return 0.299 * r + 0.587 * g + 0.114 * b
     }
 
     // MARK: - Fonts

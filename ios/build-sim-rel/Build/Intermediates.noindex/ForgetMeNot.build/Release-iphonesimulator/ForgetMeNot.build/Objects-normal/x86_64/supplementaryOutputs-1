@@ -1,0 +1,12 @@
+{
+  "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Audio/AlertSounder.swift" : {
+    "abi-baseline-json" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim-rel/Build/Intermediates.noindex/ForgetMeNot.build/Release-iphonesimulator/ForgetMeNot.build/Objects-normal/x86_64/ForgetMeNot.abi.json",
+    "const-values" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim-rel/Build/Intermediates.noindex/ForgetMeNot.build/Release-iphonesimulator/ForgetMeNot.build/Objects-normal/x86_64/ForgetMeNot-primary.swiftconstvalues",
+    "dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim-rel/Build/Intermediates.noindex/ForgetMeNot.build/Release-iphonesimulator/ForgetMeNot.build/Objects-normal/x86_64/ForgetMeNot-primary.d",
+    "diagnostics" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim-rel/Build/Intermediates.noindex/ForgetMeNot.build/Release-iphonesimulator/ForgetMeNot.build/Objects-normal/x86_64/ForgetMeNot-primary.dia",
+    "objc-header" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim-rel/Build/Intermediates.noindex/ForgetMeNot.build/Release-iphonesimulator/ForgetMeNot.build/Objects-normal/x86_64/ForgetMeNot-Swift.h",
+    "swiftdoc" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim-rel/Build/Intermediates.noindex/ForgetMeNot.build/Release-iphonesimulator/ForgetMeNot.build/Objects-normal/x86_64/ForgetMeNot.swiftdoc",
+    "swiftmodule" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim-rel/Build/Intermediates.noindex/ForgetMeNot.build/Release-iphonesimulator/ForgetMeNot.build/Objects-normal/x86_64/ForgetMeNot.swiftmodule",
+    "swiftsourceinfo" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim-rel/Build/Intermediates.noindex/ForgetMeNot.build/Release-iphonesimulator/ForgetMeNot.build/Objects-normal/x86_64/ForgetMeNot.swiftsourceinfo"
+  }
+}

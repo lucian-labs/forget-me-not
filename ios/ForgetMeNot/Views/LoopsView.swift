@@ -24,7 +24,7 @@ struct LoopsView: View {
                 .padding(20)
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(WL.isLight ? .light : .dark)
         .task { overview = await insights.overview(store.sortedActive) }
     }
 

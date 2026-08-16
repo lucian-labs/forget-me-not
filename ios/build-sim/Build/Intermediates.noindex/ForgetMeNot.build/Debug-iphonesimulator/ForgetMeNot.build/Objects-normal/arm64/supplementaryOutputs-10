@@ -1,0 +1,51 @@
+{
+  "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/AI/InsightService.swift" : {
+    "const-values" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/InsightService.swiftconstvalues",
+    "dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/InsightService.d",
+    "diagnostics" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/InsightService.dia",
+    "object" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/InsightService.o",
+    "swift-dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/InsightService.swiftdeps"
+  },
+  "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Domain/Lifecycle.swift" : {
+    "const-values" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/Lifecycle.swiftconstvalues",
+    "dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/Lifecycle.d",
+    "diagnostics" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/Lifecycle.dia",
+    "object" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/Lifecycle.o",
+    "swift-dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/Lifecycle.swiftdeps"
+  },
+  "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/MCP/MCPServer.swift" : {
+    "const-values" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/MCPServer.swiftconstvalues",
+    "dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/MCPServer.d",
+    "diagnostics" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/MCPServer.dia",
+    "object" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/MCPServer.o",
+    "swift-dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/MCPServer.swiftdeps"
+  },
+  "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Reminders/NotificationActions.swift" : {
+    "const-values" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/NotificationActions.swiftconstvalues",
+    "dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/NotificationActions.d",
+    "diagnostics" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/NotificationActions.dia",
+    "object" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/NotificationActions.o",
+    "swift-dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/NotificationActions.swiftdeps"
+  },
+  "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Reminders/NotificationArt.swift" : {
+    "const-values" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/NotificationArt.swiftconstvalues",
+    "dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/NotificationArt.d",
+    "diagnostics" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/NotificationArt.dia",
+    "object" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/NotificationArt.o",
+    "swift-dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/NotificationArt.swiftdeps"
+  },
+  "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Views/InsightView.swift" : {
+    "const-values" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/InsightView.swiftconstvalues",
+    "dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/InsightView.d",
+    "diagnostics" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/InsightView.dia",
+    "object" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/InsightView.o",
+    "swift-dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/InsightView.swiftdeps"
+  },
+  "/Users/elijahlucian/repos/forget-me-not/ios/ForgetMeNot/Views/LoopsView.swift" : {
+    "const-values" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/LoopsView.swiftconstvalues",
+    "dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/LoopsView.d",
+    "diagnostics" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/LoopsView.dia",
+    "object" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/LoopsView.o",
+    "swift-dependencies" : "/Users/elijahlucian/repos/forget-me-not/ios/build-sim/Build/Intermediates.noindex/ForgetMeNot.build/Debug-iphonesimulator/ForgetMeNot.build/Objects-normal/arm64/LoopsView.swiftdeps"
+  }
+}

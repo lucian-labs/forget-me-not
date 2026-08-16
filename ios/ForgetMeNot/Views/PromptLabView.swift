@@ -24,7 +24,7 @@ struct PromptLabView: View {
                 .padding(20)
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(WL.isLight ? .light : .dark)
         .onAppear { for f in PromptField.allCases where drafts[f.id] == nil { drafts[f.id] = f.value } }
     }
 

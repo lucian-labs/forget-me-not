@@ -53,7 +53,7 @@ struct InsightView: View {
             }
             .padding(22)
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(WL.isLight ? .light : .dark)
         .task { result = await load() }
     }
 }

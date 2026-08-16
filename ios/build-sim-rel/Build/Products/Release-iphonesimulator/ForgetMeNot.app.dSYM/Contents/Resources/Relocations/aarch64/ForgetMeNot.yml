@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/elijahlucian/repos/forget-me-not/ios/build-sim-rel/Build/Products/Release-iphonesimulator/ForgetMeNot.app/ForgetMeNot'
+relocations:     []
+...

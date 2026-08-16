@@ -35,7 +35,7 @@ struct TaskDetailView: View {
                 Color.clear.onAppear { dismiss() }
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(WL.isLight ? .light : .dark)
         .sheet(item: $insightTask) { t in
             InsightView(title: t.title) { await Insights.service().insight(for: t) }
                 .presentationDetents([.medium, .large])

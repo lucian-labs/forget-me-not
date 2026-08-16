@@ -66,7 +66,7 @@ struct AllTasksView: View {
                 .padding(20)
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(WL.isLight ? .light : .dark)
         .fullScreenCover(item: $detailTask) { t in
             TaskDetailView(taskId: t.id).environment(store).environment(icons).environment(sounder)
         }

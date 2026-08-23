@@ -120,6 +120,11 @@ function render(): void {
   }
 }
 
+/** Re-render whatever view is open, without navigating away from it. */
+export function refreshView(): void {
+  render()
+}
+
 const alertedIds = new Set<string>()
 let lastSyncCount = -1
 

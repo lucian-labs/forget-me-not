@@ -25,7 +25,7 @@ import {
   getSetups, saveSetup, applySetup, captureSetup, parseSetupJson, setupToJson,
   getDefaultSetupId, setDefaultSetupId, type Setup,
 } from './config'
-import { navigate } from './app'
+import { refreshView } from './app'
 import { parseDuration, humanize } from './duration'
 
 const API_VERSION = 1
@@ -36,9 +36,13 @@ type Result<T> = Ok<T> | Err
 
 const fail = (error: string): Err => ({ ok: false, error })
 
-/** Repaint whatever view is open so agent-driven changes show up immediately. */
+/**
+ * Repaint whatever view is open so agent-driven changes show up immediately.
+ * Deliberately does NOT navigate: if you're reading a task's detail page while
+ * your agent edits it, you should stay there rather than being thrown home.
+ */
 function refresh(): void {
-  try { navigate('panel') } catch { /* pre-boot calls are fine to ignore */ }
+  try { refreshView() } catch { /* pre-boot calls are fine to ignore */ }
 }
 
 

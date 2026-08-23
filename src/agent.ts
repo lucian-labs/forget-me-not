@@ -41,6 +41,41 @@ function refresh(): void {
   try { navigate('panel') } catch { /* pre-boot calls are fine to ignore */ }
 }
 
+
+// --- finding a task ---------------------------------------------------------
+
+/**
+ * Agents refer to tasks the way people do — "tidy", not a UUID. Accepts an id,
+ * an exact title (case-insensitive), or an unambiguous partial title. Ambiguity
+ * is an error listing the candidates rather than a silent guess at which one.
+ */
+function resolve(idOrTitle: string): Task | { error: string } {
+  const key = (idOrTitle ?? '').trim()
+  if (!key) return { error: 'give a task id or title' }
+
+  const all = getTasks()
+  const byId = all.find((t) => t.id === key)
+  if (byId) return byId
+
+  const lower = key.toLowerCase()
+  const exact = all.filter((t) => t.title.trim().toLowerCase() === lower)
+  if (exact.length === 1) return exact[0]
+  if (exact.length > 1) {
+    return { error: `several tasks are called "${key}" — use an id: ${exact.map((t) => t.id).join(', ')}` }
+  }
+
+  const partial = all.filter((t) => t.title.toLowerCase().includes(lower))
+  if (partial.length === 1) return partial[0]
+  if (partial.length > 1) {
+    return { error: `"${key}" matches ${partial.length} tasks: ${partial.map((t) => t.title).join(', ')}` }
+  }
+  return { error: `no task called "${key}" — fmn.listTasks() to see what's here` }
+}
+
+function isErr(r: Task | { error: string }): r is { error: string } {
+  return (r as { error: string }).error !== undefined
+}
+
 // --- shaping ----------------------------------------------------------------
 
 /** A task as an agent should see it: no internals, durations in plain words. */
@@ -126,16 +161,24 @@ export const agentApi = {
         'Recurring-task tracker. Data lives in this browser (localStorage). ' +
         'Every method returns a JSON-serializable object; failures come back as ' +
         '{ok:false,error} instead of throwing.',
+      tasksById:
+        'Anywhere a task is named you can pass its id, its exact title, or an ' +
+        'unambiguous part of the title — fmn.addPrompts("tidy", [...]) works.',
+      prompts:
+        'Prompts are the small nudges shown on a card once it goes overdue — one ' +
+        'is picked at random. Keep them concrete and tiny: "sweep", "dust a shelf".',
       durations:
         'Anywhere a cadence is accepted you can write "90s", "15m", "2h", "3 days", ' +
         '"1h 30m", or "daily"/"weekly"/"hourly". Numbers are seconds.',
       methods: {
         'help()': 'this document',
         'listTasks({includeDone?, category?, overdueOnly?})': 'all tasks, most urgent first',
-        'getTask(id)': 'one task, with its history',
+        'getTask(idOrTitle)': 'one task, with its history',
         'createTask({title, cadence, category?, description?, prompts?, followUps?})': 'add a task',
         'createTasks([...])': 'add many at once',
-        'updateTask(id, {title?, cadence?, category?, description?, prompts?})': 'edit a task',
+        'updateTask(idOrTitle, {title?, cadence?, category?, description?, prompts?})': 'edit a task',
+        'addPrompts(idOrTitle, ["sweep", "dust a shelf"])': 'append nudges, keeping existing ones',
+        'removePrompts(idOrTitle, [...]) / setPrompts(idOrTitle, [...])': 'drop or replace nudges',
         'deleteTask(id)': 'remove permanently',
         'completeTask(id, note?)': 'mark done (one-off) / restart the cycle (repeating), fires follow-ups',
         'snoozeTask(id)': 'quiet it briefly — jumps to 75% of the cycle',
@@ -154,6 +197,7 @@ export const agentApi = {
         'fmn.createTask({title: "stretch", cadence: "45m", category: "health"})',
         'fmn.listTasks({overdueOnly: true})',
         'fmn.createTask({title: "laundry", cadence: "3 days", followUps: [{title: "move to dryer", cadence: "45m"}]})',
+        'fmn.addPrompts("tidy", ["sweep", "dust a shelf", "clear one surface"])',
         'fmn.setTheme("sakura")',
       ],
     }
@@ -172,9 +216,9 @@ export const agentApi = {
     return { ok: true as const, count: tasks.length, tasks: tasks.map(view) }
   },
 
-  getTask(id: string) {
-    const t = getTask(id)
-    if (!t) return fail(`no task with id ${id}`)
+  getTask(idOrTitle: string) {
+    const t = resolve(idOrTitle)
+    if (isErr(t)) return fail(t.error)
     return {
       ok: true as const,
       task: view(t),
@@ -204,9 +248,10 @@ export const agentApi = {
     return { ok: true as const, created: created.length, tasks: created, errors }
   },
 
-  updateTask(id: string, patch: Partial<TaskInput>) {
-    const t = getTask(id)
-    if (!t) return fail(`no task with id ${id}`)
+  updateTask(idOrTitle: string, patch: Partial<TaskInput>) {
+    const t = resolve(idOrTitle)
+    if (isErr(t)) return fail(t.error)
+    const id = t.id
     const updates: Partial<Task> = {}
     if (patch.title !== undefined) updates.title = patch.title
     if (patch.description !== undefined) updates.description = patch.description
@@ -225,44 +270,109 @@ export const agentApi = {
     return out ? { ok: true as const, task: view(out) } : fail('update failed')
   },
 
-  deleteTask(id: string) {
-    if (!getTask(id)) return fail(`no task with id ${id}`)
+  deleteTask(idOrTitle: string) {
+    const t = resolve(idOrTitle)
+    if (isErr(t)) return fail(t.error)
+    const id = t.id
     deleteTask(id)
     refresh()
     return { ok: true as const, deleted: id }
   },
 
-  completeTask(id: string, note = '') {
-    const t = getTask(id)
-    if (!t) return fail(`no task with id ${id}`)
+  completeTask(idOrTitle: string, note = '') {
+    const t = resolve(idOrTitle)
+    if (isErr(t)) return fail(t.error)
+    const id = t.id
     const out = t.recurring ? resetTask(id, note) : completeTask(id, note)
     refresh()
     return out ? { ok: true as const, task: view(out) } : fail('could not complete')
   },
 
-  snoozeTask(id: string) {
+  snoozeTask(idOrTitle: string) {
+    const found = resolve(idOrTitle)
+    if (isErr(found)) return fail(found.error)
+    const id = found.id
     const out = snoozeTask(id)
     refresh()
     return out ? { ok: true as const, task: view(out) } : fail(`could not snooze ${id}`)
   },
 
-  restartTask(id: string) {
+  restartTask(idOrTitle: string) {
+    const found = resolve(idOrTitle)
+    if (isErr(found)) return fail(found.error)
+    const id = found.id
     const out = restartCycle(id)
     refresh()
     return out ? { ok: true as const, task: view(out) } : fail(`could not restart ${id}`)
   },
 
-  addNote(id: string, note: string) {
+  addNote(idOrTitle: string, note: string) {
     if (!note?.trim()) return fail('note is empty')
+    const found = resolve(idOrTitle)
+    if (isErr(found)) return fail(found.error)
+    const id = found.id
     const out = addActionNote(id, note.trim())
     refresh()
     return out ? { ok: true as const, task: view(out) } : fail(`no task with id ${id}`)
   },
 
-  archiveTask(id: string) {
+  archiveTask(idOrTitle: string) {
+    const found = resolve(idOrTitle)
+    if (isErr(found)) return fail(found.error)
+    const id = found.id
     const out = archiveTask(id)
     refresh()
     return out ? { ok: true as const, task: view(out) } : fail(`no task with id ${id}`)
+  },
+
+
+  // --- prompts (the little nudges shown while a task is overdue) ---
+
+  /**
+   * Append nudges to a task, keeping what's already there. This exists because
+   * "add a few more" is the common ask, and updateTask({prompts}) replaces the
+   * whole list — an agent would otherwise have to read-merge-write and could
+   * clobber prompts it never saw.
+   */
+  addPrompts(idOrTitle: string, prompts: string[] | string) {
+    const t = resolve(idOrTitle)
+    if (isErr(t)) return fail(t.error)
+    const incoming = (Array.isArray(prompts) ? prompts : [prompts])
+      .map((p) => String(p).trim())
+      .filter(Boolean)
+    if (!incoming.length) return fail('no prompts given')
+
+    const existing = t.prompts ?? []
+    const seen = new Set(existing.map((p) => p.toLowerCase()))
+    const added = incoming.filter((p) => !seen.has(p.toLowerCase()))
+    const out = updateTask(t.id, { prompts: [...existing, ...added] })
+    refresh()
+    return out
+      ? { ok: true as const, added: added.length, skipped: incoming.length - added.length, prompts: out.prompts, task: view(out) }
+      : fail('could not add prompts')
+  },
+
+  /** Drop nudges by exact text (case-insensitive). */
+  removePrompts(idOrTitle: string, prompts: string[] | string) {
+    const t = resolve(idOrTitle)
+    if (isErr(t)) return fail(t.error)
+    const drop = new Set((Array.isArray(prompts) ? prompts : [prompts]).map((p) => String(p).trim().toLowerCase()))
+    const kept = (t.prompts ?? []).filter((p) => !drop.has(p.toLowerCase()))
+    const out = updateTask(t.id, { prompts: kept })
+    refresh()
+    return out
+      ? { ok: true as const, removed: (t.prompts?.length ?? 0) - kept.length, prompts: out.prompts }
+      : fail('could not remove prompts')
+  },
+
+  /** Replace the whole nudge list. */
+  setPrompts(idOrTitle: string, prompts: string[]) {
+    const t = resolve(idOrTitle)
+    if (isErr(t)) return fail(t.error)
+    if (!Array.isArray(prompts)) return fail('prompts must be an array')
+    const out = updateTask(t.id, { prompts: prompts.map((p) => String(p).trim()).filter(Boolean) })
+    refresh()
+    return out ? { ok: true as const, prompts: out.prompts } : fail('could not set prompts')
   },
 
   // --- configuration ---

@@ -23,10 +23,24 @@ as data. Every method returns a JSON-serializable object. Failures come back as
     fmn.listTasks({overdueOnly: true})       // just what needs doing now
     fmn.createTask({title: "stretch", cadence: "45m", category: "health"})
     fmn.createTasks([...])                   // several at once
-    fmn.completeTask(id)                     // check it off, restart its cycle
-    fmn.updateTask(id, {cadence: "3 days"})
+    fmn.completeTask("tidy")                 // check it off, restart its cycle
+    fmn.updateTask("tidy", {cadence: "3 days"})
+    fmn.addPrompts("tidy", ["sweep", "dust a shelf"])   // append nudges
     fmn.setTheme("sakura")
     fmn.exportData() / fmn.importData(json)  // whole-dataset backup + restore
+
+### Naming tasks
+
+Anywhere a task is named, pass its id, its exact title, or an unambiguous part of
+the title — `fmn.addPrompts("tidy", [...])` works. An ambiguous name comes back as
+an error listing the candidates rather than a guess.
+
+### Prompts
+
+`prompts` are the small nudges shown on a card once it goes overdue; one is picked
+at random. Concrete and tiny works best ("sweep", "dust a shelf"). Use `addPrompts`
+to append without clobbering existing ones — `updateTask({prompts})` replaces the
+whole list.
 
 ### Durations
 

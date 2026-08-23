@@ -183,12 +183,23 @@ html, body {
   color: var(--dim);
   margin: 14px 0 0;
 }
+.fmn-modal-links {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
 .fmn-modal-more {
   display: inline-block;
+  font-family: var(--font-body);
   font-size: 11px;
   color: var(--accent);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
   text-decoration: none;
-  margin-top: 8px;
 }
 .fmn-modal-more:hover { text-decoration: underline; }
 

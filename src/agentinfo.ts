@@ -1,6 +1,9 @@
 // The "get your ai to talk to me" affordance. Most people have no idea an app
 // can be driven by their assistant, so this says it in plain language and hands
 // them something to paste — rather than documenting an API at them.
+//
+// Two doors out of that modal: the technical details (llms.txt) for someone who
+// wants the API, and the "why" for someone who wants the argument.
 
 import { el } from './utils'
 
@@ -33,9 +36,29 @@ export function checkAgentModalParam(params: URLSearchParams): boolean {
   return true
 }
 
-export function showAgentModal(): void {
+/** Backdrop + panel, dismissed by Escape or a click outside. Returns the box to fill. */
+function modalShell(): { overlay: HTMLElement; box: HTMLElement; close: () => void } {
   const overlay = el('div', { className: 'fmn-modal-backdrop' })
   const box = el('div', { className: 'fmn-modal' })
+  const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
+  function close(): void {
+    overlay.remove()
+    document.removeEventListener('keydown', onKey)
+  }
+  overlay.onclick = (e) => { if (e.target === overlay) close() }
+  document.addEventListener('keydown', onKey)
+  overlay.appendChild(box)
+  return { overlay, box, close }
+}
+
+function closeButton(label: string, onClick: () => void): HTMLElement {
+  const b = el('button', { className: 'btn-ghost', style: 'width:100%;padding:10px;margin-top:12px;' }, label) as HTMLButtonElement
+  b.onclick = onClick
+  return b
+}
+
+export function showAgentModal(): void {
+  const { overlay, box, close } = modalShell()
 
   box.appendChild(el('div', { className: 'fmn-modal-title' }, 'Get your AI to talk to me'))
 
@@ -45,9 +68,7 @@ export function showAgentModal(): void {
     'and set the whole list up for you — no clicking required.'))
 
   box.appendChild(el('div', { className: 'fmn-modal-label' }, 'Paste this to your AI'))
-
-  const snippet = el('div', { className: 'fmn-modal-code' }, PASTE_PROMPT)
-  box.appendChild(snippet)
+  box.appendChild(el('div', { className: 'fmn-modal-code' }, PASTE_PROMPT))
 
   const copyBtn = el('button', { className: 'btn-accent', style: 'width:100%;padding:10px;margin-top:8px;' }, 'Copy that') as HTMLButtonElement
   copyBtn.onclick = () => {
@@ -62,22 +83,57 @@ export function showAgentModal(): void {
     'Your assistant works with the tasks kept in this browser — it calls the app directly ' +
     'instead of clicking around. It can read your list, add to it, and change your setup.'))
 
-  const more = el('a', {
+  const links = el('div', { className: 'fmn-modal-links' })
+  const why = el('button', { className: 'fmn-modal-more' }, 'why this exists →') as HTMLButtonElement
+  why.onclick = () => { close(); showWhyModal() }
+  links.appendChild(why)
+  links.appendChild(el('a', {
     href: '/llms.txt', target: '_blank', rel: 'noopener', className: 'fmn-modal-more',
-  }, 'the technical details →')
-  box.appendChild(more)
+  }, 'the technical details →'))
+  box.appendChild(links)
 
-  const close = el('button', { className: 'btn-ghost', style: 'width:100%;padding:10px;margin-top:12px;' }, 'Close') as HTMLButtonElement
-  close.onclick = () => overlay.remove()
-  box.appendChild(close)
+  box.appendChild(closeButton('Close', close))
+  document.body.appendChild(overlay)
+}
 
-  // Click-outside and Escape both dismiss — expected of anything modal.
-  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove() }
-  const onKey = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', onKey) }
+export function showWhyModal(): void {
+  const { overlay, box, close } = modalShell()
+
+  box.appendChild(el('div', { className: 'fmn-modal-title' }, 'Why this exists'))
+
+  const paragraphs = [
+    'Putting AI inside a product is the easy half. The harder half — the one that ' +
+    'actually matters — is making the product something a user’s own AI can connect to.',
+
+    'The miss I keep seeing: builders assume they understand the user’s mind better ' +
+    'than the user does. So they encode one workflow, their own, and everything ' +
+    'outside it turns into friction.',
+
+    'If an agent can drive your product, the user no longer has to adopt your workflow. ' +
+    'They can meet it halfway and shape it around how they actually think.',
+
+    'The counterintuitive part: being less prescriptive makes a product more useful, ' +
+    'not less. A tool that assumes less about any one person is easier for an ' +
+    'AI-enabled user to bend into exactly what they need — which makes it stickier, ' +
+    'and much harder to replace with the custom workflow they’d otherwise just build ' +
+    'themselves.',
+
+    'So this app doesn’t try to know how you work. It exposes everything it can do, ' +
+    'and lets your agent handle the rest.',
+  ]
+  for (const text of paragraphs) {
+    box.appendChild(el('p', { className: 'fmn-modal-text' }, text))
   }
-  document.addEventListener('keydown', onKey)
 
-  overlay.appendChild(box)
+  const links = el('div', { className: 'fmn-modal-links' })
+  const back = el('button', { className: 'fmn-modal-more' }, '← how to do it') as HTMLButtonElement
+  back.onclick = () => { close(); showAgentModal() }
+  links.appendChild(back)
+  links.appendChild(el('a', {
+    href: '/llms.txt', target: '_blank', rel: 'noopener', className: 'fmn-modal-more',
+  }, 'the technical details →'))
+  box.appendChild(links)
+
+  box.appendChild(closeButton('Close', close))
   document.body.appendChild(overlay)
 }

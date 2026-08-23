@@ -106,6 +106,92 @@ html, body {
   gap: 8px;
 }
 
+/* "get your ai to talk to me" — secondary, unobtrusive, under the header */
+.fmn-agent-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--dim);
+  opacity: 0.8;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.fmn-agent-link:hover {
+  color: var(--accent);
+  opacity: 1;
+}
+
+/* Modal */
+.fmn-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+.fmn-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  max-width: 420px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.fmn-modal-title {
+  font-family: var(--font-header);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+.fmn-modal-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  margin: 0 0 14px;
+}
+.fmn-modal-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--dim);
+  margin-bottom: 6px;
+}
+.fmn-modal-code {
+  font-family: var(--font);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) / 2);
+  padding: 10px;
+  word-break: break-word;
+}
+.fmn-modal-note {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--dim);
+  margin: 14px 0 0;
+}
+.fmn-modal-more {
+  display: inline-block;
+  font-size: 11px;
+  color: var(--accent);
+  text-decoration: none;
+  margin-top: 8px;
+}
+.fmn-modal-more:hover { text-decoration: underline; }
+
 /* Buttons */
 
 button {

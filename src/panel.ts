@@ -10,6 +10,7 @@ import { navigate } from './app'
 import { animateOut, cancelAnimateOut } from './animate'
 import { appName } from './brand'
 import { renderHeaderIcon } from './icon'
+import { renderAgentLink } from './agentinfo'
 
 // `typed` flips the moment you put a character in the box. Before that, the 2s
 // countdown runs (tap ✓ and walk away). After it, the countdown is off for good and
@@ -93,24 +94,27 @@ export function renderPanel(container: HTMLElement): void {
   const titleWrap = el('div', { style: 'display:flex;align-items:center;gap:8px;' })
   titleWrap.appendChild(renderHeaderIcon())
   titleWrap.appendChild(title)
-  const addBtn = createBtn('+', 'btn-accent btn-sm', () => navigate('create'))
-  addBtn.dataset.tip = 'new reminder'
-  addBtn.dataset.tipPos = 'below'
-  titleWrap.appendChild(addBtn)
-
+  // Settings sits beside the title, i.e. to the left of the switches.
   const settingsBtn = createBtn('*', 'btn-ghost btn-sm', () => navigate('settings'))
   settingsBtn.dataset.tip = 'settings'
   settingsBtn.dataset.tipPos = 'below'
+  titleWrap.appendChild(settingsBtn)
+
+  // New-task is the far-right action.
+  const addBtn = createBtn('+', 'btn-accent btn-sm', () => navigate('create'))
+  addBtn.dataset.tip = 'new reminder'
+  addBtn.dataset.tipPos = 'below'
 
   const header = el('div', { className: 'fmn-header' },
     titleWrap,
     el('div', { className: 'fmn-header-actions' },
       sortWrap,
       sndWrap,
-      settingsBtn,
+      addBtn,
     ),
   )
   container.appendChild(header)
+  container.appendChild(renderAgentLink())
 
   if (tasks.length === 0) {
     container.appendChild(el('div', { className: 'fmn-empty' }, 'No tasks yet. Hit + to create one.'))

@@ -24,6 +24,7 @@ A standalone, localStorage-backed PWA for recurring task management with urgency
 - **Export/import JSON** — full dataset backup and restore
 - **URL routing** — browser back/forward and swipe gestures work between views
 - **PWA** — installable, works offline via service worker
+- **Agent API** — `window.fmn` lets an AI agent read and configure your tasks by calling functions instead of clicking the UI. Run `fmn.help()` in the console for the full surface; see [llms.txt](public/llms.txt). Cadences are plain words (`"every 2 hours"`, `"daily"`).
 
 ## Run
 

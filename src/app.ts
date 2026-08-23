@@ -12,6 +12,7 @@ import { applyTheme, getAllThemes, importThemeJson, THEMES } from './themes'
 import { updateSettings, isFirstRun } from './store'
 import { checkImportFromUrl } from './transfer'
 import { renderAdmin, checkSetupFromUrl } from './admin'
+import { installAgentApi } from './agent'
 import { applyIcon } from './icon'
 import { renderVibe } from './taskyeet'
 import { renderLoops } from './loops'
@@ -209,6 +210,10 @@ function applyThemeParam(param: string, settings: ReturnType<typeof getSettings>
 async function init(): Promise<void> {
   injectStyles()
   initTheme()
+
+  // Expose window.fmn early, so an agent can drive the app even while the rest
+  // of init (seeding, sound, service worker) is still settling.
+  installAgentApi()
 
   const imported = await checkImportFromUrl()
   if (imported) return

@@ -1,0 +1,52 @@
+# Forget Me Not
+
+> A recurring-task tracker that lives entirely in your browser. Tasks have a
+> cadence ("every 2 hours"), build urgency as they come due, and reset when you
+> check them off. No account, no server: everything is in localStorage.
+
+## For AI agents
+
+This page exposes a scripting API at `window.fmn` so you can configure someone's
+tasks by calling functions — you do not need to click through the UI.
+
+Run JavaScript on https://tasks.lucianlabs.ca and start with:
+
+    fmn.help()
+
+That returns the full method list, the accepted duration formats, and examples,
+as data. Every method returns a JSON-serializable object. Failures come back as
+`{ok: false, error: "..."}` rather than throwing.
+
+### Common calls
+
+    fmn.listTasks()                          // everything, most urgent first
+    fmn.listTasks({overdueOnly: true})       // just what needs doing now
+    fmn.createTask({title: "stretch", cadence: "45m", category: "health"})
+    fmn.createTasks([...])                   // several at once
+    fmn.completeTask(id)                     // check it off, restart its cycle
+    fmn.updateTask(id, {cadence: "3 days"})
+    fmn.setTheme("sakura")
+    fmn.exportData() / fmn.importData(json)  // whole-dataset backup + restore
+
+### Durations
+
+Anywhere a cadence is accepted, write it how you'd say it: "90s", "15m", "2h",
+"3 days", "1h 30m", "every 2 hours", "every day", or "daily"/"weekly"/"hourly".
+Plain numbers are seconds.
+
+### Setups
+
+A "setup" is a shareable bundle — a theme, sounds, categories and a set of
+starter tasks — that can be applied to a fresh install:
+
+    fmn.listSetups()
+    fmn.applySetup(idOrJson)
+    fmn.captureSetup({name: "Morning routine"})   // returns shareable JSON
+
+### Scope and limits
+
+- The data is per-browser and per-origin. There is no remote API; these calls
+  only work from JavaScript running on this page.
+- Changes take effect immediately and re-render the open view.
+- `fmn.deleteTask` and `fmn.importData` are destructive. Confirm with the person
+  before calling them.

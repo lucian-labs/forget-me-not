@@ -25,6 +25,7 @@ A standalone, localStorage-backed PWA for recurring task management with urgency
 - **URL routing** — browser back/forward and swipe gestures work between views
 - **PWA** — installable, works offline via service worker
 - **Agent API** — `window.fmn` lets an AI agent read and configure your tasks by calling functions instead of clicking the UI. Run `fmn.help()` in the console for the full surface; see [llms.txt](public/llms.txt). Cadences are plain words (`"every 2 hours"`, `"daily"`).
+  - Hotlink [`tasks.lucianlabs.ca/?model=ai`](https://tasks.lucianlabs.ca/?model=ai) from a blog post to land readers on the app with the "get your ai to talk to me" explainer already open.
 
 ## Run
 

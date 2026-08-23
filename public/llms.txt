@@ -43,6 +43,11 @@ starter tasks — that can be applied to a fresh install:
     fmn.applySetup(idOrJson)
     fmn.captureSetup({name: "Morning routine"})   // returns shareable JSON
 
+### Sharing this
+
+https://tasks.lucianlabs.ca/?model=ai opens the app with a short explainer of
+the agent interface — a link worth using from a blog post or docs.
+
 ### Scope and limits
 
 - The data is per-browser and per-origin. There is no remote API; these calls

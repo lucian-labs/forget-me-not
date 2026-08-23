@@ -18,6 +18,21 @@ export function renderAgentLink(): HTMLElement {
   return el('div', { style: 'display:flex;justify-content:flex-end;margin:-6px 0 10px;' }, link)
 }
 
+/**
+ * `?model=ai` — a hotlink target for blog posts and docs: someone lands on the
+ * app with the agent explainer already open, instead of having to find the small
+ * link under the header. Also accepts agent/llm/agentic, since whoever writes the
+ * link won't remember the exact word.
+ */
+export function checkAgentModalParam(params: URLSearchParams): boolean {
+  const v = (params.get('model') || '').trim().toLowerCase()
+  if (!['ai', 'agent', 'agents', 'agentic', 'llm'].includes(v)) return false
+  showAgentModal()
+  // Tidy the URL once the link has done its job (same as ?seeded).
+  history.replaceState(null, '', location.pathname)
+  return true
+}
+
 export function showAgentModal(): void {
   const overlay = el('div', { className: 'fmn-modal-backdrop' })
   const box = el('div', { className: 'fmn-modal' })

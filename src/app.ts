@@ -12,6 +12,7 @@ import { applyTheme, getAllThemes, importThemeJson, THEMES } from './themes'
 import { updateSettings, isFirstRun } from './store'
 import { checkImportFromUrl } from './transfer'
 import { renderAdmin, checkSetupFromUrl } from './admin'
+import { checkAgentModalParam } from './agentinfo'
 import { installAgentApi } from './agent'
 import { applyIcon } from './icon'
 import { renderVibe } from './taskyeet'
@@ -238,6 +239,10 @@ async function init(): Promise<void> {
   window.addEventListener('popstate', onPopState)
 
   render()
+
+  // ?model=ai — the link to drop in a blog post: lands with the agent explainer up.
+  checkAgentModalParam(params)
+
   startRenderLoop()
 
   await initSound()

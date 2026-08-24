@@ -28,7 +28,11 @@ const captures = new Map<string, CaptureState>()
 //
 // The DATA is committed the moment you check something — only the visuals wait.
 // Deferring the write would mean closing the tab mid-sweep silently loses ticks.
-const queued = new Map<string, HTMLElement>()
+const queued = new Set<string>()
+// The card order held still while the pointer is on the list. Freezing the ORDER
+// (rather than blocking renders) is what makes this robust: opening a capture or
+// snoozing re-renders the panel, and those paths would otherwise re-sort.
+let frozenOrder: string[] | null = null
 let releaseTimer: number | null = null
 let renderWasDeferred = false
 let hoverWired = false
@@ -52,6 +56,7 @@ function wireHoverHold(container: HTMLElement): void {
   container.addEventListener('pointerover', (e) => {
     if (!(e.target as HTMLElement)?.closest?.('.fmn-task')) return
     if (releaseTimer) { clearTimeout(releaseTimer); releaseTimer = null }
+    if (!pointerOnList) freezeOrder()
     pointerOnList = true
   })
 
@@ -64,19 +69,30 @@ function wireHoverHold(container: HTMLElement): void {
   })
 }
 
+/** Pin the current running order so nothing reshuffles under the pointer. */
+function freezeOrder(): void {
+  const live = getTasks().filter((t) => t.status !== 'done' && t.status !== 'archived' && t.status !== 'cancelled')
+  frozenOrder = sortTasks(live).map((t) => t.id)
+}
+
 /** Park a checked-off card: it stays put, lifted, until the pointer leaves. */
 function queueCard(id: string, card: HTMLElement): void {
   card.querySelector('.fmn-capture')?.remove()
   card.classList.add('fmn-queued')
-  queued.set(id, card)
+  queued.add(id)
 }
 
 /** Pointer left: send every queued card off at once, then let the list settle. */
 function release(): void {
   releaseTimer = null
   pointerOnList = false
+  frozenOrder = null
 
-  const cards = [...queued.values()].filter((c) => c.isConnected)
+  // Look the cards up now: a re-render since queueing will have replaced the
+  // elements we first marked, so held references would be stale.
+  const cards = [...queued]
+    .map((id) => document.querySelector<HTMLElement>(`.fmn-task[data-task-id="${id}"]`))
+    .filter((c): c is HTMLElement => !!c?.isConnected)
   queued.clear()
 
   if (!cards.length) {
@@ -210,6 +226,12 @@ function sectionWithToggle(label: string, toggleEl: HTMLElement): HTMLElement {
 }
 
 function sortTasks(tasks: Task[]): Task[] {
+  // Held: keep the order the user is looking at. Anything new (a spawned
+  // follow-up) lands at the end rather than jumping into the middle.
+  if (frozenOrder) {
+    const rank = new Map(frozenOrder.map((id, i) => [id, i]))
+    return [...tasks].sort((a, b) => (rank.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (rank.get(b.id) ?? Number.MAX_SAFE_INTEGER))
+  }
   if (sortByTime) return [...tasks].sort((a, b) => getRemainingSeconds(a) - getRemainingSeconds(b))
   return [...tasks].sort((a, b) => getUrgencyRatio(b) - getUrgencyRatio(a))
 }
@@ -246,6 +268,8 @@ function renderTaskItem(task: Task): HTMLElement {
 
   const card = el('div', { className: `fmn-card fmn-task ${urgencyClass}` })
   card.dataset.taskId = task.id
+  // Still parked from a check-off earlier in this hover.
+  if (queued.has(task.id)) card.classList.add('fmn-queued')
   const row = el('div', { className: 'fmn-task-row' })
 
   // Card tooltip — shows time + cadence info

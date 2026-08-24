@@ -280,17 +280,43 @@ button:active { opacity: 0.8; }
    It lifts, dims and floats in place until you move away, then every queued card
    runs its exit animation together. */
 .fmn-task.fmn-queued {
-  opacity: 0.5;
+  opacity: 0.62;
   border-color: var(--green);
   box-shadow: 0 8px 22px -12px var(--green);
   animation: fmnQueuedFloat 2.6s ease-in-out infinite;
 }
 
 /* Already committed — don't let a second click double-fire on a queued card.
-   The card itself stays hoverable so the hold doesn't release under the pointer. */
-.fmn-task.fmn-queued button,
-.fmn-task.fmn-queued input {
+   The card stays hoverable (so the hold doesn't release under the pointer) and
+   its note box stays live: limbo is exactly when you jot what you actually did. */
+.fmn-task.fmn-queued button {
   pointer-events: none;
+}
+
+/* The note box on a parked card. Kept at full opacity so it stays readable
+   against the dimmed card. */
+.fmn-queued-note {
+  width: 100%;
+  margin-top: 8px;
+  padding: 5px 8px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--green);
+  border-radius: calc(var(--radius) / 2);
+  opacity: 0.9;
+}
+
+.fmn-queued-note::placeholder {
+  color: var(--dim);
+  opacity: 0.7;
+}
+
+.fmn-queued-note:focus {
+  outline: none;
+  opacity: 1;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--green) 25%, transparent);
 }
 
 .fmn-task.fmn-queued .fmn-task-title {

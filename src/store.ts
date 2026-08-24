@@ -266,6 +266,29 @@ function spawnFollowUp(parent: Task): void {
   })
 }
 
+/**
+ * Attach a note to the most recent checkpoint (reset/complete) on a task.
+ * Used by the hover-hold limbo state: you tick something off, then jot down what
+ * actually happened before it flies away — so the note lands ON that checkpoint
+ * rather than becoming a second, orphaned history entry. Falls back to appending
+ * a plain note if there's no checkpoint to hang it on.
+ */
+export function annotateLastAction(id: string, note: string): Task | undefined {
+  const task = getTask(id)
+  const text = note.trim()
+  if (!task || !text) return undefined
+  const log = [...task.actionLog]
+  for (let i = log.length - 1; i >= 0; i--) {
+    if (log[i].action === 'reset' || log[i].action === 'complete') {
+      log[i] = { ...log[i], note: text }
+      return updateTask(id, { actionLog: log })
+    }
+  }
+  return updateTask(id, {
+    actionLog: [...log, { note: text, at: new Date().toISOString(), action: 'note' as const }],
+  })
+}
+
 export function addActionNote(id: string, note: string): Task | undefined {
   const task = getTask(id)
   if (!task) return undefined

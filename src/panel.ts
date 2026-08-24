@@ -2,7 +2,7 @@ import type { Task } from './types'
 import {
   getTasks, getSettings, updateSettings, getUrgencyRatio, getUrgencyColor, getUrgencyClass,
   getRemainingSeconds, resetTask, completeTask, snoozeTask, archiveTask, addActionNote,
-  restartCycle,
+  restartCycle, annotateLastAction,
   getCycleHistory,
 } from './store'
 import { formatTime, formatCadence, el, renderStreakStrip } from './utils'
@@ -29,6 +29,9 @@ const captures = new Map<string, CaptureState>()
 // The DATA is committed the moment you check something — only the visuals wait.
 // Deferring the write would mean closing the tab mid-sweep silently loses ticks.
 const queued = new Set<string>()
+// What you've typed on a parked card. Kept by task id because re-renders during
+// the hover replace the DOM elements underneath.
+const queuedNotes = new Map<string, string>()
 // The card order held still while the pointer is on the list. Freezing the ORDER
 // (rather than blocking renders) is what makes this robust: opening a capture or
 // snoozing re-renders the panel, and those paths would otherwise re-sort.
@@ -80,13 +83,59 @@ function queueCard(id: string, card: HTMLElement): void {
   card.querySelector('.fmn-capture')?.remove()
   card.classList.add('fmn-queued')
   queued.add(id)
+  attachQueuedNote(card, id)
+}
+
+/**
+ * A parked card stays writable: it's already committed, but limbo is exactly when
+ * you want to say what you actually did. Enter files it; otherwise it's harvested
+ * on release, so wandering off never costs you the text.
+ */
+function attachQueuedNote(card: HTMLElement, id: string): void {
+  if (card.querySelector('.fmn-queued-note')) return
+  const input = el('input', {
+    className: 'fmn-queued-note',
+    type: 'text',
+    placeholder: 'what happened? (optional)',
+  }) as HTMLInputElement
+  input.value = queuedNotes.get(id) ?? ''
+
+  input.addEventListener('input', () => queuedNotes.set(id, input.value))
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { saveQueuedNote(id); input.blur() }
+    if (e.key === 'Escape') { queuedNotes.delete(id); input.value = ''; input.blur() }
+  })
+  // Clicking the parked card puts the cursor straight in the box.
+  card.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('button')) return
+    input.focus()
+  })
+  card.appendChild(input)
+}
+
+function saveQueuedNote(id: string): void {
+  const text = (queuedNotes.get(id) ?? '').trim()
+  if (!text) return
+  annotateLastAction(id, text)
+  queuedNotes.delete(id)
 }
 
 /** Pointer left: send every queued card off at once, then let the list settle. */
 function release(): void {
+  // Still writing in a parked card: hold everything until they're done.
+  const active = document.activeElement as HTMLElement | null
+  if (active?.classList.contains('fmn-queued-note')) {
+    releaseTimer = window.setTimeout(release, 400)
+    return
+  }
+
   releaseTimer = null
   pointerOnList = false
   frozenOrder = null
+
+  // Harvest anything typed but never submitted, before the cards leave.
+  for (const id of queued) saveQueuedNote(id)
+  queuedNotes.clear()
 
   // Look the cards up now: a re-render since queueing will have replaced the
   // elements we first marked, so held references would be stale.
@@ -269,7 +318,10 @@ function renderTaskItem(task: Task): HTMLElement {
   const card = el('div', { className: `fmn-card fmn-task ${urgencyClass}` })
   card.dataset.taskId = task.id
   // Still parked from a check-off earlier in this hover.
-  if (queued.has(task.id)) card.classList.add('fmn-queued')
+  if (queued.has(task.id)) {
+    card.classList.add('fmn-queued')
+    requestAnimationFrame(() => attachQueuedNote(card, task.id))
+  }
   const row = el('div', { className: 'fmn-task-row' })
 
   // Card tooltip — shows time + cadence info

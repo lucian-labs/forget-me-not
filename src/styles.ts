@@ -276,6 +276,38 @@ button:active { opacity: 0.8; }
   z-index: 10;
 }
 
+/* Hover-hold: a card you've checked off while the pointer is still on the list.
+   It lifts, dims and floats in place until you move away, then every queued card
+   runs its exit animation together. */
+.fmn-task.fmn-queued {
+  opacity: 0.5;
+  border-color: var(--green);
+  box-shadow: 0 8px 22px -12px var(--green);
+  animation: fmnQueuedFloat 2.6s ease-in-out infinite;
+}
+
+/* Already committed — don't let a second click double-fire on a queued card.
+   The card itself stays hoverable so the hold doesn't release under the pointer. */
+.fmn-task.fmn-queued button,
+.fmn-task.fmn-queued input {
+  pointer-events: none;
+}
+
+.fmn-task.fmn-queued .fmn-task-title {
+  text-decoration: line-through;
+  text-decoration-color: var(--green);
+  opacity: 0.75;
+}
+
+@keyframes fmnQueuedFloat {
+  0%, 100% { transform: translateY(-3px) scale(0.99); }
+  50%      { transform: translateY(-7px) scale(0.99); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fmn-task.fmn-queued { animation: none; transform: translateY(-3px) scale(0.99); }
+}
+
 /* Task item */
 
 .fmn-task {

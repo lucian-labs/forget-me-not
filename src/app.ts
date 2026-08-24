@@ -1,7 +1,7 @@
 import type { View } from './types'
 import { injectStyles } from './styles'
 import { getSettings, getTasks, getUrgencyRatio, checkDoubleLapsed } from './store'
-import { renderPanel, updatePanelTimers, isSleepMode } from './panel'
+import { renderPanel, updatePanelTimers, isSleepMode, deferPanelRender } from './panel'
 import { renderDetail } from './detail'
 import { renderSettings } from './settings'
 import { renderCreate } from './create'
@@ -161,7 +161,8 @@ function startRenderLoop(): void {
     if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT')) return
     if (currentView === 'panel') {
       const content = document.querySelector('.fmn-content') as HTMLElement
-      if (content && updatePanelTimers(content)) renderPanel(content)
+      // deferPanelRender() holds the re-sort while the pointer is over the list.
+      if (content && updatePanelTimers(content) && !deferPanelRender()) renderPanel(content)
     }
   }, 1000)
 }

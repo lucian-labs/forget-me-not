@@ -20,6 +20,78 @@ import { renderAgentLink } from './agentinfo'
 type CaptureState = { timer: number | null; mode: 'check' | 'note'; card: HTMLElement | null; startedAt: number; typed: boolean; draft: string }
 
 const captures = new Map<string, CaptureState>()
+
+// --- hover-hold -------------------------------------------------------------
+// While the pointer is over the list, nothing re-sorts and nothing leaves: cards
+// you check off park in a lifted "queued" state and fly away together once you
+// move off. Lets you tick several things without the list shuffling under you.
+//
+// The DATA is committed the moment you check something — only the visuals wait.
+// Deferring the write would mean closing the tab mid-sweep silently loses ticks.
+const queued = new Map<string, HTMLElement>()
+let releaseTimer: number | null = null
+let renderWasDeferred = false
+let hoverWired = false
+// Hover-hold is a mouse affordance. On touch there is no hover, so leave the
+// original behaviour alone rather than inventing a 260ms delay for everyone.
+const HOVER_CAPABLE = typeof matchMedia === 'function' && matchMedia('(hover: hover)').matches
+
+let pointerOnList = false
+
+/** True if the panel should NOT re-render right now; remembers that it wanted to. */
+export function deferPanelRender(): boolean {
+  if (!HOVER_CAPABLE || !pointerOnList) return false
+  renderWasDeferred = true
+  return true
+}
+
+function wireHoverHold(container: HTMLElement): void {
+  if (hoverWired || !HOVER_CAPABLE) return
+  hoverWired = true
+
+  container.addEventListener('pointerover', (e) => {
+    if (!(e.target as HTMLElement)?.closest?.('.fmn-task')) return
+    if (releaseTimer) { clearTimeout(releaseTimer); releaseTimer = null }
+    pointerOnList = true
+  })
+
+  container.addEventListener('pointerout', (e) => {
+    const to = (e as PointerEvent).relatedTarget as HTMLElement | null
+    // Moving between cards (or across the gap between them) is still "on the list".
+    if (to?.closest?.('.fmn-task')) return
+    if (releaseTimer) clearTimeout(releaseTimer)
+    releaseTimer = window.setTimeout(release, 260)
+  })
+}
+
+/** Park a checked-off card: it stays put, lifted, until the pointer leaves. */
+function queueCard(id: string, card: HTMLElement): void {
+  card.querySelector('.fmn-capture')?.remove()
+  card.classList.add('fmn-queued')
+  queued.set(id, card)
+}
+
+/** Pointer left: send every queued card off at once, then let the list settle. */
+function release(): void {
+  releaseTimer = null
+  pointerOnList = false
+
+  const cards = [...queued.values()].filter((c) => c.isConnected)
+  queued.clear()
+
+  if (!cards.length) {
+    if (renderWasDeferred) { renderWasDeferred = false; navigate('panel') }
+    return
+  }
+
+  // Drop the queued styling and start the exit in the same synchronous block, so
+  // the browser never paints the un-lifted state in between.
+  for (const c of cards) c.classList.remove('fmn-queued')
+  Promise.all(cards.map((c) => animateOut(c))).then(() => {
+    renderWasDeferred = false
+    navigate('panel')
+  })
+}
 let groupByCategory = localStorage.getItem('fmn-categorize') === 'true'
 let sortByTime = localStorage.getItem('fmn-sort') === 'time'
 // Sleep mode is on by default (no auto-resets). Toggle UI removed for now.
@@ -113,6 +185,8 @@ export function renderPanel(container: HTMLElement): void {
       addBtn,
     ),
   )
+  wireHoverHold(container)
+
   container.appendChild(header)
   container.appendChild(renderAgentLink())
 
@@ -384,13 +458,25 @@ function executeCapture(task: Task, note: string): void {
   const cardEl = cap?.card
   captures.delete(task.id)
 
-  const finish = () => {
+  const commit = () => {
     if (task.recurring) {
       resetTask(task.id, note)
     } else {
       completeTask(task.id, note)
     }
+  }
+
+  const finish = () => {
+    commit()
     navigate('panel')
+  }
+
+  // Pointer still on the list: write the change, then park the card and wait so
+  // the rest of the list doesn't move while you're ticking things off.
+  if (cardEl && pointerOnList && HOVER_CAPABLE) {
+    commit()
+    queueCard(task.id, cardEl)
+    return
   }
 
   if (cardEl) {

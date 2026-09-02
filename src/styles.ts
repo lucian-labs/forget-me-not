@@ -293,12 +293,19 @@ button:active { opacity: 0.8; }
   pointer-events: none;
 }
 
-/* The note box on a parked card. Kept at full opacity so it stays readable
-   against the dimmed card. */
+/* The note box on a parked card. It lives INSIDE the title row and takes over the
+   space the countdown/prompt used, so a parked card is exactly as tall as it was
+   — adding a row underneath shifted the whole list every time you ticked one. */
+.fmn-task.fmn-queued .fmn-task-meta,
+.fmn-task.fmn-queued .fmn-prompt {
+  display: none;
+}
+
 .fmn-queued-note {
-  width: 100%;
-  margin-top: 8px;
-  padding: 5px 8px;
+  flex: 1;
+  min-width: 0;
+  margin-left: auto;
+  padding: 2px 8px;
   font-family: var(--font-body);
   font-size: 12px;
   color: var(--text);

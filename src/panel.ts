@@ -96,7 +96,7 @@ function attachQueuedNote(card: HTMLElement, id: string): void {
   const input = el('input', {
     className: 'fmn-queued-note',
     type: 'text',
-    placeholder: 'what happened? (optional)',
+    placeholder: 'quick note',
   }) as HTMLInputElement
   input.value = queuedNotes.get(id) ?? ''
 
@@ -110,7 +110,12 @@ function attachQueuedNote(card: HTMLElement, id: string): void {
     if ((e.target as HTMLElement).closest('button')) return
     input.focus()
   })
-  card.appendChild(input)
+
+  // Into the title's own row: same line as the task name, so you can see what
+  // you're annotating and the card keeps exactly the height it already had.
+  const row = card.querySelector('.fmn-task-row')
+  if (row) row.appendChild(input)
+  else card.appendChild(input)
 }
 
 function saveQueuedNote(id: string): void {

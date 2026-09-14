@@ -565,6 +565,50 @@ button:active { opacity: 0.8; }
 .fmn-badge-critical { background: rgba(239, 68, 68, 0.15); color: var(--red); }
 .fmn-badge-recurring { background: rgba(34, 211, 238, 0.15); color: var(--cyan); }
 
+/* Overdue microtasks — tiny checkable steps that grow the longer a task sits past due */
+
+.fmn-micro {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 6px 0 0 34px;
+  padding: 0;
+}
+
+.fmn-micro-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--orange);
+  cursor: pointer;
+  user-select: none;
+  animation: fmnMicroIn 0.3s ease-out;
+}
+
+.fmn-micro-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  font-size: 9px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+}
+
+.fmn-micro-item:hover .fmn-micro-text { text-decoration: underline; }
+
+.fmn-micro-done { color: var(--green); }
+.fmn-micro-done .fmn-micro-text { text-decoration: line-through; opacity: 0.7; }
+
+@keyframes fmnMicroIn {
+  from { opacity: 0; transform: translateY(-3px); }
+  to   { opacity: 1; transform: none; }
+}
+
 /* Prompt display */
 
 .fmn-prompt {

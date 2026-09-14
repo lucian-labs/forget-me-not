@@ -11,6 +11,7 @@ import { animateOut, cancelAnimateOut } from './animate'
 import { appName } from './brand'
 import { renderHeaderIcon } from './icon'
 import { renderAgentLink } from './agentinfo'
+import { renderMicrotasks, syncMicrotasks } from './microtasks'
 
 // `typed` flips the moment you put a character in the box. Before that, the 2s
 // countdown runs (tap ✓ and walk away). After it, the countdown is off for good and
@@ -166,7 +167,6 @@ let groupByCategory = localStorage.getItem('fmn-categorize') === 'true'
 let sortByTime = localStorage.getItem('fmn-sort') === 'time'
 // Sleep mode is on by default (no auto-resets). Toggle UI removed for now.
 export function isSleepMode(): boolean { return true }
-const promptCache = new Map<string, { text: string; at: number }>()
 let catWrap: HTMLElement
 const prevOverdue = new Set<string>()
 
@@ -369,15 +369,6 @@ function renderTaskItem(task: Task): HTMLElement {
   titleEl.onclick = () => navigate('detail', task.id)
   row.appendChild(titleEl)
 
-  // Overdue prompt — inline next to title
-  if (isOverdue && task.prompts.length > 0) {
-    const now = Date.now()
-    const cached = promptCache.get(task.id)
-    if (!cached || now - cached.at > 10000) {
-      promptCache.set(task.id, { text: task.prompts[Math.floor(Math.random() * task.prompts.length)], at: now })
-    }
-    row.appendChild(el('span', { className: 'fmn-prompt' }, `? ${promptCache.get(task.id)!.text}`))
-  }
 
   if (!isRecurring && task.priority !== 'normal') {
     row.appendChild(el('span', { className: `fmn-badge fmn-badge-${task.priority}` }, task.priority))
@@ -422,6 +413,10 @@ function renderTaskItem(task: Task): HTMLElement {
   }
 
   card.appendChild(row)
+
+  // Overdue microtasks sit under the title row.
+  const micro = renderMicrotasks(task, ratio)
+  if (micro) card.appendChild(micro)
 
   // Progress bar — hidden in clock mode via height transition
   const progress = el('div', { className: `fmn-progress${sortByTime ? ' fmn-progress-hidden' : ''}` })
@@ -657,27 +652,8 @@ export function updatePanelTimers(container: HTMLElement): boolean {
       fill.style.background = color
     }
 
-    // Update overdue prompt (lives in the task row, next to title)
-    const row = card.querySelector('.fmn-task-row')
-    const existingPrompt = row?.querySelector('.fmn-prompt')
-    if (isOverdue && task.prompts.length > 0) {
-      const now = Date.now()
-      const cached = promptCache.get(task.id)
-      if (!cached || now - cached.at > 10000) {
-        promptCache.set(task.id, { text: task.prompts[Math.floor(Math.random() * task.prompts.length)], at: now })
-      }
-      const promptText = `? ${promptCache.get(task.id)!.text}`
-      if (existingPrompt) {
-        existingPrompt.textContent = promptText
-      } else if (row) {
-        const titleEl = row.querySelector('.fmn-task-title')
-        const promptEl = el('span', { className: 'fmn-prompt' }, promptText)
-        if (titleEl?.nextSibling) row.insertBefore(promptEl, titleEl.nextSibling)
-        else row.appendChild(promptEl)
-      }
-    } else if (existingPrompt) {
-      existingPrompt.remove()
-    }
+    // Overdue microtasks: grow the checklist in place as the task sits past due.
+    syncMicrotasks(card, task, ratio)
   }
 
   // Check if sort order has drifted from current DOM order

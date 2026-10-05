@@ -1,11 +1,10 @@
 // Overdue hints. A task's `prompts` surface as plain-text hints once the task
-// hits its deadline — one at first, another every quarter-cycle past due. They
-// are hints, not a checklist: nothing to tick, nothing stored.
+// hits its deadline, one at a time, rotating every 10s. They are hints, not a
+// checklist: nothing to tick, nothing stored.
 
 import type { Task } from './types'
 import { el } from './utils'
 
-const STEP = 0.25 // one more item per 25% of the cycle past due
 
 /** Identifies the current cycle, so ticks reset when the loop does. */
 function cycleKey(task: Task): string {
@@ -28,10 +27,11 @@ function orderFor(task: Task): string[] {
   return items
 }
 
+/** One hint at a time, rotating every 10s through this cycle's shuffled order. */
 export function visibleMicrotasks(task: Task, ratio: number): string[] {
   if (ratio < 1 || !task.prompts?.length) return []
   const order = orderFor(task)
-  return order.slice(0, Math.min(order.length, 1 + Math.floor((ratio - 1) / STEP)))
+  return [order[Math.floor(Date.now() / 10000) % order.length]]
 }
 
 /** Signature of what's on screen, so the 1s tick only rebuilds when it changes. */

@@ -577,32 +577,12 @@ button:active { opacity: 0.8; }
 }
 
 .fmn-micro-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
   font-family: var(--font-body);
   font-size: 12px;
+  font-style: italic;
   color: var(--orange);
-  cursor: pointer;
-  user-select: none;
   animation: fmnMicroIn 0.3s ease-out;
 }
-
-.fmn-micro-box {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 12px;
-  height: 12px;
-  font-size: 9px;
-  border: 1px solid currentColor;
-  border-radius: 3px;
-}
-
-.fmn-micro-item:hover .fmn-micro-text { text-decoration: underline; }
-
-.fmn-micro-done { color: var(--green); }
-.fmn-micro-done .fmn-micro-text { text-decoration: line-through; opacity: 0.7; }
 
 @keyframes fmnMicroIn {
   from { opacity: 0; transform: translateY(-3px); }

@@ -1,23 +1,11 @@
-// Overdue microtasks. A task's `prompts` used to surface as one rotating line of
-// text; now they populate a small checklist that grows the longer the task sits
-// overdue — one step at first, another every quarter-cycle past due. One tiny
-// thing to start is the point; the list only gets longer if you're still stuck.
+// Overdue hints. A task's `prompts` surface as plain-text hints once the task
+// hits its deadline — one at first, another every quarter-cycle past due. They
+// are hints, not a checklist: nothing to tick, nothing stored.
 
 import type { Task } from './types'
 import { el } from './utils'
 
-const STORE_KEY = 'fmn-microtasks'
 const STEP = 0.25 // one more item per 25% of the cycle past due
-
-type DoneMap = Record<string, { cycle: string; done: string[] }>
-
-function readDone(): DoneMap {
-  try { return JSON.parse(localStorage.getItem(STORE_KEY) || '{}') as DoneMap } catch { return {} }
-}
-
-function writeDone(map: DoneMap): void {
-  localStorage.setItem(STORE_KEY, JSON.stringify(map))
-}
 
 /** Identifies the current cycle, so ticks reset when the loop does. */
 function cycleKey(task: Task): string {
@@ -46,43 +34,18 @@ export function visibleMicrotasks(task: Task, ratio: number): string[] {
   return order.slice(0, Math.min(order.length, 1 + Math.floor((ratio - 1) / STEP)))
 }
 
-function doneFor(task: Task): Set<string> {
-  const entry = readDone()[task.id]
-  return new Set(entry && entry.cycle === cycleKey(task) ? entry.done : [])
-}
-
-function toggle(task: Task, item: string): void {
-  const map = readDone()
-  const done = doneFor(task)
-  if (done.has(item)) done.delete(item)
-  else done.add(item)
-  map[task.id] = { cycle: cycleKey(task), done: [...done] }
-  writeDone(map)
-}
-
 /** Signature of what's on screen, so the 1s tick only rebuilds when it changes. */
 function signature(task: Task, ratio: number): string {
-  const done = doneFor(task)
-  return visibleMicrotasks(task, ratio).map((m) => (done.has(m) ? '+' : '-') + m).join('|')
+  return visibleMicrotasks(task, ratio).join('|')
 }
 
 export function renderMicrotasks(task: Task, ratio: number): HTMLElement | null {
   const items = visibleMicrotasks(task, ratio)
   if (!items.length) return null
-  const done = doneFor(task)
   const list = el('ul', { className: 'fmn-micro' })
   list.dataset.sig = signature(task, ratio)
   for (const item of items) {
-    const li = el('li', { className: done.has(item) ? 'fmn-micro-item fmn-micro-done' : 'fmn-micro-item' })
-    li.appendChild(el('span', { className: 'fmn-micro-box' }, done.has(item) ? '✓' : ''))
-    li.appendChild(el('span', { className: 'fmn-micro-text' }, item))
-    li.addEventListener('click', (e) => {
-      e.stopPropagation()
-      toggle(task, item)
-      const fresh = renderMicrotasks(task, ratio)
-      if (fresh) list.replaceWith(fresh)
-    })
-    list.appendChild(li)
+    list.appendChild(el('li', { className: 'fmn-micro-item' }, `? ${item}`))
   }
   return list
 }

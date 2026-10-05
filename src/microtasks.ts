@@ -39,25 +39,26 @@ function signature(task: Task, ratio: number): string {
   return visibleMicrotasks(task, ratio).join('|')
 }
 
+/** Inline hint for the title row — reuses .fmn-prompt so the card never changes size. */
 export function renderMicrotasks(task: Task, ratio: number): HTMLElement | null {
-  const items = visibleMicrotasks(task, ratio)
-  if (!items.length) return null
-  const list = el('ul', { className: 'fmn-micro' })
-  list.dataset.sig = signature(task, ratio)
-  for (const item of items) {
-    list.appendChild(el('li', { className: 'fmn-micro-item' }, `? ${item}`))
-  }
-  return list
+  const [item] = visibleMicrotasks(task, ratio)
+  if (!item) return null
+  const hint = el('span', { className: 'fmn-prompt' }, `? ${item}`)
+  hint.dataset.sig = signature(task, ratio)
+  return hint
 }
 
-/** Tick-time update: insert, grow, or remove the list without a full re-render. */
+/** Tick-time update: insert, swap, or remove the hint without a full re-render. */
 export function syncMicrotasks(card: HTMLElement, task: Task, ratio: number): void {
-  const existing = card.querySelector<HTMLElement>('.fmn-micro')
+  const row = card.querySelector('.fmn-task-row')
+  const existing = row?.querySelector<HTMLElement>('.fmn-prompt')
   const sig = signature(task, ratio)
   if (!sig) { existing?.remove(); return }
   if (existing?.dataset.sig === sig) return
   const fresh = renderMicrotasks(task, ratio)
-  if (!fresh) return
+  if (!fresh || !row) return
   if (existing) { existing.replaceWith(fresh); return }
-  card.querySelector('.fmn-task-row')?.after(fresh)
+  const title = row.querySelector('.fmn-task-title')
+  if (title?.nextSibling) row.insertBefore(fresh, title.nextSibling)
+  else row.appendChild(fresh)
 }

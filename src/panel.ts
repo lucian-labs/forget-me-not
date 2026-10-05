@@ -370,6 +370,10 @@ function renderTaskItem(task: Task): HTMLElement {
   row.appendChild(titleEl)
 
 
+  // Overdue hint — inline beside the title so the card keeps its height.
+  const hint = renderMicrotasks(task, ratio)
+  if (hint) row.appendChild(hint)
+
   if (!isRecurring && task.priority !== 'normal') {
     row.appendChild(el('span', { className: `fmn-badge fmn-badge-${task.priority}` }, task.priority))
   }
@@ -414,9 +418,6 @@ function renderTaskItem(task: Task): HTMLElement {
 
   card.appendChild(row)
 
-  // Overdue microtasks sit under the title row.
-  const micro = renderMicrotasks(task, ratio)
-  if (micro) card.appendChild(micro)
 
   // Progress bar — hidden in clock mode via height transition
   const progress = el('div', { className: `fmn-progress${sortByTime ? ' fmn-progress-hidden' : ''}` })
